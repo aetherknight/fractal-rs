@@ -1,6 +1,6 @@
 use glutin_window::GlutinWindow as Window;
 use graphics;
-use opengl_graphics::{ GlGraphics, OpenGL };
+use opengl_graphics::{GlGraphics, OpenGL};
 use piston::event_loop::*;
 use piston::input::*;
 use piston::window::WindowSettings;
@@ -21,12 +21,16 @@ impl WindowHandler {
         let opengl = OpenGL::V3_2;
 
         let window: Window = WindowSettings::new("Fractal", [800, 600])
-            .opengl(opengl)
-            .exit_on_esc(true)
-            .build()
-            .unwrap_or_else(|e| { panic!("Failed to build Window: {}", e) });
+                                 .opengl(opengl)
+                                 .exit_on_esc(true)
+                                 .build()
+                                 .unwrap_or_else(|e| panic!("Failed to build Window: {}", e));
 
-        WindowHandler { opengl: opengl, window: window, redraw: true }
+        WindowHandler {
+            opengl: opengl,
+            window: window,
+            redraw: true,
+        }
     }
 
     pub fn run(mut self, app: &TurtleApp) {
@@ -65,7 +69,10 @@ pub struct GlTurtle<'a> {
 }
 
 impl<'a> GlTurtle<'a> {
-    pub fn new(gl: &'a mut GlGraphics, args: RenderArgs, context: graphics::context::Context) -> GlTurtle {
+    pub fn new(gl: &'a mut GlGraphics,
+               args: RenderArgs,
+               context: graphics::context::Context)
+               -> GlTurtle {
         GlTurtle {
             gl: gl,
             args: args,
@@ -82,7 +89,10 @@ impl<'a> Turtle for GlTurtle<'a> {
         use graphics::*;
 
         let old_pos = self.position;
-        let new_pos = self.position.point_at(Vector { direction: self.angle, magnitude: distance });
+        let new_pos = self.position.point_at(Vector {
+            direction: self.angle,
+            magnitude: distance,
+        });
 
         if self.down {
             // let rotation = 0.0;
@@ -95,18 +105,19 @@ impl<'a> Turtle for GlTurtle<'a> {
 
             // println!("{}, {}", self.args.width, self.args.height);
 
-            let transform = self.context.transform
-                .trans(startx, starty)
-                .zoom(linesize)
-                .flip_v()
-                // .rot_rad(rotation)
-                .trans(0.0, 0.0);
+            let transform = self.context
+                                .transform
+                                .trans(startx, starty)
+                                .zoom(linesize)
+                                .flip_v()
+                                .trans(0.0, 0.0);
 
-            // Line::new(BLACK, 1.0).draw([old_pos.x*linesize, old_pos.y*linesize, new_pos.x*linesize, new_pos.y*linesize],
-            Line::new(BLACK, 0.5/linesize).draw([old_pos.x, old_pos.y, new_pos.x, new_pos.y],
-                                       default_draw_state(),
-                                       transform,
-                                       self.gl);
+            // Line::new(BLACK, 1.0).draw([old_pos.x*linesize, old_pos.y*linesize,
+            // new_pos.x*linesize, new_pos.y*linesize],
+            Line::new(BLACK, 0.5 / linesize).draw([old_pos.x, old_pos.y, new_pos.x, new_pos.y],
+                                                  default_draw_state(),
+                                                  transform,
+                                                  self.gl);
         }
 
         self.position = new_pos;
@@ -122,7 +133,7 @@ impl<'a> Turtle for GlTurtle<'a> {
 
     fn turn_rad(&mut self, radians: f64) {
         use std::f64::consts::PI;
-        self.angle = (self.angle + radians) % (2.0*PI);
+        self.angle = (self.angle + radians) % (2.0 * PI);
     }
 
     fn down(&mut self) {
@@ -133,41 +144,3 @@ impl<'a> Turtle for GlTurtle<'a> {
         self.down = false;
     }
 }
-
-// pub struct FractalApp;
-
-// impl FractalApp {
-//     fn render(&mut self, args: &RenderArgs) {
-//         use graphics::*;
-
-//         let df = DragonFractal::new(1);
-
-//         self.gl.draw(args.viewport(), |context, gl| {
-//             // clear the screen
-//             clear(WHITE, gl);
-
-//             // df.draw(self);
-//             let rotation = 0.0;
-//             let (x, y) = ((args.width / 2) as f64, (args.height / 2) as f64);
-
-//             let transform = context.transform
-//                                    .trans(x, y)
-//                                    .rot_rad(rotation)
-//                                    .trans(0.0, 0.0);
-
-//             graphics::Line::new(BLACK, 1.0).draw([0.0, 0.0, 25.0, 25.0],
-//                                                  graphics::default_draw_state(),
-//                                                  transform,
-//                                                  gl);
-
-//         });
-//     }
-
-//     fn update(&mut self, args: &UpdateArgs) {}
-
-//     fn draw_dimensions(&mut self, args: &RenderArgs) {}
-// }
-
-// impl LineDrawer for FractalApp {
-//     fn draw_line(&mut self, from: Point, to: Point) {}
-// }

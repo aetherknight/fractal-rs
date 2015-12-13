@@ -16,7 +16,7 @@ impl Point {
         let x_delta = (self.x - other.x).abs();
         let y_delta = (self.y - other.y).abs();
 
-        (x_delta*x_delta + y_delta*y_delta).sqrt()
+        (x_delta * x_delta + y_delta * y_delta).sqrt()
     }
 
     /// Computes the point found at Vector from self.
@@ -68,7 +68,7 @@ pub trait Turtle {
 
     /// Set the turtle's direction.
     fn set_deg(&mut self, new_deg: f64) {
-        let rads = new_deg / 360.0 * 2.0*PI;
+        let rads = new_deg / 360.0 * 2.0 * PI;
         self.set_rad(rads);
     }
 
@@ -79,7 +79,7 @@ pub trait Turtle {
     /// Positive values turn the turtle "left" or counter-clockwise. Negative values turn the
     /// turtle "right" or clockwise.
     fn turn_deg(&mut self, degrees: f64) {
-        let rads = degrees / 360.0 * 2.0*PI;
+        let rads = degrees / 360.0 * 2.0 * PI;
         self.turn_rad(rads);
     }
 
@@ -147,55 +147,185 @@ mod test {
     use std::f64::consts::PI;
     use std::f64::consts::SQRT_2;
 
-    use super::{ Point, Vector };
+    use super::{Point, Vector};
 
     #[test]
     fn test_distance_to() {
-        assert_approx_eq!(Point{ x: 0.0, y: 0.0 }.distance_to(Point{ x: 0.0, y: 0.0 }), 0.0, 0.000001);
+        assert_approx_eq!(Point { x: 0.0, y: 0.0 }.distance_to(Point { x: 0.0, y: 0.0 }),
+                          0.0,
+                          0.000001);
 
-        assert_approx_eq!(Point{ x: 0.0, y: 0.0 }.distance_to(Point{ x: 0.0, y: 1.0 }), 1.0, 0.000001);
-        assert_approx_eq!(Point{ x: 0.0, y: 0.0 }.distance_to(Point{ x: 1.0, y: 0.0 }), 1.0, 0.000001);
-        assert_approx_eq!(Point{ x: 0.0, y: 0.0 }.distance_to(Point{ x: 1.0, y: 1.0 }), SQRT_2, 0.000000001);
-        assert_approx_eq!(Point{ x: 1.0, y: 1.0 }.distance_to(Point{ x: 2.0, y: 2.0 }), SQRT_2, 0.000000001);
-        assert_approx_eq!(Point{ x: 1.0, y: 1.0 }.distance_to(Point{ x: 4.0, y: 5.0 }), 5.0, 0.000000001);
+        assert_approx_eq!(Point { x: 0.0, y: 0.0 }.distance_to(Point { x: 0.0, y: 1.0 }),
+                          1.0,
+                          0.000001);
+        assert_approx_eq!(Point { x: 0.0, y: 0.0 }.distance_to(Point { x: 1.0, y: 0.0 }),
+                          1.0,
+                          0.000001);
+        assert_approx_eq!(Point { x: 0.0, y: 0.0 }.distance_to(Point { x: 1.0, y: 1.0 }),
+                          SQRT_2,
+                          0.000000001);
+        assert_approx_eq!(Point { x: 1.0, y: 1.0 }.distance_to(Point { x: 2.0, y: 2.0 }),
+                          SQRT_2,
+                          0.000000001);
+        assert_approx_eq!(Point { x: 1.0, y: 1.0 }.distance_to(Point { x: 4.0, y: 5.0 }),
+                          5.0,
+                          0.000000001);
 
-        assert_approx_eq!(Point{ x: 4.0, y: 5.0 }.distance_to(Point{ x: 1.0, y: 1.0 }), 5.0, 0.000000001);
+        assert_approx_eq!(Point { x: 4.0, y: 5.0 }.distance_to(Point { x: 1.0, y: 1.0 }),
+                          5.0,
+                          0.000000001);
     }
 
     #[test]
     fn test_vector_delta_x() {
-        assert_approx_eq!(Vector { direction: 0.0, magnitude: 1.0 }.delta_x(), 1.0, 0.0000001);
-        assert_approx_eq!(Vector { direction: PI/2.0, magnitude: 1.0 }.delta_x(), 0.0, 0.0000001);
-        assert_approx_eq!(Vector { direction: PI/4.0, magnitude: 1.0 }.delta_x(), (PI/4.0).cos(), 0.0000001);
+        assert_approx_eq!(Vector {
+                              direction: 0.0,
+                              magnitude: 1.0,
+                          }
+                          .delta_x(),
+                          1.0,
+                          0.0000001);
+        assert_approx_eq!(Vector {
+                              direction: PI / 2.0,
+                              magnitude: 1.0,
+                          }
+                          .delta_x(),
+                          0.0,
+                          0.0000001);
+        assert_approx_eq!(Vector {
+                              direction: PI / 4.0,
+                              magnitude: 1.0,
+                          }
+                          .delta_x(),
+                          (PI / 4.0).cos(),
+                          0.0000001);
 
-        assert_approx_eq!(Vector { direction: PI/4.0, magnitude: 5.0 }.delta_x(), (PI/4.0).cos()*5.0, 0.0000001);
-        assert_approx_eq!(Vector { direction: 3.0*PI/4.0, magnitude: 5.0 }.delta_x(), (PI/4.0).cos()*-5.0, 0.0000001);
+        assert_approx_eq!(Vector {
+                              direction: PI / 4.0,
+                              magnitude: 5.0,
+                          }
+                          .delta_x(),
+                          (PI / 4.0).cos() * 5.0,
+                          0.0000001);
+        assert_approx_eq!(Vector {
+                              direction: 3.0 * PI / 4.0,
+                              magnitude: 5.0,
+                          }
+                          .delta_x(),
+                          (PI / 4.0).cos() * -5.0,
+                          0.0000001);
 
-        assert_approx_eq!(Vector { direction: PI, magnitude: 1.0 }.delta_x(), -1.0, 0.0000001);
-        assert_approx_eq!(Vector { direction: PI, magnitude: 5.0 }.delta_x(), -5.0, 0.0000001);
+        assert_approx_eq!(Vector {
+                              direction: PI,
+                              magnitude: 1.0,
+                          }
+                          .delta_x(),
+                          -1.0,
+                          0.0000001);
+        assert_approx_eq!(Vector {
+                              direction: PI,
+                              magnitude: 5.0,
+                          }
+                          .delta_x(),
+                          -5.0,
+                          0.0000001);
 
-        assert_approx_eq!(Vector { direction: 3.0*PI/2.0, magnitude: 1.0 }.delta_x(), 0.0, 0.0000001);
-        assert_approx_eq!(Vector { direction: 3.0*PI/2.0, magnitude: 5.0 }.delta_x(), 0.0, 0.0000001);
+        assert_approx_eq!(Vector {
+                              direction: 3.0 * PI / 2.0,
+                              magnitude: 1.0,
+                          }
+                          .delta_x(),
+                          0.0,
+                          0.0000001);
+        assert_approx_eq!(Vector {
+                              direction: 3.0 * PI / 2.0,
+                              magnitude: 5.0,
+                          }
+                          .delta_x(),
+                          0.0,
+                          0.0000001);
     }
 
     #[test]
     fn test_vector_delta_y() {
-        assert_approx_eq!(Vector { direction: 0.0, magnitude: 1.0 }.delta_y(), 0.0, 0.0000001);
-        assert_approx_eq!(Vector { direction: PI/2.0, magnitude: 1.0 }.delta_y(), 1.0, 0.0000001);
-        assert_approx_eq!(Vector { direction: PI/4.0, magnitude: 1.0 }.delta_y(), (PI/4.0).sin(), 0.0000001);
+        assert_approx_eq!(Vector {
+                              direction: 0.0,
+                              magnitude: 1.0,
+                          }
+                          .delta_y(),
+                          0.0,
+                          0.0000001);
+        assert_approx_eq!(Vector {
+                              direction: PI / 2.0,
+                              magnitude: 1.0,
+                          }
+                          .delta_y(),
+                          1.0,
+                          0.0000001);
+        assert_approx_eq!(Vector {
+                              direction: PI / 4.0,
+                              magnitude: 1.0,
+                          }
+                          .delta_y(),
+                          (PI / 4.0).sin(),
+                          0.0000001);
 
-        assert_approx_eq!(Vector { direction: PI/4.0, magnitude: 5.0 }.delta_y(), (PI/4.0).sin()*5.0, 0.0000001);
-        assert_approx_eq!(Vector { direction: 5.0*PI/4.0, magnitude: 5.0 }.delta_y(), (5.0*PI/4.0).sin()*5.0, 0.0000001);
+        assert_approx_eq!(Vector {
+                              direction: PI / 4.0,
+                              magnitude: 5.0,
+                          }
+                          .delta_y(),
+                          (PI / 4.0).sin() * 5.0,
+                          0.0000001);
+        assert_approx_eq!(Vector {
+                              direction: 5.0 * PI / 4.0,
+                              magnitude: 5.0,
+                          }
+                          .delta_y(),
+                          (5.0 * PI / 4.0).sin() * 5.0,
+                          0.0000001);
 
-        assert_approx_eq!(Vector { direction: PI, magnitude: 1.0 }.delta_y(), 0.0, 0.0000001);
-        assert_approx_eq!(Vector { direction: PI, magnitude: 5.0 }.delta_y(), 0.0, 0.0000001);
+        assert_approx_eq!(Vector {
+                              direction: PI,
+                              magnitude: 1.0,
+                          }
+                          .delta_y(),
+                          0.0,
+                          0.0000001);
+        assert_approx_eq!(Vector {
+                              direction: PI,
+                              magnitude: 5.0,
+                          }
+                          .delta_y(),
+                          0.0,
+                          0.0000001);
     }
 
     #[test]
     fn test_point_at() {
-        assert_point_eq!(Point{ x: 0.0, y: 0.0}.point_at(Vector{direction: 0.0, magnitude: 1.0 }), Point{ x: 1.0, y: 0.0}, 0.000000001);
-        assert_point_eq!(Point{ x: 0.0, y: 0.0}.point_at(Vector{direction: PI, magnitude: 1.0 }), Point{ x: -1.0, y: 0.0}, 0.000000001);
-        assert_point_eq!(Point{ x: 1.0, y: 0.0}.point_at(Vector{direction: PI, magnitude: 1.0 }), Point{ x: -0.0, y: 0.0}, 0.000000001);
-        assert_point_eq!(Point{ x: 1.0, y: 0.0}.point_at(Vector{direction: PI/2.0, magnitude: 1.0 }), Point{ x: 1.0, y: 1.0}, 0.000000001);
+        assert_point_eq!(Point { x: 0.0, y: 0.0 }.point_at(Vector {
+                             direction: 0.0,
+                             magnitude: 1.0,
+                         }),
+                         Point { x: 1.0, y: 0.0 },
+                         0.000000001);
+        assert_point_eq!(Point { x: 0.0, y: 0.0 }.point_at(Vector {
+                             direction: PI,
+                             magnitude: 1.0,
+                         }),
+                         Point { x: -1.0, y: 0.0 },
+                         0.000000001);
+        assert_point_eq!(Point { x: 1.0, y: 0.0 }.point_at(Vector {
+                             direction: PI,
+                             magnitude: 1.0,
+                         }),
+                         Point { x: -0.0, y: 0.0 },
+                         0.000000001);
+        assert_point_eq!(Point { x: 1.0, y: 0.0 }.point_at(Vector {
+                             direction: PI / 2.0,
+                             magnitude: 1.0,
+                         }),
+                         Point { x: 1.0, y: 1.0 },
+                         0.000000001);
     }
 }

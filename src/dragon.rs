@@ -34,7 +34,7 @@ impl DragonFractal {
     ///     |__|
     /// ```
     pub fn new(iterations: u64) -> Result<DragonFractal, &'static str> {
-        let df = DragonFractal{ iterations: iterations };
+        let df = DragonFractal { iterations: iterations };
         Ok(df)
     }
 
@@ -74,7 +74,7 @@ impl DragonFractal {
     pub fn lines_between_endpoints(self) -> f64 {
         match self.iterations {
             0 => 1.0,
-            _ => SQRT_2.powf(self.iterations as f64)
+            _ => SQRT_2.powf(self.iterations as f64),
         }
     }
 }
@@ -86,16 +86,16 @@ impl TurtleApp for DragonFractal {
     fn draw(&self, turtle: &mut Turtle) {
         use std::f64::consts::PI;
 
-        turtle.set_pos(Point{x:0.0,y:0.0});
-        turtle.set_rad(PI/4.0 * -(self.iterations as f64));
+        turtle.set_pos(Point { x: 0.0, y: 0.0 });
+        turtle.set_rad(PI / 4.0 * -(self.iterations as f64));
         turtle.down();
 
         // move forward, then change directions.
-        for turn in (1..(self.number_of_steps()+1)).map(Self::turn_after_step) {
-            turtle.forward(1.0/(self.lines_between_endpoints() as f64));
+        for turn in (1..(self.number_of_steps() + 1)).map(Self::turn_after_step) {
+            turtle.forward(1.0 / (self.lines_between_endpoints() as f64));
             match turn {
                 Turn::Left => turtle.turn_deg(90.0),
-                Turn::Right => turtle.turn_deg(-90.0)
+                Turn::Right => turtle.turn_deg(-90.0),
             }
         }
 
@@ -139,10 +139,20 @@ mod test {
 
     #[test]
     fn test_lines_between_endpoints() {
-        assert_approx_eq!(DragonFractal::new(0).unwrap().lines_between_endpoints(), 1.0, 0.000001);
-        assert_approx_eq!(DragonFractal::new(1).unwrap().lines_between_endpoints(), SQRT_2, 0.000001);
-        assert_approx_eq!(DragonFractal::new(2).unwrap().lines_between_endpoints(), 2.0, 0.000001);
-        assert_approx_eq!(DragonFractal::new(3).unwrap().lines_between_endpoints(), 2.0*SQRT_2, 0.000001);
-        assert_approx_eq!(DragonFractal::new(4).unwrap().lines_between_endpoints(), 4.0, 0.000001);
+        assert_approx_eq!(DragonFractal::new(0).unwrap().lines_between_endpoints(),
+                          1.0,
+                          0.000001);
+        assert_approx_eq!(DragonFractal::new(1).unwrap().lines_between_endpoints(),
+                          SQRT_2,
+                          0.000001);
+        assert_approx_eq!(DragonFractal::new(2).unwrap().lines_between_endpoints(),
+                          2.0,
+                          0.000001);
+        assert_approx_eq!(DragonFractal::new(3).unwrap().lines_between_endpoints(),
+                          2.0 * SQRT_2,
+                          0.000001);
+        assert_approx_eq!(DragonFractal::new(4).unwrap().lines_between_endpoints(),
+                          4.0,
+                          0.000001);
     }
 }
