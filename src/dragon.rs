@@ -102,13 +102,11 @@ impl TurtleApp for DragonFractal {
     }
 }
 
+#[cfg(test)]
 mod test {
-    #[cfg(test)]
     use std::f64::consts::SQRT_2;
 
-    #[cfg(test)]
     use super::DragonFractal;
-    #[cfg(test)]
     use super::Turn::{Left, Right};
 
     #[test]

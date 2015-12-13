@@ -120,13 +120,11 @@ macro_rules! assert_approx_eq {
     }
 }
 
+#[cfg(test)]
 mod test {
-    #[cfg(test)]
     use std::f64::consts::PI;
-    #[cfg(test)]
     use std::f64::consts::SQRT_2;
 
-    #[cfg(test)]
     use super::{ Point, Vector };
 
     #[test]
