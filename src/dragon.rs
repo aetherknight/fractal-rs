@@ -1,3 +1,4 @@
+//! Computations and abstractions needed for rendering a dragon fractal.
 use common::{Point, Turtle, TurtleApp};
 use std::f64::consts::SQRT_2;
 
@@ -105,7 +106,6 @@ impl TurtleApp for DragonFractal {
 #[cfg(test)]
 mod test {
     use std::f64::consts::SQRT_2;
-
     use super::DragonFractal;
     use super::Turn::{Left, Right};
 

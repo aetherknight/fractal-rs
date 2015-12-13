@@ -1,9 +1,9 @@
-use piston::window::WindowSettings;
+use glutin_window::GlutinWindow as Window;
+use graphics;
+use opengl_graphics::{ GlGraphics, OpenGL };
 use piston::event_loop::*;
 use piston::input::*;
-use glutin_window::GlutinWindow as Window;
-use opengl_graphics::{ GlGraphics, OpenGL };
-use graphics;
+use piston::window::WindowSettings;
 
 use common::{Turtle, TurtleApp, Point, Vector};
 

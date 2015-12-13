@@ -1,7 +1,7 @@
 //! A set of types, traits, and macros that provide things like points in a 2-d
 //! coordinate system, the definition of a Turtle for turtle drawings, etc.
-use std::fmt;
 use std::f64::consts::PI;
+use std::fmt;
 
 /// Represents a point in a 2-D cartesian coordinate system.
 #[derive(Copy, Clone, Debug)]
@@ -120,6 +120,28 @@ macro_rules! assert_approx_eq {
     }
 }
 
+/// Macro to assert that two Points are almost equal.
+///
+/// This would use float-cmp and use ULPs instead of an epsilon, but float-cmp relies upon a Rust
+/// language/stdlib feature that is not yet in the stable release, as of 2015/12/12.
+macro_rules! assert_point_eq {
+    ( $lhs:expr, $rhs:expr, $epsilon:expr ) => {
+        {
+            let lhs = $lhs as Point;
+            let rhs = $rhs as Point;
+            let epsilon = $epsilon as f64;
+
+            if ! ((lhs.x - rhs.x).abs() < epsilon) {
+                panic!("assertion failed: {}.x does not approximately equal: {}.x", lhs, rhs);
+            }
+            if ! ((lhs.y - rhs.y).abs() < epsilon) {
+                panic!("assertion failed: {}.y does not approximately equal: {}.y", lhs, rhs);
+            }
+        }
+    }
+}
+
+
 #[cfg(test)]
 mod test {
     use std::f64::consts::PI;
@@ -167,23 +189,6 @@ mod test {
 
         assert_approx_eq!(Vector { direction: PI, magnitude: 1.0 }.delta_y(), 0.0, 0.0000001);
         assert_approx_eq!(Vector { direction: PI, magnitude: 5.0 }.delta_y(), 0.0, 0.0000001);
-    }
-
-    macro_rules! assert_point_eq {
-        ( $lhs:expr, $rhs:expr, $epsilon:expr ) => {
-            {
-                let lhs = $lhs as Point;
-                let rhs = $rhs as Point;
-                let epsilon = $epsilon as f64;
-
-                if ! ((lhs.x - rhs.x).abs() < epsilon) {
-                    panic!("assertion failed: {}.x does not approximately equal: {}.x", lhs, rhs);
-                }
-                if ! ((lhs.y - rhs.y).abs() < epsilon) {
-                    panic!("assertion failed: {}.y does not approximately equal: {}.y", lhs, rhs);
-                }
-            }
-        }
     }
 
     #[test]
