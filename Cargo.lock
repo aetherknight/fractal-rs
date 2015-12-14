@@ -1,6 +1,6 @@
 [root]
 name = "fractal"
-version = "0.1.0"
+version = "0.0.1"
 dependencies = [
  "piston 0.16.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "piston2d-graphics 0.11.0 (registry+https://github.com/rust-lang/crates.io-index)",
