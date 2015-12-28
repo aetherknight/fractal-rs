@@ -27,14 +27,28 @@ mod glwindow;
 use dragon::DragonFractal;
 use glwindow::{WindowHandler};
 
-fn main() {
-    let args = env::args().collect::<Vec<String>>();
-    if args.len() <= 1 {
+// TODO: Implement a proper "usage"
+fn validate_args(args: &Vec<String>) {
+    if (*args).len() <= 1 {
+        panic!("You must provide a fractal type and an iteration number");
+    }
+    if (*args).len() <= 2 {
         panic!("You must provide an iteration number");
     }
-    let iterations = args.get(1).unwrap().parse::<u64>().unwrap();
+}
+
+fn main() {
+    let args = env::args().collect::<Vec<String>>();
+    validate_args(&args);
+
+    let program_name = args.get(1).unwrap();
+    let iterations = args.get(2).unwrap().parse::<u64>().unwrap();
+
+    let program = match program_name.as_ref() {
+        "dragon" => DragonFractal::new(iterations).unwrap(),
+        _ => panic!("Unknown program type")
+    };
 
     let window = WindowHandler::new();
-    let dr = DragonFractal::new(iterations).unwrap();
-    window.run(&dr);
+    window.run(&program);
 }
