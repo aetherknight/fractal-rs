@@ -28,6 +28,7 @@ mod glwindow;
 
 use common::TurtleApp;
 use dragon::DragonFractal;
+use lindenmayer::LindenmayerSystemTurtleApp;
 use terdragon::TerdragonFractal;
 use glwindow::{WindowHandler};
 
@@ -50,7 +51,7 @@ fn main() {
 
     let program: Box<TurtleApp> = match program_name.as_ref() {
         "dragon"    => Box::new(DragonFractal::new(iterations).unwrap()),
-        "terdragon" => Box::new(TerdragonFractal::new(iterations).unwrap()),
+        "terdragon" => Box::new(LindenmayerSystemTurtleApp::new(TerdragonFractal::new(iterations).unwrap())),
         _           => panic!("Unknown program type")
     };
 

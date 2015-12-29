@@ -14,7 +14,7 @@
 
 //! Computations and abstractions needed for rendering a terdragon fractal.
 
-use common::{Point, Turtle, TurtleApp};
+use common::{Point, Turtle};
 
 const SQRT_3: f64 = 1.7320508075;
 
@@ -70,7 +70,7 @@ pub enum LSA {
     R,
 }
 
-use lindenmayer::LindenmayerSystem;
+use lindenmayer::{LindenmayerSystem, LindenmayerSystemDrawingParameters};
 
 impl LindenmayerSystem<LSA> for TerdragonFractal {
     fn initial() -> Vec<LSA> {
@@ -85,34 +85,22 @@ impl LindenmayerSystem<LSA> for TerdragonFractal {
     }
 }
 
-impl TurtleApp for TerdragonFractal {
-    /// Draw each of the lines that make up the iterations of the Terdragon fractal.
-    ///
-    /// 120 degree turns (creating 60 degree angles between each line
-    ///
-    /// TODO: Starts at (0.0, 0.0) and facing 0 degrees along the X axis. Tries to end at (1.0, 0.0).
-    fn draw(&self, turtle: &mut Turtle) {
+impl LindenmayerSystemDrawingParameters<LSA> for TerdragonFractal {
+    fn iteration(&self) -> u64 {
+        self.iterations
+    }
+    fn initialize_turtle(&self, turtle: &mut Turtle) {
         use std::f64::consts::PI;
-
-        println!("Generating L-System sequence...");
-        let sequence = TerdragonFractal::generate(self.iterations);
-        println!("Done");
-
-        // initialize the turtle
         turtle.set_pos(Point { x: 0.0, y: 0.0 });
         turtle.set_rad(PI / 6.0 * -(self.iterations as f64));
-        turtle.down();
+    }
 
-        // translate the L-System sequence into drawing commands
-        for symbol in sequence.iter().cloned() {
-            match symbol {
-                LSA::F => turtle.forward(1.0 / (self.lines_between_endpoints() as f64)),
-                LSA::L => turtle.turn_deg(120.0),
-                LSA::R => turtle.turn_deg(-120.0),
-            }
+    fn interpret_symbol(&self, symbol: LSA, turtle: &mut Turtle) {
+        match symbol {
+            LSA::F => turtle.forward(1.0 / (self.lines_between_endpoints() as f64)),
+            LSA::L => turtle.turn_deg(120.0),
+            LSA::R => turtle.turn_deg(-120.0),
         }
-
-        turtle.up();
     }
 }
 
