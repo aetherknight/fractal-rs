@@ -22,12 +22,14 @@ use std::env;
 #[macro_use]
 pub mod common;
 pub mod dragon;
+pub mod levyccurve;
 pub mod lindenmayer;
 pub mod terdragon;
 mod glwindow;
 
 use common::TurtleApp;
 use dragon::DragonFractal;
+use levyccurve::LevyCCurve;
 use lindenmayer::LindenmayerSystemTurtleApp;
 use terdragon::TerdragonFractal;
 use glwindow::{WindowHandler};
@@ -50,9 +52,10 @@ fn main() {
     let iterations = args.get(2).unwrap().parse::<u64>().unwrap();
 
     let program: Box<TurtleApp> = match program_name.as_ref() {
-        "dragon"    => Box::new(DragonFractal::new(iterations).unwrap()),
-        "terdragon" => Box::new(LindenmayerSystemTurtleApp::new(TerdragonFractal::new(iterations).unwrap())),
-        _           => panic!("Unknown program type")
+        "dragon"     => Box::new(DragonFractal::new(iterations).unwrap()),
+        "levyccurve" => Box::new(LindenmayerSystemTurtleApp::new(LevyCCurve::new(iterations).unwrap())),
+        "terdragon"  => Box::new(LindenmayerSystemTurtleApp::new(TerdragonFractal::new(iterations).unwrap())),
+        _            => panic!("Unknown program type")
     };
 
     let window = WindowHandler::new();
