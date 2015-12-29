@@ -22,9 +22,13 @@ use std::env;
 #[macro_use]
 pub mod common;
 pub mod dragon;
+pub mod lindenmayer;
+pub mod terdragon;
 mod glwindow;
 
+use common::TurtleApp;
 use dragon::DragonFractal;
+use terdragon::TerdragonFractal;
 use glwindow::{WindowHandler};
 
 // TODO: Implement a proper "usage"
@@ -44,11 +48,12 @@ fn main() {
     let program_name = args.get(1).unwrap();
     let iterations = args.get(2).unwrap().parse::<u64>().unwrap();
 
-    let program = match program_name.as_ref() {
-        "dragon" => DragonFractal::new(iterations).unwrap(),
-        _ => panic!("Unknown program type")
+    let program: Box<TurtleApp> = match program_name.as_ref() {
+        "dragon"    => Box::new(DragonFractal::new(iterations).unwrap()),
+        "terdragon" => Box::new(TerdragonFractal::new(iterations).unwrap()),
+        _           => panic!("Unknown program type")
     };
 
     let window = WindowHandler::new();
-    window.run(&program);
+    window.run(&*program);
 }
