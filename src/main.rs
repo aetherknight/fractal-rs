@@ -17,22 +17,25 @@ extern crate graphics;
 extern crate opengl_graphics;
 extern crate piston;
 
-use std::env;
 
 #[macro_use]
 pub mod common;
 pub mod dragon;
+pub mod kochcurve;
 pub mod levyccurve;
 pub mod lindenmayer;
 pub mod terdragon;
 mod glwindow;
 
+use std::env;
+use glwindow::{WindowHandler};
+
 use common::TurtleApp;
 use dragon::DragonFractal;
+use kochcurve::KochCurve;
 use levyccurve::LevyCCurve;
 use lindenmayer::LindenmayerSystemTurtleApp;
 use terdragon::TerdragonFractal;
-use glwindow::{WindowHandler};
 
 // TODO: Implement a proper "usage"
 fn validate_args(args: &Vec<String>) {
@@ -53,6 +56,7 @@ fn main() {
 
     let program: Box<TurtleApp> = match program_name.as_ref() {
         "dragon"     => Box::new(DragonFractal::new(iterations).unwrap()),
+        "kochcurve"  => Box::new(LindenmayerSystemTurtleApp::new(KochCurve::new(iterations).unwrap())),
         "levyccurve" => Box::new(LindenmayerSystemTurtleApp::new(LevyCCurve::new(iterations).unwrap())),
         "terdragon"  => Box::new(LindenmayerSystemTurtleApp::new(TerdragonFractal::new(iterations).unwrap())),
         _            => panic!("Unknown program type")
