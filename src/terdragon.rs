@@ -15,14 +15,9 @@
 //! Computations and abstractions needed for rendering a terdragon fractal.
 
 use common::{Point, Turtle};
+use lindenmayer::{LindenmayerSystem, LindenmayerSystemDrawingParameters};
 
 const SQRT_3: f64 = 1.7320508075;
-
-#[derive(Copy, Clone, Debug, Eq, PartialEq)]
-pub enum Turn {
-    Left,
-    Right,
-}
 
 #[derive(Copy, Clone, Debug)]
 pub struct TerdragonFractal {
@@ -69,8 +64,6 @@ pub enum LSA {
     L,
     R,
 }
-
-use lindenmayer::{LindenmayerSystem, LindenmayerSystemDrawingParameters};
 
 impl LindenmayerSystem<LSA> for TerdragonFractal {
     fn initial() -> Vec<LSA> {
