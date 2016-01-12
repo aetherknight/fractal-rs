@@ -20,6 +20,7 @@ extern crate piston;
 
 #[macro_use]
 pub mod cesaro;
+pub mod cesarotri;
 pub mod common;
 pub mod dragon;
 pub mod kochcurve;
@@ -32,6 +33,7 @@ use std::env;
 use glwindow::{WindowHandler};
 
 use cesaro::CesaroFractal;
+use cesarotri::CesaroTriFractal;
 use common::TurtleApp;
 use dragon::DragonFractal;
 use kochcurve::KochCurve;
@@ -58,6 +60,7 @@ fn main() {
 
     let program: Box<TurtleApp> = match program_name.as_ref() {
         "cesaro"     => Box::new(LindenmayerSystemTurtleApp::new(CesaroFractal::new(iterations).unwrap())),
+        "cesarotri"  => Box::new(LindenmayerSystemTurtleApp::new(CesaroTriFractal::new(iterations).unwrap())),
         "dragon"     => Box::new(DragonFractal::new(iterations).unwrap()),
         "kochcurve"  => Box::new(LindenmayerSystemTurtleApp::new(KochCurve::new(iterations).unwrap())),
         "levyccurve" => Box::new(LindenmayerSystemTurtleApp::new(LevyCCurve::new(iterations).unwrap())),
