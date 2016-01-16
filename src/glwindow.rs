@@ -12,12 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use glutin_window::GlutinWindow as Window;
 use graphics;
-use opengl_graphics::{GlGraphics, OpenGL};
-use piston::event_loop::*;
-use piston::input::*;
-use piston::window::WindowSettings;
+use opengl_graphics::GlGraphics;
+use piston_window::*;
 
 use common::{Turtle, TurtleApp, Point, Vector};
 
@@ -26,7 +23,7 @@ const BLACK: [f32; 4] = [0.0, 0.0, 0.0, 1.0];
 
 pub struct WindowHandler {
     opengl: OpenGL,
-    window: Window,
+    window: PistonWindow,
     redraw: bool,
 }
 
@@ -34,11 +31,11 @@ impl WindowHandler {
     pub fn new() -> WindowHandler {
         let opengl = OpenGL::V3_2;
 
-        let window: Window = WindowSettings::new("Fractal", [800, 600])
-                                 .opengl(opengl)
-                                 .exit_on_esc(true)
-                                 .build()
-                                 .unwrap_or_else(|e| panic!("Failed to build Window: {}", e));
+        let window: PistonWindow = WindowSettings::new("Fractal", [800, 600])
+                                       .opengl(opengl)
+                                       .exit_on_esc(true)
+                                       .build()
+                                       .unwrap_or_else(|e| panic!("Failed to build Window: {}", e));
 
         WindowHandler {
             opengl: opengl,
@@ -49,24 +46,27 @@ impl WindowHandler {
 
     pub fn run(mut self, app: &TurtleApp) {
         // event loop
-        for event in self.window.events() {
-            if let Some(r) = event.render_args() {
-                self.redraw = false;
-                let gl = &mut GlGraphics::new(self.opengl);
+        for e in self.window {
+            match e.event {
+                Some(Event::Render(r)) => {
+                    self.redraw = false;
+                    let gl = &mut GlGraphics::new(self.opengl);
 
-                gl.draw(r.viewport(), |context, gl2| {
-                    use graphics::*;
-                    clear(WHITE, gl2);
+                    gl.draw(r.viewport(), |context, gl2| {
+                        use graphics::*;
+                        clear(WHITE, gl2);
 
-                    let turtle = &mut GlTurtle::new(gl2, r, context);
-                    app.draw(turtle);
+                        let turtle = &mut GlTurtle::new(gl2, r, context);
+                        app.draw(turtle);
 
-                });
+                    });
+                }
+                // Some(Event::Update(u)) => {
+                //     self.app.update(&u);
+                // }
+                // Some(Event::Input(i)) => {}
+                _ => {}
             }
-            // if let Some(u) = event.update_args() {
-            //     self.app.update(&u);
-            // }
-            // if let Some(i) = event.input
         }
     }
 }
