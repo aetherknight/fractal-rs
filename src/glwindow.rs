@@ -1,4 +1,4 @@
-// Copyright (c) 2015 William (B.J.) Snow Orvis
+// Copyright (c) 2015-2016 William (B.J.) Snow Orvis
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -21,52 +21,60 @@ use common::{Turtle, TurtleProgram, Point, Vector};
 const WHITE: [f32; 4] = [1.0, 1.0, 1.0, 1.0];
 const BLACK: [f32; 4] = [0.0, 0.0, 0.0, 1.0];
 
-pub struct WindowHandler {
+// #[derive(Clone)]
+struct WindowHandler {
     opengl: OpenGL,
-    window: PistonWindow,
-    redraw: bool,
+    redraw: [bool; 2],
+}
+
+pub fn run(app: &TurtleProgram) {
+    let opengl = OpenGL::V3_2;
+    let window: PistonWindow = WindowSettings::new("Fractal", [800, 600])
+                                   .opengl(opengl)
+                                   .exit_on_esc(true)
+                                   .build()
+                                   .unwrap_or_else(|e| panic!("Failed to build Window: {}", e));
+
+    let mut window_handler = WindowHandler {
+        opengl: opengl,
+        redraw: [true; 2],
+    };
+
+    let mut frame_num: u32 = 0;
+    // event loop
+    for e in window {
+        match e.event {
+            Some(Event::Render(r)) => {
+                frame_num += 1;
+                println!("Render frame {}", frame_num);
+                window_handler.render_frame(app, r, frame_num);
+            }
+            Some(Event::Update(u)) => {
+                // println!("update event");
+            }
+            _ => {}
+        }
+    }
 }
 
 impl WindowHandler {
-    pub fn new() -> WindowHandler {
-        let opengl = OpenGL::V3_2;
+    pub fn render_frame(&mut self, app: &TurtleProgram, r: RenderArgs, frame_num: u32) {
 
-        let window: PistonWindow = WindowSettings::new("Fractal", [800, 600])
-                                       .opengl(opengl)
-                                       .exit_on_esc(true)
-                                       .build()
-                                       .unwrap_or_else(|e| panic!("Failed to build Window: {}", e));
+        let redraw = self.redraw[(frame_num % 2) as usize];
+        if redraw {
+            println!("Redrawing frame {}", frame_num % 2);
+            let gl = &mut GlGraphics::new(self.opengl);
 
-        WindowHandler {
-            opengl: opengl,
-            window: window,
-            redraw: true,
-        }
-    }
+            gl.draw(r.viewport(), |context, gl2| {
+                use graphics::*;
+                clear(WHITE, gl2);
 
-    pub fn run(mut self, app: &TurtleProgram) {
-        // event loop
-        for e in self.window {
-            match e.event {
-                Some(Event::Render(r)) => {
-                    self.redraw = false;
-                    let gl = &mut GlGraphics::new(self.opengl);
+                let turtle = &mut GlTurtle::new(gl2, r, context);
+                app.draw(turtle);
 
-                    gl.draw(r.viewport(), |context, gl2| {
-                        use graphics::*;
-                        clear(WHITE, gl2);
-
-                        let turtle = &mut GlTurtle::new(gl2, r, context);
-                        app.draw(turtle);
-
-                    });
-                }
-                // Some(Event::Update(u)) => {
-                //     self.app.update(&u);
-                // }
-                // Some(Event::Input(i)) => {}
-                _ => {}
-            }
+            });
+            println!("Done redrawing frame");
+            self.redraw[(frame_num % 2) as usize] = false;
         }
     }
 }

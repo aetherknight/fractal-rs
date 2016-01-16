@@ -17,7 +17,6 @@ extern crate opengl_graphics;
 extern crate piston;
 extern crate piston_window;
 
-
 #[macro_use]
 pub mod cesaro;
 pub mod cesarotri;
@@ -30,8 +29,6 @@ pub mod terdragon;
 mod glwindow;
 
 use std::env;
-use glwindow::{WindowHandler};
-
 use cesaro::CesaroFractal;
 use cesarotri::CesaroTriFractal;
 use common::TurtleProgram;
@@ -68,6 +65,5 @@ fn main() {
         _            => panic!("Unknown program type")
     };
 
-    let window = WindowHandler::new();
-    window.run(&*program);
+    glwindow::run(&*program);
 }
