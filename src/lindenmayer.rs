@@ -12,10 +12,19 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+//! Lindenmayer systems are a methodology for representing various kinds of
+//! iterated curves or other constructions. A given system has an alphabet of
+//! symbols, an initial string, and one or more rules for transforming that
+//! string into the next iteration/generation.
+//!
+//! The resulting string at a given iteration or generation can represent a
+//! sequence of commands that some representation process, such as a turtle
+//! drawing program, can then use to draw a curve/fractal/plant (which is what
+//! this implementation provides).
 use common::{Point, Turtle, TurtleApp};
 
-/// Represents a lindenmayer system. It requires an alphabet (represented as an enum), an initial
-/// sequence ("string"), and one or more rules that transform the sequence with each
+/// Represents a particular Lindenmayer system. It requires an alphabet (represented as an enum),
+/// an initial sequence ("string"), and one or more rules that transform the sequence with each
 /// iteration/generation.
 pub trait LindenmayerSystem<Alphabet: Clone> {
     /// Should return the initial Lindenmayer system string (iteration 0).
