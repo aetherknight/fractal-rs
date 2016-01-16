@@ -111,7 +111,7 @@ pub trait Turtle {
 }
 
 /// An object that knows how to draw something using a Turtle.
-pub trait TurtleApp {
+pub trait TurtleProgram {
     /// A method that uses a Turtle to draw something. Within an implementation, this method should
     /// manipulate the Turtle in order to draw something.
     fn draw(&self, turtle: &mut Turtle);

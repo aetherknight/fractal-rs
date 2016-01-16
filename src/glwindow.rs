@@ -16,7 +16,7 @@ use graphics;
 use opengl_graphics::GlGraphics;
 use piston_window::*;
 
-use common::{Turtle, TurtleApp, Point, Vector};
+use common::{Turtle, TurtleProgram, Point, Vector};
 
 const WHITE: [f32; 4] = [1.0, 1.0, 1.0, 1.0];
 const BLACK: [f32; 4] = [0.0, 0.0, 0.0, 1.0];
@@ -44,7 +44,7 @@ impl WindowHandler {
         }
     }
 
-    pub fn run(mut self, app: &TurtleApp) {
+    pub fn run(mut self, app: &TurtleProgram) {
         // event loop
         for e in self.window {
             match e.event {

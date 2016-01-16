@@ -14,7 +14,7 @@
 
 //! Computations and abstractions needed for rendering a dragon fractal.
 
-use common::{Point, Turtle, TurtleApp};
+use common::{Point, Turtle, TurtleProgram};
 use std::f64::consts::SQRT_2;
 
 #[derive(Copy, Clone, Debug, Eq, PartialEq)]
@@ -94,7 +94,7 @@ impl DragonFractal {
     }
 }
 
-impl TurtleApp for DragonFractal {
+impl TurtleProgram for DragonFractal {
     /// Draw each of the lines that make up the iterations of the Dragon fractal.
     ///
     /// Starts at (0.0, 0.0) and facing 0 degrees along the X axis. Tries to end at (1.0, 0.0).

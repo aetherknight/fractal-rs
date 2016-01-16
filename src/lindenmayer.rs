@@ -21,7 +21,7 @@
 //! sequence of commands that some representation process, such as a turtle
 //! drawing program, can then use to draw a curve/fractal/plant (which is what
 //! this implementation provides).
-use common::{Point, Turtle, TurtleApp};
+use common::{Point, Turtle, TurtleProgram};
 
 /// Represents a particular Lindenmayer system. It requires an alphabet (represented as an enum),
 /// an initial sequence ("string"), and one or more rules that transform the sequence with each
@@ -62,7 +62,7 @@ pub trait LindenmayerSystem<Alphabet: Clone> {
 /// In order to draw a fractal using a Lindenmayer System, we need to translate the output from the
 /// L-System into turtle commands. To do this, we need to initial the turtle, and we need a way to
 /// convert the L-System's symbols into actions. This trait provides the methods needed to
-/// configure the LindenmayerSystemTurtleApp, which is the glue that issues arbitrary Turtle
+/// configure the LindenmayerSystemTurtleProgram, which is the glue that issues arbitrary Turtle
 /// commands.
 pub trait LindenmayerSystemDrawingParameters<Alphabet> {
     /// Returns the iteration that should be drawn.
@@ -84,7 +84,7 @@ pub trait LindenmayerSystemDrawingParameters<Alphabet> {
 
 use std::marker::PhantomData;
 
-pub struct LindenmayerSystemTurtleApp<L, A>
+pub struct LindenmayerSystemTurtleProgram<L, A>
     where L: LindenmayerSystem<A> + LindenmayerSystemDrawingParameters<A>,
           A: Clone
 {
@@ -92,19 +92,19 @@ pub struct LindenmayerSystemTurtleApp<L, A>
     system: L,
 }
 
-impl<L, A> LindenmayerSystemTurtleApp<L, A>
+impl<L, A> LindenmayerSystemTurtleProgram<L, A>
     where L: LindenmayerSystem<A> + LindenmayerSystemDrawingParameters<A>,
           A: Clone
 {
-    pub fn new(system: L) -> LindenmayerSystemTurtleApp<L, A> {
-        LindenmayerSystemTurtleApp {
+    pub fn new(system: L) -> LindenmayerSystemTurtleProgram<L, A> {
+        LindenmayerSystemTurtleProgram {
             system: system,
             alphabet: PhantomData,
         }
     }
 }
 
-impl<L, A> TurtleApp for LindenmayerSystemTurtleApp<L, A>
+impl<L, A> TurtleProgram for LindenmayerSystemTurtleProgram<L, A>
     where L: LindenmayerSystem<A> + LindenmayerSystemDrawingParameters<A>,
           A: Clone
 {

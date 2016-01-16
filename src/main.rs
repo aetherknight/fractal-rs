@@ -34,11 +34,11 @@ use glwindow::{WindowHandler};
 
 use cesaro::CesaroFractal;
 use cesarotri::CesaroTriFractal;
-use common::TurtleApp;
+use common::TurtleProgram;
 use dragon::DragonFractal;
 use kochcurve::KochCurve;
 use levyccurve::LevyCCurve;
-use lindenmayer::LindenmayerSystemTurtleApp;
+use lindenmayer::LindenmayerSystemTurtleProgram;
 use terdragon::TerdragonFractal;
 
 // TODO: Implement a proper "usage"
@@ -58,13 +58,13 @@ fn main() {
     let program_name = args.get(1).unwrap();
     let iterations = args.get(2).unwrap().parse::<u64>().unwrap();
 
-    let program: Box<TurtleApp> = match program_name.as_ref() {
-        "cesaro"     => Box::new(LindenmayerSystemTurtleApp::new(CesaroFractal::new(iterations).unwrap())),
-        "cesarotri"  => Box::new(LindenmayerSystemTurtleApp::new(CesaroTriFractal::new(iterations).unwrap())),
+    let program: Box<TurtleProgram> = match program_name.as_ref() {
+        "cesaro"     => Box::new(LindenmayerSystemTurtleProgram::new(CesaroFractal::new(iterations).unwrap())),
+        "cesarotri"  => Box::new(LindenmayerSystemTurtleProgram::new(CesaroTriFractal::new(iterations).unwrap())),
         "dragon"     => Box::new(DragonFractal::new(iterations).unwrap()),
-        "kochcurve"  => Box::new(LindenmayerSystemTurtleApp::new(KochCurve::new(iterations).unwrap())),
-        "levyccurve" => Box::new(LindenmayerSystemTurtleApp::new(LevyCCurve::new(iterations).unwrap())),
-        "terdragon"  => Box::new(LindenmayerSystemTurtleApp::new(TerdragonFractal::new(iterations).unwrap())),
+        "kochcurve"  => Box::new(LindenmayerSystemTurtleProgram::new(KochCurve::new(iterations).unwrap())),
+        "levyccurve" => Box::new(LindenmayerSystemTurtleProgram::new(LevyCCurve::new(iterations).unwrap())),
+        "terdragon"  => Box::new(LindenmayerSystemTurtleProgram::new(TerdragonFractal::new(iterations).unwrap())),
         _            => panic!("Unknown program type")
     };
 
