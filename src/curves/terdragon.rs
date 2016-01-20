@@ -131,7 +131,7 @@ mod test {
 
     #[test]
     fn test_l_system() {
-        use super::super::lindenmayer::LindenmayerSystem; // needed to pull in generate()
+        use super::super::super::lindenmayer::LindenmayerSystem; // needed to pull in generate()
         assert_eq!(TerdragonFractal::generate(0), [LSA::F]);
         assert_eq!(TerdragonFractal::generate(1),
                    [LSA::F, LSA::L, LSA::F, LSA::R, LSA::F]);

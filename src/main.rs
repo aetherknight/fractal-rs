@@ -18,6 +18,7 @@ extern crate opengl_graphics;
 extern crate piston;
 extern crate piston_window;
 
+#[macro_use]
 pub mod common;
 pub mod curves;
 pub mod lindenmayer;
