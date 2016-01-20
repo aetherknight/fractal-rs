@@ -14,7 +14,7 @@
 
 //! Computations and abstractions needed for rendering a Césaro fractal
 
-use common::{Point, Turtle};
+use common::{Point, Turtle, deg2rad, TurtleStep};
 use lindenmayer::{LindenmayerSystem, LindenmayerSystemDrawingParameters};
 
 #[derive(Copy, Clone, Debug)]
@@ -66,7 +66,7 @@ impl LindenmayerSystemDrawingParameters<LSA> for CesaroTriFractal {
         turtle.set_rad(0.0);
     }
 
-    fn interpret_symbol(&self, symbol: LSA, turtle: &mut Turtle) {
+    fn interpret_symbol(&self, symbol: LSA) -> TurtleStep {
         use std::f64::consts::SQRT_2;
         use std::f64::consts::PI;
 
@@ -92,14 +92,14 @@ impl LindenmayerSystemDrawingParameters<LSA> for CesaroTriFractal {
         let top_angle = 180.0_f64 - (2.0_f64 * side_angle);
 
         match symbol {
-            LSA::F1 => turtle.forward(hyp_unit),
-            LSA::F2 => turtle.forward(side_unit),
-            LSA::F3 => turtle.forward(side_unit),
-            LSA::Q1 => turtle.turn_deg(180.0_f64 - side_angle),
-            LSA::Q2 => turtle.turn_deg(180.0_f64 - top_angle),
-            LSA::Q3 => turtle.turn_deg(180.0_f64 - side_angle),
-            LSA::L => turtle.turn_deg(base_angle),
-            LSA::R => turtle.turn_deg(-base_angle),
+            LSA::F1 => TurtleStep::Forward(hyp_unit),
+            LSA::F2 => TurtleStep::Forward(side_unit),
+            LSA::F3 => TurtleStep::Forward(side_unit),
+            LSA::Q1 => TurtleStep::TurnRad(deg2rad(180.0_f64 - side_angle)),
+            LSA::Q2 => TurtleStep::TurnRad(deg2rad(180.0_f64 - top_angle)),
+            LSA::Q3 => TurtleStep::TurnRad(deg2rad(180.0_f64 - side_angle)),
+            LSA::L => TurtleStep::TurnRad(deg2rad(base_angle)),
+            LSA::R => TurtleStep::TurnRad(deg2rad(-base_angle)),
         }
     }
 }

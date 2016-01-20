@@ -14,7 +14,7 @@
 
 //! Computations and abstractions needed for rendering a Lévy C Curve.
 
-use common::{Point, Turtle};
+use common::{Point, Turtle, deg2rad, TurtleStep};
 use lindenmayer::{LindenmayerSystem, LindenmayerSystemDrawingParameters};
 use std::f64::consts::SQRT_2;
 
@@ -73,11 +73,11 @@ impl LindenmayerSystemDrawingParameters<LSA> for LevyCCurve {
         turtle.set_rad(0.0);
     }
 
-    fn interpret_symbol(&self, symbol: LSA, turtle: &mut Turtle) {
+    fn interpret_symbol(&self, symbol: LSA) -> TurtleStep {
         match symbol {
-            LSA::F => turtle.forward(self.distance_forward()),
-            LSA::L => turtle.turn_deg(45.0),
-            LSA::R => turtle.turn_deg(-45.0),
+            LSA::F => TurtleStep::Forward(self.distance_forward()),
+            LSA::L => TurtleStep::TurnRad(deg2rad(45.0)),
+            LSA::R => TurtleStep::TurnRad(deg2rad(-45.0)),
         }
     }
 }

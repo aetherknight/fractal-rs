@@ -14,7 +14,8 @@
 
 //! Computations and abstractions needed for rendering a dragon fractal.
 
-use common::{Point, Turtle, TurtleProgram};
+use common::{Point, Turtle, TurtleStep, TurtleProgram, TurtleProgramIterator};
+use std::f64::consts::PI;
 use std::f64::consts::SQRT_2;
 
 #[derive(Copy, Clone, Debug, Eq, PartialEq)]
@@ -95,28 +96,53 @@ impl DragonFractal {
 }
 
 impl TurtleProgram for DragonFractal {
-    /// Draw each of the lines that make up the iterations of the Dragon fractal.
-    ///
     /// Starts at (0.0, 0.0) and facing 0 degrees along the X axis. Tries to end at (1.0, 0.0).
-    fn draw(&self, turtle: &mut Turtle) {
-        use std::f64::consts::PI;
-
+    fn init_turtle(&self, turtle: &mut Turtle) {
         turtle.set_pos(Point { x: 0.0, y: 0.0 });
         turtle.set_rad(PI / 4.0 * -(self.iterations as f64));
         turtle.down();
+    }
 
-        // move forward, then change directions.
-        for turn in (1..(self.number_of_steps() + 1)).map(Self::turn_after_step) {
-            turtle.forward(1.0 / (self.lines_between_endpoints() as f64));
-            match turn {
-                Turn::Left => turtle.turn_deg(90.0),
-                Turn::Right => turtle.turn_deg(-90.0),
-            }
-        }
-
-        turtle.up();
+    fn turtle_program_iter(&self) -> TurtleProgramIterator {
+        TurtleProgramIterator::new(Box::new(DragonFractalTurtleProgramIterator {
+            dragon: *self,
+            curr_step: 1,
+            move_next: true,
+        }))
     }
 }
+
+/// Iterator that emits the dragon fractal's turtle program as `TurtleStep`s.
+pub struct DragonFractalTurtleProgramIterator {
+    dragon: DragonFractal,
+    curr_step: u64,
+    move_next: bool,
+}
+
+impl Iterator for DragonFractalTurtleProgramIterator {
+    type Item = TurtleStep;
+
+    fn next(&mut self) -> Option<TurtleStep> {
+        if self.curr_step > self.dragon.number_of_steps() {
+            return None;
+        }
+        if self.move_next {
+            self.move_next = false;
+            println!("curr_step:{}, Forward", self.curr_step);
+            Some(TurtleStep::Forward(1.0 / (self.dragon.lines_between_endpoints() as f64)))
+        } else {
+            let turn = DragonFractal::turn_after_step(self.curr_step);
+            println!("curr_step:{}, {:?}", self.curr_step, turn);
+            self.move_next = true;
+            self.curr_step += 1;
+            match turn {
+                Turn::Left => Some(TurtleStep::TurnRad(PI / 2.0_f64)),
+                Turn::Right => Some(TurtleStep::TurnRad(-PI / 2.0_f64)),
+            }
+        }
+    }
+}
+
 
 #[cfg(test)]
 mod test {

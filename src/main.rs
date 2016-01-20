@@ -53,8 +53,8 @@ fn main() {
     let args = env::args().collect::<Vec<String>>();
     validate_args(&args);
 
-    let program_name = args.get(1).unwrap();
-    let iterations = args.get(2).unwrap().parse::<u64>().unwrap();
+    let program_name: &str = args.get(1).unwrap();
+    let iterations: u64 = args.get(2).unwrap().parse::<u64>().unwrap();
 
     let program: Box<TurtleProgram> = match program_name.as_ref() {
         "cesaro"     => Box::new(LindenmayerSystemTurtleProgram::new(CesaroFractal::new(iterations).unwrap())),

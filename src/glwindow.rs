@@ -15,7 +15,7 @@
 use graphics;
 use piston_window::*;
 
-use common::{Turtle, TurtleProgram, Point, Vector};
+use common::{Turtle, TurtleProgram, Point, Vector, TurtleStep};
 
 const WHITE: [f32; 4] = [1.0, 1.0, 1.0, 1.0];
 const BLACK: [f32; 4] = [0.0, 0.0, 0.0, 1.0];
@@ -25,7 +25,9 @@ struct WindowHandler {
     redraw: [bool; 2],
 }
 
+/// Renders a TurtleProgram in a PistonWindow.
 pub fn run(program: &TurtleProgram) {
+
     let opengl = OpenGL::V3_2;
     let window: PistonWindow = WindowSettings::new("Fractal", [800, 600])
                                    .opengl(opengl)
@@ -62,6 +64,7 @@ pub fn run(program: &TurtleProgram) {
 }
 
 impl WindowHandler {
+    /// TODO: resizing the window does should trigger a re-render.
     pub fn render_frame<G, T>(&mut self,
                               window_size: Size,
                               context: graphics::context::Context,
@@ -78,15 +81,28 @@ impl WindowHandler {
             clear(WHITE, gfx);
 
             let mut turtle = GlTurtle::new(gfx, window_size, context);
-            program.draw(&mut turtle);
+            WindowHandler::turtledraw(program, &mut turtle);
 
             println!("Done redrawing frame");
             self.redraw[(frame_num % 2) as usize] = false;
         }
     }
+
+    fn turtledraw(program: &TurtleProgram, turtle: &mut Turtle) {
+        program.init_turtle(turtle);
+
+        for action in program.turtle_program_iter() {
+            match action {
+                TurtleStep::Forward(dist) => turtle.forward(dist),
+                TurtleStep::TurnRad(angle) => turtle.turn_rad(angle),
+                _ => {}
+            }
+        }
+        turtle.up();
+    }
 }
 
-/// An implementation of a Turtle within an OpenGL context.
+/// An implementation of a Turtle within an OpenGL (rather, a gfx) context.
 pub struct GlTurtle<'a, G, T>
     where T: ImageSize,
           G: Graphics<Texture = T> + 'a

@@ -68,6 +68,10 @@ impl Vector {
     }
 }
 
+pub fn deg2rad(degrees: f64) -> f64 {
+    degrees / 360.0 * 2.0 * PI
+}
+
 /// A Turtle is an abstraction for drawing lines in a space. It has a position and it faces a
 /// particular direction. A program usually tells a turtle to move forward based upon its facing,
 /// to change direction, and to start or stop drawing.
@@ -83,8 +87,7 @@ pub trait Turtle {
 
     /// Set the turtle's direction.
     fn set_deg(&mut self, new_deg: f64) {
-        let rads = new_deg / 360.0 * 2.0 * PI;
-        self.set_rad(rads);
+        self.set_rad(deg2rad(new_deg));
     }
 
     fn set_rad(&mut self, new_rad: f64);
@@ -94,8 +97,7 @@ pub trait Turtle {
     /// Positive values turn the turtle "left" or counter-clockwise. Negative values turn the
     /// turtle "right" or clockwise.
     fn turn_deg(&mut self, degrees: f64) {
-        let rads = degrees / 360.0 * 2.0 * PI;
-        self.turn_rad(rads);
+        self.turn_rad(deg2rad(degrees));
     }
 
     /// Convenience method for rotating the turtle in radians instead of degrees.
@@ -108,13 +110,73 @@ pub trait Turtle {
 
     /// Lift the turtle's pen off of the drawing surface.
     fn up(&mut self);
+
+    /// Perform the action represented by `step`.
+    fn perform(&mut self, step: TurtleStep) {
+        match step {
+            TurtleStep::Forward(dist) => self.forward(dist),
+            TurtleStep::SetPos(point) => self.set_pos(point),
+            TurtleStep::SetRad(angle) => self.set_rad(angle),
+            TurtleStep::TurnRad(angle) => self.turn_rad(angle),
+            TurtleStep::Down => self.down(),
+            TurtleStep::Up => self.up(),
+        }
+    }
 }
 
-/// An object that knows how to draw something using a Turtle.
+/// Represents the possible actions that a TurtleProgram can perform.
+pub enum TurtleStep {
+    /// Make the turtle move forward some distance in the coordinate system.
+    Forward(f64),
+    /// Move the turtle to the specified Point in the coordinate system.
+    SetPos(Point),
+    /// Set the turtle's angle. 0 and 2π are facing towards the positive X direction.
+    SetRad(f64),
+    /// Rotate the turtle the specified amount in radians.
+    TurnRad(f64),
+    /// Touch the turtle's pen to the drawing surface.
+    Down,
+    /// Lift the turtle's pen off of the drawing surface.
+    Up,
+}
+
+/// An object that knows how to draw someting using a Turtle. Turtle programs are broken up into
+/// two parts: an initializer method that should place the Turtle into its initial state, and a
+/// method that returns a TurtleProgramIterator (which should wrap a Boxed internal iterator
+/// implementation) that yields the sequence of steps for the main turtle program.
+///
+/// This approach adds some extra complexity and scaffolding by requiring an iterator (Rust doesn't
+/// provide something equivalent to a generator function or coroutine yet), but it grants the
+/// renderer renderer a huge amount of flexibility about how to draw/animate the turtle program.
 pub trait TurtleProgram {
-    /// A method that uses a Turtle to draw something. Within an implementation, this method should
-    /// manipulate the Turtle in order to draw something.
-    fn draw(&self, turtle: &mut Turtle);
+    /// This method is executed by various TurtleProgram runners before using the iterator. It
+    /// should be used to initialize the turtle to a starting position and orientation.
+    fn init_turtle(&self, turtle: &mut Turtle);
+
+    /// Should return an iterator object that yields TurtleSteps representing each command the
+    /// turtle will take.
+    fn turtle_program_iter<'a>(&'a self) -> TurtleProgramIterator;
+}
+
+/// The return type for a TurtleProgram's `turtle_program_iter()`. Since Rust does not yet support
+/// abstract return types (eg, a trait return type), the next best thing is a wrapper around a
+/// boxed type.
+pub struct TurtleProgramIterator<'a> {
+    iter: Box<Iterator<Item = TurtleStep> + 'a>,
+}
+
+impl<'a> TurtleProgramIterator<'a> {
+    pub fn new(iter: Box<Iterator<Item = TurtleStep> + 'a>) -> TurtleProgramIterator {
+        TurtleProgramIterator { iter: iter }
+    }
+}
+
+impl<'a> Iterator for TurtleProgramIterator<'a> {
+    type Item = TurtleStep;
+
+    fn next(&mut self) -> Option<TurtleStep> {
+        self.iter.next()
+    }
 }
 
 /// Macro to assert that two floating point values are almost equal.

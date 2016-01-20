@@ -14,7 +14,7 @@
 
 //! Computations and abstractions needed for rendering a terdragon fractal.
 
-use common::{Point, Turtle};
+use common::{Point, Turtle, deg2rad, TurtleStep};
 use lindenmayer::{LindenmayerSystem, LindenmayerSystemDrawingParameters};
 
 const SQRT_3: f64 = 1.7320508075;
@@ -88,11 +88,11 @@ impl LindenmayerSystemDrawingParameters<LSA> for TerdragonFractal {
         turtle.set_rad(PI / 6.0 * -(self.iterations as f64));
     }
 
-    fn interpret_symbol(&self, symbol: LSA, turtle: &mut Turtle) {
+    fn interpret_symbol(&self, symbol: LSA) -> TurtleStep {
         match symbol {
-            LSA::F => turtle.forward(1.0 / (self.lines_between_endpoints() as f64)),
-            LSA::L => turtle.turn_deg(120.0),
-            LSA::R => turtle.turn_deg(-120.0),
+            LSA::F => TurtleStep::Forward(1.0 / (self.lines_between_endpoints() as f64)),
+            LSA::L => TurtleStep::TurnRad(deg2rad(120.0)),
+            LSA::R => TurtleStep::TurnRad(deg2rad(-120.0)),
         }
     }
 }

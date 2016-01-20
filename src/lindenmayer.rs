@@ -21,7 +21,7 @@
 //! sequence of commands that some representation process, such as a turtle
 //! drawing program, can then use to draw a curve/fractal/plant (which is what
 //! this implementation provides).
-use common::{Point, Turtle, TurtleProgram};
+use common::{Point, Turtle, TurtleProgram, TurtleStep, TurtleProgramIterator};
 
 /// Represents a particular Lindenmayer system. It requires an alphabet (represented as an enum),
 /// an initial sequence ("string"), and one or more rules that transform the sequence with each
@@ -75,24 +75,24 @@ pub trait LindenmayerSystemDrawingParameters<Alphabet> {
     /// drawn within the viewing space.
     fn initialize_turtle(&self, turtle: &mut Turtle);
 
-    /// Convert symbol into turtle commands.
+    /// Convert symbol into a turtle command.
     ///
     /// Usually, when moving the turtle forwards, there is some formula that will ensure that the
     /// turtle always ends at a given point, such as at (1.0, 0.0).
-    fn interpret_symbol(&self, symbol: Alphabet, turtle: &mut Turtle);
+    fn interpret_symbol(&self, symbol: Alphabet) -> TurtleStep;
 }
 
 use std::marker::PhantomData;
 
 pub struct LindenmayerSystemTurtleProgram<L, A>
     where L: LindenmayerSystem<A> + LindenmayerSystemDrawingParameters<A>,
-          A: Clone
+          A: Clone + 'static
 {
     alphabet: PhantomData<A>,
     system: L,
 }
 
-impl<L, A> LindenmayerSystemTurtleProgram<L, A>
+impl<'a, L, A> LindenmayerSystemTurtleProgram<L, A>
     where L: LindenmayerSystem<A> + LindenmayerSystemDrawingParameters<A>,
           A: Clone
 {
@@ -105,25 +105,56 @@ impl<L, A> LindenmayerSystemTurtleProgram<L, A>
 }
 
 impl<L, A> TurtleProgram for LindenmayerSystemTurtleProgram<L, A>
-    where L: LindenmayerSystem<A> + LindenmayerSystemDrawingParameters<A>,
-          A: Clone
+    where L: LindenmayerSystem<A> + LindenmayerSystemDrawingParameters<A> + 'static,
+          A: Clone + 'static
 {
-    fn draw(&self, turtle: &mut Turtle) {
+    fn init_turtle(&self, turtle: &mut Turtle) {
+        turtle.set_pos(Point { x: 0.0, y: 0.0 });
+        self.system.initialize_turtle(turtle);
+        turtle.down();
+    }
+
+    fn turtle_program_iter<'a>(&'a self) -> TurtleProgramIterator<'a> {
         println!("Generating L-System sequence...");
         let sequence = L::generate(self.system.iteration());
         println!("Done");
 
-        turtle.set_pos(Point { x: 0.0, y: 0.0 });
-        self.system.initialize_turtle(turtle);
-        turtle.down();
-
-        for symbol in sequence.iter().cloned() {
-            self.system.interpret_symbol(symbol, turtle);
-        }
-        turtle.up();
+        TurtleProgramIterator::new(Box::new(LindenmayerSystemTurtleProgramIterator {
+            alphabet: PhantomData,
+            program: self,
+            sequence: sequence,
+            curr_step: 0,
+        }))
     }
 }
 
+pub struct LindenmayerSystemTurtleProgramIterator<'a, L, A>
+    where L: LindenmayerSystem<A> + LindenmayerSystemDrawingParameters<A> + 'static,
+          A: Clone + 'static
+{
+    alphabet: PhantomData<A>,
+    program: &'a LindenmayerSystemTurtleProgram<L, A>,
+    sequence: Vec<A>,
+    curr_step: usize,
+}
+
+impl<'a, L, A> Iterator for LindenmayerSystemTurtleProgramIterator<'a, L, A>
+    where L: LindenmayerSystem<A> + LindenmayerSystemDrawingParameters<A> + 'static,
+          A: Clone + 'static
+{
+    type Item = TurtleStep;
+
+    fn next(&mut self) -> Option<TurtleStep> {
+        if self.curr_step >= self.sequence.len() {
+            return None;
+        }
+
+        let symbol = self.sequence[self.curr_step].clone();
+        self.curr_step += 1;
+
+        Some(self.program.system.interpret_symbol(symbol))
+    }
+}
 
 #[cfg(test)]
 mod test {
