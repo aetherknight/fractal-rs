@@ -21,11 +21,6 @@ use turtle::{Turtle, TurtleProgram};
 const WHITE: [f32; 4] = [1.0, 1.0, 1.0, 1.0];
 const BLACK: [f32; 4] = [0.0, 0.0, 0.0, 1.0];
 
-#[derive(Debug)]
-struct WindowHandler {
-    redraw: [bool; 2],
-}
-
 /// Renders a TurtleProgram in a PistonWindow.
 pub fn run(program: &TurtleProgram) {
 
@@ -36,7 +31,7 @@ pub fn run(program: &TurtleProgram) {
                                    .build()
                                    .unwrap_or_else(|e| panic!("Failed to build Window: {}", e));
 
-    let mut window_handler = WindowHandler { redraw: [true; 2] };
+    let mut window_handler = DoubleBufferedWindowHandler::new();
 
     let mut frame_num: u32 = 0;
     let mut old_size: Size = Size {
@@ -73,34 +68,32 @@ pub fn run(program: &TurtleProgram) {
     }
 }
 
-impl WindowHandler {
-    /// When the window is resized, we need to plan to re-render.
-    pub fn window_resized(&mut self) {
-        self.redraw[0] = true;
-        self.redraw[1] = true;
-    }
+pub trait WindowHandler {
+    /// When the window is resized, we may need to plan to re-render.
+    fn window_resized(&mut self);
 
-    pub fn render_frame<G, T>(&mut self,
-                              window_size: Size,
-                              context: graphics::context::Context,
-                              gfx: &mut G,
-                              program: &TurtleProgram,
-                              frame_num: u32)
+    /// Render a frame.
+    fn render_frame<G, T>(&mut self,
+                          window_size: Size,
+                          context: graphics::context::Context,
+                          gfx: &mut G,
+                          program: &TurtleProgram,
+                          frame_num: u32)
         where T: ImageSize,
-              G: Graphics<Texture = T>
-    {
-        use graphics::*;
-        let redraw = self.redraw[(frame_num % 2) as usize];
-        if redraw {
-            println!("Redrawing frame {}", frame_num % 2);
-            clear(WHITE, gfx);
+              G: Graphics<Texture = T>;
+}
 
-            let mut turtle = GlTurtle::new(gfx, window_size, context);
-            WindowHandler::turtledraw(program, &mut turtle);
+/// WindowHandler that renders an entire turtle program per-frame, and optimizes re-renders
+/// by only rendering twice (once for each buffer).
+#[derive(Debug)]
+struct DoubleBufferedWindowHandler {
+    /// Whether we need to re-render for double-buffered frames.
+    redraw: [bool; 2],
+}
 
-            println!("Done redrawing frame");
-            self.redraw[(frame_num % 2) as usize] = false;
-        }
+impl DoubleBufferedWindowHandler {
+    pub fn new() -> DoubleBufferedWindowHandler {
+        DoubleBufferedWindowHandler { redraw: [true; 2] }
     }
 
     fn turtledraw(program: &TurtleProgram, turtle: &mut Turtle) {
@@ -114,6 +107,36 @@ impl WindowHandler {
             turtle.perform(action)
         }
         turtle.up();
+    }
+}
+
+impl WindowHandler for DoubleBufferedWindowHandler {
+    fn window_resized(&mut self) {
+        self.redraw[0] = true;
+        self.redraw[1] = true;
+    }
+
+    fn render_frame<G, T>(&mut self,
+                          window_size: Size,
+                          context: graphics::context::Context,
+                          gfx: &mut G,
+                          program: &TurtleProgram,
+                          frame_num: u32)
+        where T: ImageSize,
+              G: Graphics<Texture = T>
+    {
+        use graphics::*;
+        let redraw = self.redraw[(frame_num % 2) as usize];
+        if redraw {
+            println!("Redrawing frame {}", frame_num % 2);
+            clear(WHITE, gfx);
+
+            let mut turtle = GlTurtle::new(gfx, window_size, context);
+            DoubleBufferedWindowHandler::turtledraw(program, &mut turtle);
+
+            println!("Done redrawing frame");
+            self.redraw[(frame_num % 2) as usize] = false;
+        }
     }
 }
 
