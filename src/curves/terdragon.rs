@@ -14,9 +14,9 @@
 
 //! Computations and abstractions needed for rendering a terdragon fractal.
 
-use geometry::{Point, deg2rad};
+use geometry::deg2rad;
 use lindenmayer::{LindenmayerSystem, LindenmayerSystemDrawingParameters};
-use turtle::{Turtle, TurtleStep};
+use turtle::TurtleStep;
 
 const SQRT_3: f64 = 1.7320508075;
 
@@ -83,10 +83,10 @@ impl LindenmayerSystemDrawingParameters<LSA> for TerdragonFractal {
     fn iteration(&self) -> u64 {
         self.iterations
     }
-    fn initialize_turtle(&self, turtle: &mut Turtle) {
+
+    fn initial_rad(&self) -> f64 {
         use std::f64::consts::PI;
-        turtle.set_pos(Point { x: 0.0, y: 0.0 });
-        turtle.set_rad(PI / 6.0 * -(self.iterations as f64));
+        PI / 6.0 * -(self.iterations as f64)
     }
 
     fn interpret_symbol(&self, symbol: LSA) -> TurtleStep {
@@ -100,8 +100,11 @@ impl LindenmayerSystemDrawingParameters<LSA> for TerdragonFractal {
 
 #[cfg(test)]
 mod test {
+    use geometry::Point;
+    use lindenmayer::LindenmayerSystemDrawingParameters;
     use super::SQRT_3;
     use super::{LSA, TerdragonFractal};
+    use std::f64::consts::PI;
 
     #[test]
     fn test_step_count() {
@@ -139,5 +142,31 @@ mod test {
         assert_eq!(TerdragonFractal::generate(2),
                    [LSA::F, LSA::L, LSA::F, LSA::R, LSA::F, LSA::L, LSA::F, LSA::L, LSA::F,
                     LSA::R, LSA::F, LSA::R, LSA::F, LSA::L, LSA::F, LSA::R, LSA::F]);
+    }
+
+    #[test]
+    fn test_initial_pos() {
+        assert_point_eq!(TerdragonFractal::new(0).unwrap().initial_pos(),
+                         Point { x: 0.0, y: 0.0 },
+                         0.000000001);
+        assert_point_eq!(TerdragonFractal::new(1).unwrap().initial_pos(),
+                         Point { x: 0.0, y: 0.0 },
+                         0.000000001);
+        assert_point_eq!(TerdragonFractal::new(2).unwrap().initial_pos(),
+                         Point { x: 0.0, y: 0.0 },
+                         0.000000001);
+    }
+
+    #[test]
+    fn test_initial_angle() {
+        assert_approx_eq!(TerdragonFractal::new(0).unwrap().initial_rad(),
+                          0.0,
+                          0.00000001);
+        assert_approx_eq!(TerdragonFractal::new(1).unwrap().initial_rad(),
+                          -1.0 * PI / 6.0,
+                          0.00000001);
+        assert_approx_eq!(TerdragonFractal::new(2).unwrap().initial_rad(),
+                          -2.0 * PI / 6.0,
+                          0.00000001);
     }
 }

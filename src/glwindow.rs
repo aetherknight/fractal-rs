@@ -16,7 +16,7 @@ use graphics;
 use piston_window::*;
 
 use geometry::{Point, Vector};
-use turtle::{Turtle, TurtleProgram, TurtleStep};
+use turtle::{Turtle, TurtleProgram};
 
 const WHITE: [f32; 4] = [1.0, 1.0, 1.0, 1.0];
 const BLACK: [f32; 4] = [0.0, 0.0, 0.0, 1.0];
@@ -90,14 +90,14 @@ impl WindowHandler {
     }
 
     fn turtledraw(program: &TurtleProgram, turtle: &mut Turtle) {
-        program.init_turtle(turtle);
+        let init_turtle_steps = program.init_turtle();
+
+        for action in init_turtle_steps {
+            turtle.perform(action)
+        }
 
         for action in program.turtle_program_iter() {
-            match action {
-                TurtleStep::Forward(dist) => turtle.forward(dist),
-                TurtleStep::TurnRad(angle) => turtle.turn_rad(angle),
-                _ => {}
-            }
+            turtle.perform(action)
         }
         turtle.up();
     }

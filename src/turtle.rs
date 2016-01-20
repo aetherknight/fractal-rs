@@ -69,6 +69,7 @@ pub trait Turtle {
 }
 
 /// Represents the possible actions that a TurtleProgram can perform.
+#[derive(Clone)]
 pub enum TurtleStep {
     /// Make the turtle move forward some distance in the coordinate system.
     Forward(f64),
@@ -93,9 +94,8 @@ pub enum TurtleStep {
 /// provide something equivalent to a generator function or coroutine yet), but it grants the
 /// renderer renderer a huge amount of flexibility about how to draw/animate the turtle program.
 pub trait TurtleProgram {
-    /// This method is executed by various TurtleProgram runners before using the iterator. It
-    /// should be used to initialize the turtle to a starting position and orientation.
-    fn init_turtle(&self, turtle: &mut Turtle);
+    /// Returns a sequence of steps that initialize the turtle's starting position and angle.
+    fn init_turtle(&self) -> Vec<TurtleStep>;
 
     /// Should return an iterator object that yields TurtleSteps representing each command the
     /// turtle will take.

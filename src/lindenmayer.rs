@@ -23,7 +23,7 @@
 //! this implementation provides).
 
 use geometry::Point;
-use turtle::{Turtle, TurtleProgram, TurtleStep, TurtleProgramIterator};
+use turtle::*;
 
 /// Represents a particular Lindenmayer system. It requires an alphabet (represented as an enum),
 /// an initial sequence ("string"), and one or more rules that transform the sequence with each
@@ -70,12 +70,15 @@ pub trait LindenmayerSystemDrawingParameters<Alphabet> {
     /// Returns the iteration that should be drawn.
     fn iteration(&self) -> u64;
 
-    /// Set up the turtle's initial position and direction.
-    ///
-    /// If no direction is specified, then the turtle will start at (0.0, 0.0). Most IFS fractals
-    /// have some sort of formula for their initial angle that will ensure that the fractal is
-    /// drawn within the viewing space.
-    fn initialize_turtle(&self, turtle: &mut Turtle);
+    /// Specifies the turtle's initial position. Defaults to (0.0, 0.0).
+    fn initial_pos(&self) -> Point {
+        Point { x: 0.0, y: 0.0 }
+    }
+
+    /// Specifies the turtle's initial direction. Defaults to 0.0.
+    fn initial_rad(&self) -> f64 {
+        0.0
+    }
 
     /// Convert symbol into a turtle command.
     ///
@@ -110,10 +113,12 @@ impl<L, A> TurtleProgram for LindenmayerSystemTurtleProgram<L, A>
     where L: LindenmayerSystem<A> + LindenmayerSystemDrawingParameters<A> + 'static,
           A: Clone + 'static
 {
-    fn init_turtle(&self, turtle: &mut Turtle) {
-        turtle.set_pos(Point { x: 0.0, y: 0.0 });
-        self.system.initialize_turtle(turtle);
-        turtle.down();
+    fn init_turtle(&self) -> Vec<TurtleStep> {
+        vec![
+            TurtleStep::SetPos(self.system.initial_pos()),
+            TurtleStep::SetRad(self.system.initial_rad()),
+            TurtleStep::Down,
+        ]
     }
 
     fn turtle_program_iter<'a>(&'a self) -> TurtleProgramIterator<'a> {

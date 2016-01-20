@@ -16,7 +16,7 @@
 
 use geometry::{Point, deg2rad};
 use lindenmayer::{LindenmayerSystem, LindenmayerSystemDrawingParameters};
-use turtle::{Turtle, TurtleStep};
+use turtle::TurtleStep;
 
 #[derive(Copy, Clone, Debug)]
 pub struct CesaroFractal {
@@ -38,6 +38,8 @@ impl CesaroFractal {
     }
 
     fn distance_forward(self) -> f64 {
+        // TODO: 2.2 just approximates the growth factor as more gaps are added to each
+        // side.
         1.0 / (2.2 as f64).powf((self.iterations) as f64)
     }
 }
@@ -60,9 +62,9 @@ impl LindenmayerSystemDrawingParameters<LSA> for CesaroFractal {
         self.iterations
     }
 
-    fn initialize_turtle(&self, turtle: &mut Turtle) {
-        turtle.set_pos(Point { x: 0.0, y: -0.5 });
-        turtle.set_rad(0.0);
+    /// Start at y of -0.5 so that the box is more centered.
+    fn initial_pos(&self) -> Point {
+        Point { x: 0.0, y: -0.5 }
     }
 
     fn interpret_symbol(&self, symbol: LSA) -> TurtleStep {
@@ -77,4 +79,27 @@ impl LindenmayerSystemDrawingParameters<LSA> for CesaroFractal {
 
 #[cfg(test)]
 mod test {
+    use geometry::Point;
+    use lindenmayer::LindenmayerSystemDrawingParameters;
+    use super::CesaroFractal;
+
+    #[test]
+    fn test_initial_pos() {
+        assert_point_eq!(CesaroFractal::new(0).unwrap().initial_pos(),
+                         Point { x: 0.0, y: -0.5 },
+                         0.000000001);
+        assert_point_eq!(CesaroFractal::new(1).unwrap().initial_pos(),
+                         Point { x: 0.0, y: -0.5 },
+                         0.000000001);
+        assert_point_eq!(CesaroFractal::new(2).unwrap().initial_pos(),
+                         Point { x: 0.0, y: -0.5 },
+                         0.000000001);
+    }
+
+    #[test]
+    fn test_initial_angle() {
+        assert_eq!(CesaroFractal::new(0).unwrap().initial_rad(), 0.0);
+        assert_eq!(CesaroFractal::new(1).unwrap().initial_rad(), 0.0);
+        assert_eq!(CesaroFractal::new(2).unwrap().initial_rad(), 0.0);
+    }
 }

@@ -14,9 +14,9 @@
 
 //! Computations and abstractions needed for rendering a Koch Curve.
 
-use geometry::{Point, deg2rad};
+use geometry::deg2rad;
 use lindenmayer::{LindenmayerSystem, LindenmayerSystemDrawingParameters};
-use turtle::{Turtle, TurtleStep};
+use turtle::TurtleStep;
 
 #[derive(Copy, Clone, Debug)]
 pub struct KochCurve {
@@ -62,11 +62,6 @@ impl LindenmayerSystemDrawingParameters<LSA> for KochCurve {
         self.iterations
     }
 
-    fn initialize_turtle(&self, turtle: &mut Turtle) {
-        turtle.set_pos(Point { x: 0.0, y: 0.0 });
-        turtle.set_rad(0.0);
-    }
-
     fn interpret_symbol(&self, symbol: LSA) -> TurtleStep {
         match symbol {
             LSA::F => TurtleStep::Forward(self.distance_forward()),
@@ -78,4 +73,27 @@ impl LindenmayerSystemDrawingParameters<LSA> for KochCurve {
 
 #[cfg(test)]
 mod test {
+    use geometry::Point;
+    use lindenmayer::LindenmayerSystemDrawingParameters;
+    use super::KochCurve;
+
+    #[test]
+    fn test_initial_pos() {
+        assert_point_eq!(KochCurve::new(0).unwrap().initial_pos(),
+                         Point { x: 0.0, y: 0.0 },
+                         0.000000001);
+        assert_point_eq!(KochCurve::new(1).unwrap().initial_pos(),
+                         Point { x: 0.0, y: 0.0 },
+                         0.000000001);
+        assert_point_eq!(KochCurve::new(2).unwrap().initial_pos(),
+                         Point { x: 0.0, y: 0.0 },
+                         0.000000001);
+    }
+
+    #[test]
+    fn test_initial_angle() {
+        assert_eq!(KochCurve::new(0).unwrap().initial_rad(), 0.0);
+        assert_eq!(KochCurve::new(1).unwrap().initial_rad(), 0.0);
+        assert_eq!(KochCurve::new(2).unwrap().initial_rad(), 0.0);
+    }
 }

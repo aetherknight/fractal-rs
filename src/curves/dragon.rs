@@ -99,10 +99,12 @@ impl DragonFractal {
 
 impl TurtleProgram for DragonFractal {
     /// Starts at (0.0, 0.0) and facing 0 degrees along the X axis. Tries to end at (1.0, 0.0).
-    fn init_turtle(&self, turtle: &mut Turtle) {
-        turtle.set_pos(Point { x: 0.0, y: 0.0 });
-        turtle.set_rad(PI / 4.0 * -(self.iterations as f64));
-        turtle.down();
+    fn init_turtle(&self) -> Vec<TurtleStep> {
+        vec![
+            TurtleStep::SetPos(Point { x: 0.0, y: 0.0 }),
+            TurtleStep::SetRad(PI / 4.0 * -(self.iterations as f64)),
+            TurtleStep::Down,
+        ]
     }
 
     fn turtle_program_iter(&self) -> TurtleProgramIterator {
@@ -148,9 +150,13 @@ impl Iterator for DragonFractalTurtleProgramIterator {
 
 #[cfg(test)]
 mod test {
+    use std::f64::consts::PI;
     use std::f64::consts::SQRT_2;
+
     use super::DragonFractal;
     use super::Turn::{Left, Right};
+    use turtle::{TurtleStep, TurtleProgram};
+    use geometry::Point;
 
     #[test]
     fn test_step_count() {
@@ -197,5 +203,34 @@ mod test {
         assert_approx_eq!(DragonFractal::new(4).unwrap().lines_between_endpoints(),
                           4.0,
                           0.000001);
+    }
+
+    #[test]
+    fn test_init_turtle() {
+        fn check_init_turtle(iteration: u64, expected_angle: f64) {
+            let initial_steps = DragonFractal::new(iteration).unwrap().init_turtle();
+            assert_eq!(initial_steps.len(), 3);
+            match initial_steps.get(0) {
+                Some(&TurtleStep::SetPos(point)) => {
+                    assert_point_eq!(point, Point { x: 0.0, y: 0.0 }, 0.000000001)
+                }
+                _ => panic!("Iteration {} did not return a SetPos first", iteration),
+            }
+            match initial_steps.get(1) {
+                Some(&TurtleStep::SetRad(angle)) => {
+                    assert_approx_eq!(angle, expected_angle, 0.000000001)
+                }
+                _ => panic!("Iteration {} did not return not a SetRad second", iteration),
+            }
+            match initial_steps.get(2) {
+                Some(&TurtleStep::Down) => {}
+                _ => panic!("Iteration {} did not return a Down third", iteration),
+            }
+        }
+        check_init_turtle(0, 0.0);
+        check_init_turtle(1, -PI / 4.0);
+        check_init_turtle(2, -PI / 2.0);
+        check_init_turtle(3, -3.0 * PI / 4.0);
+        check_init_turtle(4, -PI);
     }
 }
