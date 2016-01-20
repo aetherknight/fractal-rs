@@ -39,10 +39,19 @@ pub fn run(program: &TurtleProgram) {
     let mut window_handler = WindowHandler { redraw: [true; 2] };
 
     let mut frame_num: u32 = 0;
-    // event loop
+    let mut old_size: Size = Size {
+        width: 0,
+        height: 0,
+    };
     for e in window {
         e.draw_2d(|context, gfx| {
             let size = e.size();
+            // Size doesn't implement PartialEq, so we have to check ourselves.
+            if size.width != old_size.width || size.height != old_size.height {
+                println!("resized");
+                old_size = size;
+                window_handler.window_resized();
+            }
             frame_num += 1;
             println!("Render frame {}, window: {:?}", frame_num, size);
             window_handler.render_frame(size, context, gfx, program, frame_num);
@@ -65,7 +74,12 @@ pub fn run(program: &TurtleProgram) {
 }
 
 impl WindowHandler {
-    /// TODO: resizing the window does should trigger a re-render.
+    /// When the window is resized, we need to plan to re-render.
+    pub fn window_resized(&mut self) {
+        self.redraw[0] = true;
+        self.redraw[1] = true;
+    }
+
     pub fn render_frame<G, T>(&mut self,
                               window_size: Size,
                               context: graphics::context::Context,
