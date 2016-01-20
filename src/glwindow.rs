@@ -13,7 +13,6 @@
 // limitations under the License.
 
 use graphics;
-use opengl_graphics::GlGraphics;
 use piston_window::*;
 
 use common::{Turtle, TurtleProgram, Point, Vector};
@@ -21,13 +20,12 @@ use common::{Turtle, TurtleProgram, Point, Vector};
 const WHITE: [f32; 4] = [1.0, 1.0, 1.0, 1.0];
 const BLACK: [f32; 4] = [0.0, 0.0, 0.0, 1.0];
 
-// #[derive(Clone)]
+#[derive(Debug)]
 struct WindowHandler {
-    opengl: OpenGL,
     redraw: [bool; 2],
 }
 
-pub fn run(app: &TurtleProgram) {
+pub fn run(program: &TurtleProgram) {
     let opengl = OpenGL::V3_2;
     let window: PistonWindow = WindowSettings::new("Fractal", [800, 600])
                                    .opengl(opengl)
@@ -35,44 +33,53 @@ pub fn run(app: &TurtleProgram) {
                                    .build()
                                    .unwrap_or_else(|e| panic!("Failed to build Window: {}", e));
 
-    let mut window_handler = WindowHandler {
-        opengl: opengl,
-        redraw: [true; 2],
-    };
+    let mut window_handler = WindowHandler { redraw: [true; 2] };
 
     let mut frame_num: u32 = 0;
     // event loop
     for e in window {
-        match e.event {
-            Some(Event::Render(r)) => {
-                frame_num += 1;
-                println!("Render frame {}", frame_num);
-                window_handler.render_frame(app, r, frame_num);
-            }
-            Some(Event::Update(u)) => {
-                // println!("update event");
-            }
-            _ => {}
-        }
+        e.draw_2d(|context, gfx| {
+            let size = e.size();
+            frame_num += 1;
+            println!("Render frame {}, window: {:?}", frame_num, size);
+            window_handler.render_frame(size, context, gfx, program, frame_num);
+        });
+        //     // Some(Event::Input(i)) => {
+        //     //     match i {
+        //     //         Input::Press(Button::Keyboard(k)) => {
+        //     //             match k {
+        //     //                 Key::Up => {}
+        //     //                 Key::Down => {}
+        //     //                 _ => {}
+        //     //             }
+        //     //         }
+        //     //         _ => {}
+        //     //     }
+        //     // }
+        //     _ => {}
+        // }
     }
 }
 
 impl WindowHandler {
-    pub fn render_frame(&mut self, app: &TurtleProgram, r: RenderArgs, frame_num: u32) {
-
+    pub fn render_frame<G, T>(&mut self,
+                              window_size: Size,
+                              context: graphics::context::Context,
+                              gfx: &mut G,
+                              program: &TurtleProgram,
+                              frame_num: u32)
+        where T: ImageSize,
+              G: Graphics<Texture = T>
+    {
+        use graphics::*;
         let redraw = self.redraw[(frame_num % 2) as usize];
         if redraw {
             println!("Redrawing frame {}", frame_num % 2);
-            let gl = &mut GlGraphics::new(self.opengl);
+            clear(WHITE, gfx);
 
-            gl.draw(r.viewport(), |context, gl2| {
-                use graphics::*;
-                clear(WHITE, gl2);
+            let mut turtle = GlTurtle::new(gfx, window_size, context);
+            program.draw(&mut turtle);
 
-                let turtle = &mut GlTurtle::new(gl2, r, context);
-                app.draw(turtle);
-
-            });
             println!("Done redrawing frame");
             self.redraw[(frame_num % 2) as usize] = false;
         }
@@ -80,9 +87,12 @@ impl WindowHandler {
 }
 
 /// An implementation of a Turtle within an OpenGL context.
-pub struct GlTurtle<'a> {
-    gl: &'a mut GlGraphics,
-    args: RenderArgs,
+pub struct GlTurtle<'a, G, T>
+    where T: ImageSize,
+          G: Graphics<Texture = T> + 'a
+{
+    gfx: &'a mut G,
+    window_size: Size,
     context: graphics::context::Context,
 
     position: Point,
@@ -90,14 +100,17 @@ pub struct GlTurtle<'a> {
     down: bool,
 }
 
-impl<'a> GlTurtle<'a> {
-    pub fn new(gl: &'a mut GlGraphics,
-               args: RenderArgs,
+impl<'a, G, T> GlTurtle<'a, G, T>
+    where T: ImageSize,
+          G: Graphics<Texture = T> + 'a
+{
+    pub fn new(gfx: &'a mut G,
+               window_size: Size,
                context: graphics::context::Context)
-               -> GlTurtle {
+               -> GlTurtle<'a, G, T> {
         GlTurtle {
-            gl: gl,
-            args: args,
+            gfx: gfx,
+            window_size: window_size,
             context: context,
             position: Point { x: 0.0, y: 0.0 },
             angle: 0.0,
@@ -106,7 +119,10 @@ impl<'a> GlTurtle<'a> {
     }
 }
 
-impl<'a> Turtle for GlTurtle<'a> {
+impl<'a, G, T> Turtle for GlTurtle<'a, G, T>
+    where T: ImageSize,
+          G: Graphics<Texture = T> + 'a
+{
     fn forward(&mut self, distance: f64) {
         use graphics::*;
 
@@ -117,15 +133,15 @@ impl<'a> Turtle for GlTurtle<'a> {
         });
 
         if self.down {
-            // let rotation = 0.0;
-            let startx = (self.args.width / 4) as f64;
-            let starty = (self.args.height / 2) as f64;
-            let endx = (3 * self.args.width / 4) as f64;
-            // let endy = (self.args.height / 2) as f64;
+            let screen_width = self.window_size.width;
+            let screen_height = self.window_size.height;
+
+            let startx = (screen_width / 4) as f64;
+            let starty = (screen_height / 2) as f64;
+            let endx = (3 * screen_width / 4) as f64;
+            // let endy = (screen_height / 2) as f64;
 
             let linesize = (startx - endx).abs() as f64;
-
-            // println!("{}, {}", self.args.width, self.args.height);
 
             let transform = self.context
                                 .transform
@@ -139,7 +155,7 @@ impl<'a> Turtle for GlTurtle<'a> {
             Line::new(BLACK, 0.5 / linesize).draw([old_pos.x, old_pos.y, new_pos.x, new_pos.y],
                                                   default_draw_state(),
                                                   transform,
-                                                  self.gl);
+                                                  self.gfx);
         }
 
         self.position = new_pos;

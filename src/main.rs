@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+extern crate gfx_device_gl;
 extern crate graphics;
 extern crate opengl_graphics;
 extern crate piston;

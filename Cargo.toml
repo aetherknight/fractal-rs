@@ -9,6 +9,7 @@ piston = "0.17.0"
 piston2d-graphics = "0.13.1"
 piston2d-opengl_graphics = "0.23.0"
 piston_window = "0.34.0"
+gfx_device_gl = "0.7.0"
 
 #[dev-dependencies]
 #float-cmp = "~0.2.1"

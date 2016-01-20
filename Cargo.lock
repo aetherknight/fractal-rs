@@ -2,6 +2,7 @@
 name = "fractal"
 version = "0.0.1"
 dependencies = [
+ "gfx_device_gl 0.7.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "piston 0.17.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "piston2d-graphics 0.13.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "piston2d-opengl_graphics 0.23.0 (registry+https://github.com/rust-lang/crates.io-index)",
