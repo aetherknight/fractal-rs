@@ -18,15 +18,18 @@ extern crate opengl_graphics;
 extern crate piston;
 extern crate piston_window;
 
+// must be before any local modules that use the macros
 #[macro_use]
-pub mod common;
+mod macros;
+
 pub mod curves;
+pub mod geometry;
 pub mod lindenmayer;
+pub mod turtle;
 mod glwindow;
 
 use std::env;
 
-use common::TurtleProgram;
 use curves::cesaro::CesaroFractal;
 use curves::cesarotri::CesaroTriFractal;
 use curves::dragon::DragonFractal;
@@ -34,6 +37,7 @@ use curves::kochcurve::KochCurve;
 use curves::levyccurve::LevyCCurve;
 use curves::terdragon::TerdragonFractal;
 use lindenmayer::LindenmayerSystemTurtleProgram;
+use turtle::TurtleProgram;
 
 // TODO: Implement a proper "usage"
 fn validate_args(args: &Vec<String>) {

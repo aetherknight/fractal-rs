@@ -14,9 +14,11 @@
 
 //! Computations and abstractions needed for rendering a Lévy C Curve.
 
-use common::{Point, Turtle, deg2rad, TurtleStep};
-use lindenmayer::{LindenmayerSystem, LindenmayerSystemDrawingParameters};
 use std::f64::consts::SQRT_2;
+
+use geometry::{Point, deg2rad};
+use lindenmayer::{LindenmayerSystem, LindenmayerSystemDrawingParameters};
+use turtle::{Turtle, TurtleStep};
 
 #[derive(Copy, Clone, Debug)]
 pub struct LevyCCurve {

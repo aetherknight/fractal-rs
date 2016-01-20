@@ -14,8 +14,9 @@
 
 //! Computations and abstractions needed for rendering a terdragon fractal.
 
-use common::{Point, Turtle, deg2rad, TurtleStep};
+use geometry::{Point, deg2rad};
 use lindenmayer::{LindenmayerSystem, LindenmayerSystemDrawingParameters};
+use turtle::{Turtle, TurtleStep};
 
 const SQRT_3: f64 = 1.7320508075;
 

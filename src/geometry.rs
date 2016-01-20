@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-//! A set of types, traits, and macros that provide things like points in a 2-d
-//! coordinate system, the definition of a Turtle for turtle drawings, etc.
+//! Various types and functions the work within a 2-D cartesian coordinate
+//! system.
 
 use std::f64::consts::PI;
 use std::fmt;
@@ -68,163 +68,17 @@ impl Vector {
     }
 }
 
+/// Converts degrees into radians.
 pub fn deg2rad(degrees: f64) -> f64 {
     degrees / 360.0 * 2.0 * PI
 }
-
-/// A Turtle is an abstraction for drawing lines in a space. It has a position and it faces a
-/// particular direction. A program usually tells a turtle to move forward based upon its facing,
-/// to change direction, and to start or stop drawing.
-///
-/// The implementation must implement `set_rad()` and `turn_rad()` itself, while it gets
-/// `set_deg()` and `turn_deg()` for free.
-pub trait Turtle {
-    /// How far the turtle should move forward.
-    fn forward(&mut self, distance: f64);
-
-    /// Move the turtle to the specified coordinates.
-    fn set_pos(&mut self, new_pos: Point);
-
-    /// Set the turtle's direction.
-    fn set_deg(&mut self, new_deg: f64) {
-        self.set_rad(deg2rad(new_deg));
-    }
-
-    fn set_rad(&mut self, new_rad: f64);
-
-    /// Rotate the turtle, in degrees.
-    ///
-    /// Positive values turn the turtle "left" or counter-clockwise. Negative values turn the
-    /// turtle "right" or clockwise.
-    fn turn_deg(&mut self, degrees: f64) {
-        self.turn_rad(deg2rad(degrees));
-    }
-
-    /// Convenience method for rotating the turtle in radians instead of degrees.
-    ///
-    /// 2*PI radians = 360 degrees.
-    fn turn_rad(&mut self, radians: f64);
-
-    /// Touch the turtle's pen to the drawing surface.
-    fn down(&mut self);
-
-    /// Lift the turtle's pen off of the drawing surface.
-    fn up(&mut self);
-
-    /// Perform the action represented by `step`.
-    fn perform(&mut self, step: TurtleStep) {
-        match step {
-            TurtleStep::Forward(dist) => self.forward(dist),
-            TurtleStep::SetPos(point) => self.set_pos(point),
-            TurtleStep::SetRad(angle) => self.set_rad(angle),
-            TurtleStep::TurnRad(angle) => self.turn_rad(angle),
-            TurtleStep::Down => self.down(),
-            TurtleStep::Up => self.up(),
-        }
-    }
-}
-
-/// Represents the possible actions that a TurtleProgram can perform.
-pub enum TurtleStep {
-    /// Make the turtle move forward some distance in the coordinate system.
-    Forward(f64),
-    /// Move the turtle to the specified Point in the coordinate system.
-    SetPos(Point),
-    /// Set the turtle's angle. 0 and 2π are facing towards the positive X direction.
-    SetRad(f64),
-    /// Rotate the turtle the specified amount in radians.
-    TurnRad(f64),
-    /// Touch the turtle's pen to the drawing surface.
-    Down,
-    /// Lift the turtle's pen off of the drawing surface.
-    Up,
-}
-
-/// An object that knows how to draw someting using a Turtle. Turtle programs are broken up into
-/// two parts: an initializer method that should place the Turtle into its initial state, and a
-/// method that returns a TurtleProgramIterator (which should wrap a Boxed internal iterator
-/// implementation) that yields the sequence of steps for the main turtle program.
-///
-/// This approach adds some extra complexity and scaffolding by requiring an iterator (Rust doesn't
-/// provide something equivalent to a generator function or coroutine yet), but it grants the
-/// renderer renderer a huge amount of flexibility about how to draw/animate the turtle program.
-pub trait TurtleProgram {
-    /// This method is executed by various TurtleProgram runners before using the iterator. It
-    /// should be used to initialize the turtle to a starting position and orientation.
-    fn init_turtle(&self, turtle: &mut Turtle);
-
-    /// Should return an iterator object that yields TurtleSteps representing each command the
-    /// turtle will take.
-    fn turtle_program_iter<'a>(&'a self) -> TurtleProgramIterator;
-}
-
-/// The return type for a TurtleProgram's `turtle_program_iter()`. Since Rust does not yet support
-/// abstract return types (eg, a trait return type), the next best thing is a wrapper around a
-/// boxed type.
-pub struct TurtleProgramIterator<'a> {
-    iter: Box<Iterator<Item = TurtleStep> + 'a>,
-}
-
-impl<'a> TurtleProgramIterator<'a> {
-    pub fn new(iter: Box<Iterator<Item = TurtleStep> + 'a>) -> TurtleProgramIterator {
-        TurtleProgramIterator { iter: iter }
-    }
-}
-
-impl<'a> Iterator for TurtleProgramIterator<'a> {
-    type Item = TurtleStep;
-
-    fn next(&mut self) -> Option<TurtleStep> {
-        self.iter.next()
-    }
-}
-
-/// Macro to assert that two floating point values are almost equal.
-///
-/// This would use float-cmp and use ULPs instead of an epsilon, but float-cmp relies upon a Rust
-/// language/stdlib feature that is not yet in the stable release, as of 2015/12/12.
-macro_rules! assert_approx_eq {
-    ( $lhs:expr, $rhs:expr, $epsilon:expr ) => {
-        {
-            let lhs = ($lhs as f64).abs();
-            let rhs = ($rhs as f64).abs();
-            let epsilon = ($epsilon as f64).abs();
-
-            if ! ((lhs - rhs).abs() < epsilon) {
-                panic!("assertion failed: {} does not approximately equal: {}", lhs, rhs);
-            }
-        }
-    }
-}
-
-/// Macro to assert that two Points are almost equal.
-///
-/// This would use float-cmp and use ULPs instead of an epsilon, but float-cmp relies upon a Rust
-/// language/stdlib feature that is not yet in the stable release, as of 2015/12/12.
-macro_rules! assert_point_eq {
-    ( $lhs:expr, $rhs:expr, $epsilon:expr ) => {
-        {
-            let lhs = $lhs as Point;
-            let rhs = $rhs as Point;
-            let epsilon = $epsilon as f64;
-
-            if ! ((lhs.x - rhs.x).abs() < epsilon) {
-                panic!("assertion failed: {}.x does not approximately equal: {}.x", lhs, rhs);
-            }
-            if ! ((lhs.y - rhs.y).abs() < epsilon) {
-                panic!("assertion failed: {}.y does not approximately equal: {}.y", lhs, rhs);
-            }
-        }
-    }
-}
-
 
 #[cfg(test)]
 mod test {
     use std::f64::consts::PI;
     use std::f64::consts::SQRT_2;
 
-    use super::{Point, Vector};
+    use super::{Point, Vector, deg2rad};
 
     #[test]
     fn test_distance_to() {
@@ -404,5 +258,15 @@ mod test {
                          }),
                          Point { x: 1.0, y: 1.0 },
                          0.000000001);
+    }
+
+    #[test]
+    fn test_deg2rad() {
+        assert_approx_eq!(deg2rad(0.0), 0.0, 0.000000001);
+        assert_approx_eq!(deg2rad(60.0), PI / 3.0, 0.000000001);
+        assert_approx_eq!(deg2rad(90.0), PI / 2.0, 0.000000001);
+        assert_approx_eq!(deg2rad(120.0), 2.0 * PI / 3.0, 0.000000001);
+        assert_approx_eq!(deg2rad(180.0), PI, 0.000000001);
+        assert_approx_eq!(deg2rad(360.0), 2.0 * PI, 0.000000001);
     }
 }

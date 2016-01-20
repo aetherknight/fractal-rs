@@ -14,9 +14,11 @@
 
 //! Computations and abstractions needed for rendering a dragon fractal.
 
-use common::{Point, Turtle, TurtleStep, TurtleProgram, TurtleProgramIterator};
 use std::f64::consts::PI;
 use std::f64::consts::SQRT_2;
+
+use geometry::Point;
+use turtle::*;
 
 #[derive(Copy, Clone, Debug, Eq, PartialEq)]
 pub enum Turn {

@@ -21,7 +21,9 @@
 //! sequence of commands that some representation process, such as a turtle
 //! drawing program, can then use to draw a curve/fractal/plant (which is what
 //! this implementation provides).
-use common::{Point, Turtle, TurtleProgram, TurtleStep, TurtleProgramIterator};
+
+use geometry::Point;
+use turtle::{Turtle, TurtleProgram, TurtleStep, TurtleProgramIterator};
 
 /// Represents a particular Lindenmayer system. It requires an alphabet (represented as an enum),
 /// an initial sequence ("string"), and one or more rules that transform the sequence with each

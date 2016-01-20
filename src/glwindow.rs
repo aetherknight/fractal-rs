@@ -15,7 +15,8 @@
 use graphics;
 use piston_window::*;
 
-use common::{Turtle, TurtleProgram, Point, Vector, TurtleStep};
+use geometry::{Point, Vector};
+use turtle::{Turtle, TurtleProgram, TurtleStep};
 
 const WHITE: [f32; 4] = [1.0, 1.0, 1.0, 1.0];
 const BLACK: [f32; 4] = [0.0, 0.0, 0.0, 1.0];

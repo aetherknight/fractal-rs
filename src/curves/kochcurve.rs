@@ -14,8 +14,9 @@
 
 //! Computations and abstractions needed for rendering a Koch Curve.
 
-use common::{Point, Turtle, deg2rad, TurtleStep};
+use geometry::{Point, deg2rad};
 use lindenmayer::{LindenmayerSystem, LindenmayerSystemDrawingParameters};
+use turtle::{Turtle, TurtleStep};
 
 #[derive(Copy, Clone, Debug)]
 pub struct KochCurve {
