@@ -18,26 +18,21 @@ extern crate opengl_graphics;
 extern crate piston;
 extern crate piston_window;
 
-#[macro_use]
-pub mod cesaro;
-pub mod cesarotri;
 pub mod common;
-pub mod dragon;
-pub mod kochcurve;
-pub mod levyccurve;
+pub mod curves;
 pub mod lindenmayer;
-pub mod terdragon;
 mod glwindow;
 
 use std::env;
-use cesaro::CesaroFractal;
-use cesarotri::CesaroTriFractal;
+
 use common::TurtleProgram;
-use dragon::DragonFractal;
-use kochcurve::KochCurve;
-use levyccurve::LevyCCurve;
+use curves::cesaro::CesaroFractal;
+use curves::cesarotri::CesaroTriFractal;
+use curves::dragon::DragonFractal;
+use curves::kochcurve::KochCurve;
+use curves::levyccurve::LevyCCurve;
+use curves::terdragon::TerdragonFractal;
 use lindenmayer::LindenmayerSystemTurtleProgram;
-use terdragon::TerdragonFractal;
 
 // TODO: Implement a proper "usage"
 fn validate_args(args: &Vec<String>) {

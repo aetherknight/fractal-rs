@@ -67,7 +67,7 @@ impl LindenmayerSystemDrawingParameters<LSA> for CesaroTriFractal {
     }
 
     fn interpret_symbol(&self, symbol: LSA) -> TurtleStep {
-        use std::f64::consts::SQRT_2;
+        // use std::f64::consts::SQRT_2;
         use std::f64::consts::PI;
 
         let base_angle = 85.0_f64;
@@ -85,7 +85,7 @@ impl LindenmayerSystemDrawingParameters<LSA> for CesaroTriFractal {
                             .powf(self.iterations as f64));
 
         // cos(a) = A/H. A = hyp/2. H = A/cos(a)
-        let side_len = (hyp / 2.0_f64) / (base_angle_rads / 2.0_f64).cos();
+        // let side_len = (hyp / 2.0_f64) / (base_angle_rads / 2.0_f64).cos();
         let side_unit = hyp_unit / 2.0_f64 / (base_angle_rads / 2.0_f64).cos();
 
         let side_angle = base_angle / 2.0_f64;
