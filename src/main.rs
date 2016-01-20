@@ -39,12 +39,29 @@ use curves::terdragon::TerdragonFractal;
 use lindenmayer::LindenmayerSystemTurtleProgram;
 use turtle::TurtleProgram;
 
-// TODO: Implement a proper "usage"
+fn usage(program_name: &str) {
+    println!("Usage: {} CURVE ARGS...", program_name);
+    println!("");
+    println!("CURVEs:");
+    println!("    cesaro ITERATION     -- Césaro Square");
+    println!("    cesarotri ITERATION  -- Césaro Triangle");
+    println!("    dragon ITERATION     -- Dragon Curve");
+    println!("    kochcurve ITERATION  -- Koch Snowflake");
+    println!("    levyccurve ITERATION -- Lévy C Curve");
+    println!("    terdragon ITERATION  -- Terdragon Curve");
+    println!("");
+    println!("ITERATION should be a a non-negative integer. Note that the complexity of the");
+    println!("curves grows exponentially.");
+    println!("");
+}
+
 fn validate_args(args: &Vec<String>) {
     if (*args).len() <= 1 {
+        usage(&(*args)[0]);
         panic!("You must provide a fractal type and an iteration number");
     }
     if (*args).len() <= 2 {
+        usage(&(*args)[0]);
         panic!("You must provide an iteration number");
     }
 }
@@ -53,10 +70,10 @@ fn main() {
     let args = env::args().collect::<Vec<String>>();
     validate_args(&args);
 
-    let program_name: &str = args.get(1).unwrap();
+    let curve_name: &str = args.get(1).unwrap();
     let iterations: u64 = args.get(2).unwrap().parse::<u64>().unwrap();
 
-    let program: Box<TurtleProgram> = match program_name.as_ref() {
+    let program: Box<TurtleProgram> = match curve_name.as_ref() {
         "cesaro"     => Box::new(LindenmayerSystemTurtleProgram::new(CesaroFractal::new(iterations).unwrap())),
         "cesarotri"  => Box::new(LindenmayerSystemTurtleProgram::new(CesaroTriFractal::new(iterations).unwrap())),
         "dragon"     => Box::new(DragonFractal::new(iterations).unwrap()),
