@@ -69,7 +69,7 @@ pub trait Turtle {
 }
 
 /// Represents the possible actions that a TurtleProgram can perform.
-#[derive(Clone)]
+#[derive(Clone, Debug, PartialEq)]
 pub enum TurtleStep {
     /// Make the turtle move forward some distance in the coordinate system.
     Forward(f64),
@@ -113,6 +113,13 @@ impl<'a> TurtleProgramIterator<'a> {
     pub fn new(iter: Box<Iterator<Item = TurtleStep> + 'a>) -> TurtleProgramIterator {
         TurtleProgramIterator { iter: iter }
     }
+
+    /// Turns the TurtleProgramIterator into an iterator that will return Vec<TurtleStep>s that
+    /// each contain all steps up to the next TurtleStep::Forward. This allows a renderer to
+    /// render a TurtleProgram in chunks that are broken up by moves that actually draw something.
+    pub fn collect_to_next_forward(self) -> TurtleCollectToNextForwardIterator<'a> {
+        TurtleCollectToNextForwardIterator { iter: self }
+    }
 }
 
 impl<'a> Iterator for TurtleProgramIterator<'a> {
@@ -120,5 +127,99 @@ impl<'a> Iterator for TurtleProgramIterator<'a> {
 
     fn next(&mut self) -> Option<TurtleStep> {
         self.iter.next()
+    }
+}
+
+/// Iterator that yields vectors of TurtleSteps until the next TurtleStep::Forward or until the
+/// underlying iterator starts yielding None. This allows us to do perform a finite number of
+/// drawing actions at a time.
+pub struct TurtleCollectToNextForwardIterator<'a> {
+    iter: TurtleProgramIterator<'a>,
+}
+
+impl<'a> Iterator for TurtleCollectToNextForwardIterator<'a> {
+    type Item = Vec<TurtleStep>;
+    fn next(&mut self) -> Option<Vec<TurtleStep>> {
+        let mut retval: Vec<TurtleStep> = Vec::new();
+        loop {
+            match self.iter.next() {
+                None => {
+                    if retval.len() > 0 {
+                        return Some(retval);
+                    } else {
+                        return None;
+                    }
+                }
+                Some(TurtleStep::Forward(f)) => {
+                    // add the forward and return
+                    retval.push(TurtleStep::Forward(f));
+                    return Some(retval);
+                }
+                Some(step) => {
+                    // add the step
+                    retval.push(step);
+                }
+            }
+        }
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use super::TurtleCollectToNextForwardIterator;
+    use super::TurtleProgramIterator;
+    use super::TurtleStep;
+
+    #[test]
+    fn test_collect_forward_iterator() {
+        let base_iter = TurtleProgramIterator::new(Box::new(vec![
+            TurtleStep::Forward(1.0),
+            TurtleStep::TurnRad(9.0),
+            TurtleStep::Forward(2.0),
+        ]
+                                                                .into_iter()));
+        let mut test_iter = TurtleCollectToNextForwardIterator { iter: base_iter };
+
+        let first_vec = test_iter.next().expect("no first vector");
+        assert_eq!(first_vec.len(), 1);
+        assert_eq!(*first_vec.get(0).expect("no first_vec[0]"),
+                   TurtleStep::Forward(1.0));
+
+        let second_vec = test_iter.next().expect("no second vector");
+        assert_eq!(second_vec.len(), 2);
+        assert_eq!(*second_vec.get(0).expect("no second_vec[0]"),
+                   TurtleStep::TurnRad(9.0));
+        assert_eq!(*second_vec.get(1).expect("no second_vec[1]"),
+                   TurtleStep::Forward(2.0));
+
+        assert!(test_iter.next().is_none());
+    }
+
+    #[test]
+    fn test_collect_forward_iterator_empty() {
+        let base_iter = TurtleProgramIterator::new(Box::new(vec![].into_iter()));
+        let mut test_iter = TurtleCollectToNextForwardIterator { iter: base_iter };
+
+        assert!(test_iter.next().is_none());
+    }
+
+    #[test]
+    fn test_collect_forward_iterator_actions_after_last_forward() {
+        let base_iter = TurtleProgramIterator::new(Box::new(vec![
+                                                               TurtleStep::Forward(1.0),
+                                                               TurtleStep::TurnRad(9.0),
+                                                               TurtleStep::Forward(2.0),
+                                                               TurtleStep::TurnRad(-1.0),
+                                                           ]
+                                                                .into_iter()));
+        let mut test_iter = TurtleCollectToNextForwardIterator { iter: base_iter };
+
+        test_iter.next();
+        test_iter.next();
+        let lacks_forward = test_iter.next().expect("no third vec");
+        assert_eq!(lacks_forward.len(), 1);
+        assert_eq!(*lacks_forward.get(0).expect("no lacks_forward[0]"),
+                   TurtleStep::TurnRad(-1.0));
+        assert!(test_iter.next().is_none());
     }
 }

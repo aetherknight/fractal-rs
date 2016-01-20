@@ -19,7 +19,7 @@ use std::f64::consts::PI;
 use std::fmt;
 
 /// Represents a point in a 2-D cartesian coordinate system.
-#[derive(Copy, Clone, Debug)]
+#[derive(Copy, Clone, Debug, PartialEq)]
 pub struct Point {
     pub x: f64,
     pub y: f64,
