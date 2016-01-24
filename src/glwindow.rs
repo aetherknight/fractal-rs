@@ -16,7 +16,7 @@ use graphics;
 use piston_window::*;
 
 use geometry::{Point, Vector};
-use turtle::{Turtle, TurtleProgram};
+use turtle::{Turtle, TurtleProgram, TurtleCollectToNextForwardIterator};
 
 const WHITE: [f32; 4] = [1.0, 1.0, 1.0, 1.0];
 const BLACK: [f32; 4] = [0.0, 0.0, 0.0, 1.0];
@@ -31,7 +31,8 @@ pub fn run(program: &TurtleProgram) {
                                    .build()
                                    .unwrap_or_else(|e| panic!("Failed to build Window: {}", e));
 
-    let mut window_handler = DoubleBufferedWindowHandler::new();
+    // let mut window_handler = DoubleBufferedWindowHandler::new();
+    let mut window_handler = DoubleBufferedAnimatedWindowHandler::new();
 
     let mut frame_num: u32 = 0;
     let mut old_size: Size = Size {
@@ -68,7 +69,7 @@ pub fn run(program: &TurtleProgram) {
     }
 }
 
-pub trait WindowHandler {
+pub trait WindowHandler<'a> {
     /// When the window is resized, we may need to plan to re-render.
     fn window_resized(&mut self);
 
@@ -77,7 +78,7 @@ pub trait WindowHandler {
                           window_size: Size,
                           context: graphics::context::Context,
                           gfx: &mut G,
-                          program: &TurtleProgram,
+                          program: &'a TurtleProgram,
                           frame_num: u32)
         where T: ImageSize,
               G: Graphics<Texture = T>;
@@ -110,7 +111,7 @@ impl DoubleBufferedWindowHandler {
     }
 }
 
-impl WindowHandler for DoubleBufferedWindowHandler {
+impl<'a> WindowHandler<'a> for DoubleBufferedWindowHandler {
     fn window_resized(&mut self) {
         self.redraw[0] = true;
         self.redraw[1] = true;
@@ -120,7 +121,7 @@ impl WindowHandler for DoubleBufferedWindowHandler {
                           window_size: Size,
                           context: graphics::context::Context,
                           gfx: &mut G,
-                          program: &TurtleProgram,
+                          program: &'a TurtleProgram,
                           frame_num: u32)
         where T: ImageSize,
               G: Graphics<Texture = T>
@@ -131,11 +132,30 @@ impl WindowHandler for DoubleBufferedWindowHandler {
             println!("Redrawing frame {}", frame_num % 2);
             clear(WHITE, gfx);
 
-            let mut turtle = GlTurtle::new(gfx, window_size, context);
+            let mut state = GlTurtleState::new();
+            let mut turtle = GlTurtle::new(&mut state, gfx, window_size, context);
             DoubleBufferedWindowHandler::turtledraw(program, &mut turtle);
 
             println!("Done redrawing frame");
             self.redraw[(frame_num % 2) as usize] = false;
+        }
+    }
+}
+
+/// Internal state of the turtle.
+#[derive(Clone, Debug)]
+pub struct GlTurtleState {
+    position: Point,
+    angle: f64,
+    down: bool,
+}
+
+impl GlTurtleState {
+    pub fn new() -> GlTurtleState {
+        GlTurtleState {
+            position: Point { x: 0.0, y: 0.0 },
+            angle: 0.0,
+            down: true,
         }
     }
 }
@@ -149,16 +169,15 @@ pub struct GlTurtle<'a, G, T>
     window_size: Size,
     context: graphics::context::Context,
 
-    position: Point,
-    angle: f64,
-    down: bool,
+    state: &'a mut GlTurtleState,
 }
 
 impl<'a, G, T> GlTurtle<'a, G, T>
     where T: ImageSize,
           G: Graphics<Texture = T> + 'a
 {
-    pub fn new(gfx: &'a mut G,
+    pub fn new(state: &'a mut GlTurtleState,
+               gfx: &'a mut G,
                window_size: Size,
                context: graphics::context::Context)
                -> GlTurtle<'a, G, T> {
@@ -166,9 +185,7 @@ impl<'a, G, T> GlTurtle<'a, G, T>
             gfx: gfx,
             window_size: window_size,
             context: context,
-            position: Point { x: 0.0, y: 0.0 },
-            angle: 0.0,
-            down: true,
+            state: state,
         }
     }
 }
@@ -180,13 +197,13 @@ impl<'a, G, T> Turtle for GlTurtle<'a, G, T>
     fn forward(&mut self, distance: f64) {
         use graphics::*;
 
-        let old_pos = self.position;
-        let new_pos = self.position.point_at(Vector {
-            direction: self.angle,
+        let old_pos = self.state.position;
+        let new_pos = self.state.position.point_at(Vector {
+            direction: self.state.angle,
             magnitude: distance,
         });
 
-        if self.down {
+        if self.state.down {
             let screen_width = self.window_size.width;
             let screen_height = self.window_size.height;
 
@@ -212,27 +229,140 @@ impl<'a, G, T> Turtle for GlTurtle<'a, G, T>
                                                   self.gfx);
         }
 
-        self.position = new_pos;
+        self.state.position = new_pos;
     }
 
     fn set_pos(&mut self, new_pos: Point) {
-        self.position = new_pos;
+        self.state.position = new_pos;
     }
 
     fn set_rad(&mut self, new_rad: f64) {
-        self.angle = new_rad;
+        self.state.angle = new_rad;
     }
 
     fn turn_rad(&mut self, radians: f64) {
         use std::f64::consts::PI;
-        self.angle = (self.angle + radians) % (2.0 * PI);
+        self.state.angle = (self.state.angle + radians) % (2.0 * PI);
     }
 
     fn down(&mut self) {
-        self.down = true;
+        self.state.down = true;
     }
 
     fn up(&mut self) {
-        self.down = false;
+        self.state.down = false;
+    }
+}
+
+/// WindowHandler that animates the rendering of the curve.
+struct DoubleBufferedAnimatedWindowHandler<'a> {
+    /// stored turtle state for each turtle. double-buffered means we need to animate the curve
+    /// "twice".
+    turtles: [GlTurtleState; 2],
+    /// Two iterators.
+    iters: [TurtleCollectToNextForwardIterator<'a>; 2],
+    /// Whether we need to re-render for double-buffered frames.
+    first_draw: [bool; 2],
+    frame_is_first: bool,
+    frame_is_second: bool,
+}
+
+use std::fmt;
+impl<'a> fmt::Debug for DoubleBufferedAnimatedWindowHandler<'a> {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f,
+               "DoubleBufferedAnimatedWindowHandler(turtles:{:?}, iters:<iters>, first_draw:{:?}, \
+                frame_is_first:{}, frame_is_second:{})",
+               self.turtles,
+               self.first_draw,
+               self.frame_is_first,
+               self.frame_is_second)
+    }
+}
+
+impl<'a> DoubleBufferedAnimatedWindowHandler<'a> {
+    pub fn new() -> DoubleBufferedAnimatedWindowHandler<'a> {
+        DoubleBufferedAnimatedWindowHandler {
+            turtles: [GlTurtleState::new(), GlTurtleState::new()],
+            iters: [TurtleCollectToNextForwardIterator::new_null_iter(),
+                    TurtleCollectToNextForwardIterator::new_null_iter()],
+            first_draw: [true, true],
+            frame_is_first: true,
+            frame_is_second: false,
+        }
+    }
+}
+
+impl<'a> WindowHandler<'a> for DoubleBufferedAnimatedWindowHandler<'a> {
+    fn window_resized(&mut self) {
+        self.first_draw[0] = true;
+        self.first_draw[1] = true;
+        self.frame_is_first = true;
+        self.turtles[0] = GlTurtleState::new();
+        self.turtles[1] = GlTurtleState::new();
+    }
+
+    fn render_frame<G, T>(&mut self,
+                          window_size: Size,
+                          context: graphics::context::Context,
+                          gfx: &mut G,
+                          program: &'a TurtleProgram,
+                          frame_num: u32)
+        where T: ImageSize,
+              G: Graphics<Texture = T>
+    {
+        use graphics::*;
+        let bufnum = (frame_num % 2) as usize;
+        if self.first_draw[bufnum] {
+            // If we are starting the animation, then we need to:
+            // * clear the frame buffer
+            // * initialize the turtle
+            // * construct and store a program iterator for this buffer
+            // * add an extra move to the second frame (to offset it's moves from the first
+            //   frame)
+            clear(WHITE, gfx);
+            let mut turtle = GlTurtle::new(&mut self.turtles[bufnum], gfx, window_size, context);
+            for action in program.init_turtle() {
+                turtle.perform(action)
+            }
+            self.iters[bufnum] = program.turtle_program_iter().collect_to_next_forward();
+            if self.frame_is_second {
+                // if we are the second frame, then we need to stagger our buffer from
+                // the first buffer.
+                let one_move = self.iters[bufnum].next();
+                if !one_move.is_none() {
+                    for action in one_move.unwrap() {
+                        turtle.perform(action)
+                    }
+                }
+                self.frame_is_second = false;
+            }
+            self.first_draw[bufnum] = false;
+        }
+
+        let mut turtle = GlTurtle::new(&mut self.turtles[bufnum], gfx, window_size, context);
+        // Make 2 moves per frame since we are double buffered.
+        DoubleBufferedAnimatedWindowHandler::draw_one_move(&mut turtle, &mut self.iters[bufnum]);
+        DoubleBufferedAnimatedWindowHandler::draw_one_move(&mut turtle, &mut self.iters[bufnum]);
+
+        if self.frame_is_first {
+            self.frame_is_first = false;
+            self.frame_is_second = true;
+        }
+    }
+}
+
+impl<'a> DoubleBufferedAnimatedWindowHandler<'a> {
+    fn draw_one_move<G, T>(turtle: &mut GlTurtle<G, T>,
+                           program_iter: &mut TurtleCollectToNextForwardIterator)
+        where T: ImageSize,
+              G: Graphics<Texture = T>
+    {
+        let one_move = program_iter.next();
+        if !one_move.is_none() {
+            for action in one_move.unwrap() {
+                turtle.perform(action)
+            }
+        }
     }
 }
