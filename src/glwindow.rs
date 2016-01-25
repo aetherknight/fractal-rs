@@ -21,8 +21,21 @@ use turtle::{Turtle, TurtleProgram, TurtleCollectToNextForwardIterator};
 const WHITE: [f32; 4] = [1.0, 1.0, 1.0, 1.0];
 const BLACK: [f32; 4] = [0.0, 0.0, 0.0, 1.0];
 
+pub trait WindowHandler<'a> {
+    /// When the window is resized, we may need to plan to re-render.
+    fn window_resized(&mut self);
+
+    /// Render a frame.
+    fn render_frame(&mut self,
+                    window_size: Size,
+                    context: graphics::context::Context,
+                    gfx: &mut G2d,
+                    program: &'a TurtleProgram,
+                    frame_num: u32);
+}
+
 /// Renders a TurtleProgram in a PistonWindow.
-pub fn run(program: &TurtleProgram) {
+pub fn run(program: &TurtleProgram, animate: bool) {
 
     let opengl = OpenGL::V3_2;
     let window: PistonWindow = WindowSettings::new("Fractal", [800, 600])
@@ -31,8 +44,10 @@ pub fn run(program: &TurtleProgram) {
                                    .build()
                                    .unwrap_or_else(|e| panic!("Failed to build Window: {}", e));
 
-    // let mut window_handler = DoubleBufferedWindowHandler::new();
-    let mut window_handler = DoubleBufferedAnimatedWindowHandler::new();
+    let mut window_handler: Box<WindowHandler> = match animate {
+        true => Box::new(DoubleBufferedAnimatedWindowHandler::new()),
+        false => Box::new(DoubleBufferedWindowHandler::new()),
+    };
 
     let mut frame_num: u32 = 0;
     let mut old_size: Size = Size {
@@ -69,21 +84,6 @@ pub fn run(program: &TurtleProgram) {
     }
 }
 
-pub trait WindowHandler<'a> {
-    /// When the window is resized, we may need to plan to re-render.
-    fn window_resized(&mut self);
-
-    /// Render a frame.
-    fn render_frame<G, T>(&mut self,
-                          window_size: Size,
-                          context: graphics::context::Context,
-                          gfx: &mut G,
-                          program: &'a TurtleProgram,
-                          frame_num: u32)
-        where T: ImageSize,
-              G: Graphics<Texture = T>;
-}
-
 /// WindowHandler that renders an entire turtle program per-frame, and optimizes re-renders
 /// by only rendering twice (once for each buffer).
 #[derive(Debug)]
@@ -117,16 +117,12 @@ impl<'a> WindowHandler<'a> for DoubleBufferedWindowHandler {
         self.redraw[1] = true;
     }
 
-    fn render_frame<G, T>(&mut self,
-                          window_size: Size,
-                          context: graphics::context::Context,
-                          gfx: &mut G,
-                          program: &'a TurtleProgram,
-                          frame_num: u32)
-        where T: ImageSize,
-              G: Graphics<Texture = T>
-    {
-        use graphics::*;
+    fn render_frame(&mut self,
+                    window_size: Size,
+                    context: graphics::context::Context,
+                    gfx: &mut G2d,
+                    program: &'a TurtleProgram,
+                    frame_num: u32) {
         let redraw = self.redraw[(frame_num % 2) as usize];
         if redraw {
             println!("Redrawing frame {}", frame_num % 2);
@@ -161,9 +157,8 @@ impl GlTurtleState {
 }
 
 /// An implementation of a Turtle within an OpenGL (rather, a gfx) context.
-pub struct GlTurtle<'a, G, T>
-    where T: ImageSize,
-          G: Graphics<Texture = T> + 'a
+pub struct GlTurtle<'a, G>
+    where G: Graphics + 'a
 {
     gfx: &'a mut G,
     window_size: Size,
@@ -172,15 +167,13 @@ pub struct GlTurtle<'a, G, T>
     state: &'a mut GlTurtleState,
 }
 
-impl<'a, G, T> GlTurtle<'a, G, T>
-    where T: ImageSize,
-          G: Graphics<Texture = T> + 'a
+impl<'a, G> GlTurtle<'a, G> where G: Graphics + 'a
 {
     pub fn new(state: &'a mut GlTurtleState,
                gfx: &'a mut G,
                window_size: Size,
                context: graphics::context::Context)
-               -> GlTurtle<'a, G, T> {
+               -> GlTurtle<'a, G> {
         GlTurtle {
             gfx: gfx,
             window_size: window_size,
@@ -190,13 +183,9 @@ impl<'a, G, T> GlTurtle<'a, G, T>
     }
 }
 
-impl<'a, G, T> Turtle for GlTurtle<'a, G, T>
-    where T: ImageSize,
-          G: Graphics<Texture = T> + 'a
+impl<'a, G> Turtle for GlTurtle<'a, G> where G: Graphics + 'a
 {
     fn forward(&mut self, distance: f64) {
-        use graphics::*;
-
         let old_pos = self.state.position;
         let new_pos = self.state.position.point_at(Vector {
             direction: self.state.angle,
@@ -221,8 +210,6 @@ impl<'a, G, T> Turtle for GlTurtle<'a, G, T>
                                 .flip_v()
                                 .trans(0.0, 0.0);
 
-            // Line::new(BLACK, 1.0).draw([old_pos.x*linesize, old_pos.y*linesize,
-            // new_pos.x*linesize, new_pos.y*linesize],
             Line::new(BLACK, 0.5 / linesize).draw([old_pos.x, old_pos.y, new_pos.x, new_pos.y],
                                                   default_draw_state(),
                                                   transform,
@@ -302,16 +289,12 @@ impl<'a> WindowHandler<'a> for DoubleBufferedAnimatedWindowHandler<'a> {
         self.turtles[1] = GlTurtleState::new();
     }
 
-    fn render_frame<G, T>(&mut self,
-                          window_size: Size,
-                          context: graphics::context::Context,
-                          gfx: &mut G,
-                          program: &'a TurtleProgram,
-                          frame_num: u32)
-        where T: ImageSize,
-              G: Graphics<Texture = T>
-    {
-        use graphics::*;
+    fn render_frame(&mut self,
+                    window_size: Size,
+                    context: graphics::context::Context,
+                    gfx: &mut G2d,
+                    program: &'a TurtleProgram,
+                    frame_num: u32) {
         let bufnum = (frame_num % 2) as usize;
         if self.first_draw[bufnum] {
             // If we are starting the animation, then we need to:
@@ -353,10 +336,9 @@ impl<'a> WindowHandler<'a> for DoubleBufferedAnimatedWindowHandler<'a> {
 }
 
 impl<'a> DoubleBufferedAnimatedWindowHandler<'a> {
-    fn draw_one_move<G, T>(turtle: &mut GlTurtle<G, T>,
-                           program_iter: &mut TurtleCollectToNextForwardIterator)
-        where T: ImageSize,
-              G: Graphics<Texture = T>
+    fn draw_one_move<G>(turtle: &mut GlTurtle<G>,
+                        program_iter: &mut TurtleCollectToNextForwardIterator)
+        where G: Graphics
     {
         let one_move = program_iter.next();
         if !one_move.is_none() {

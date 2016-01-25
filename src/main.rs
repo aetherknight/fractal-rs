@@ -12,9 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-extern crate gfx_device_gl;
+extern crate argparse;
 extern crate graphics;
-extern crate opengl_graphics;
 extern crate piston;
 extern crate piston_window;
 
@@ -28,7 +27,7 @@ pub mod lindenmayer;
 pub mod turtle;
 mod glwindow;
 
-use std::env;
+use argparse::{ArgumentParser, Store, StoreTrue};
 
 use curves::cesaro::CesaroFractal;
 use curves::cesarotri::CesaroTriFractal;
@@ -39,41 +38,31 @@ use curves::terdragon::TerdragonFractal;
 use lindenmayer::LindenmayerSystemTurtleProgram;
 use turtle::TurtleProgram;
 
-fn usage(program_name: &str) {
-    println!("Usage: {} CURVE ARGS...", program_name);
-    println!("");
-    println!("CURVEs:");
-    println!("    cesaro ITERATION     -- Césaro Square");
-    println!("    cesarotri ITERATION  -- Césaro Triangle");
-    println!("    dragon ITERATION     -- Dragon Curve");
-    println!("    kochcurve ITERATION  -- Koch Snowflake");
-    println!("    levyccurve ITERATION -- Lévy C Curve");
-    println!("    terdragon ITERATION  -- Terdragon Curve");
-    println!("");
-    println!("ITERATION should be a a non-negative integer. Note that the complexity of the");
-    println!("curves grows exponentially.");
-    println!("");
+struct Arguments {
+    curve_name: String,
+    iterations: u64,
+    animate: bool,
+    version: bool,
 }
 
-fn validate_args(args: &Vec<String>) {
-    if (*args).len() <= 1 {
-        usage(&(*args)[0]);
-        panic!("You must provide a fractal type and an iteration number");
+fn parse_args() -> Arguments {
+    let mut retargs = Arguments { curve_name: String::from(""), iterations: 0, animate: false, version: false };
+    {
+        let mut parser = ArgumentParser::new();
+        parser.set_description("Renders fractal curves.");
+        parser.refer(&mut retargs.animate).add_option(&["--animate"], StoreTrue, "Animate the drawing of the fractal instead of drawing it all at once.");
+        parser.refer(&mut retargs.version).add_option(&["-v", "--version"], StoreTrue, "Display the version");
+
+        parser.refer(&mut retargs.curve_name).add_argument("curve", Store, "Which curve to draw. Valid options are: cesaro, cesarotri, dragon, kochcurve, levyccurve, and terdragon.");
+        parser.refer(&mut retargs.iterations).add_argument("iterations", Store, "The iteration of the specified curve to draw. should be a non-negative integer.");
+        parser.parse_args_or_exit();
     }
-    if (*args).len() <= 2 {
-        usage(&(*args)[0]);
-        panic!("You must provide an iteration number");
-    }
+
+    retargs
 }
 
-fn main() {
-    let args = env::args().collect::<Vec<String>>();
-    validate_args(&args);
-
-    let curve_name: &str = args.get(1).unwrap();
-    let iterations: u64 = args.get(2).unwrap().parse::<u64>().unwrap();
-
-    let program: Box<TurtleProgram> = match curve_name.as_ref() {
+fn construct_program(program_name: &str, iterations: u64) -> Box<TurtleProgram> {
+    match program_name {
         "cesaro"     => Box::new(LindenmayerSystemTurtleProgram::new(CesaroFractal::new(iterations).unwrap())),
         "cesarotri"  => Box::new(LindenmayerSystemTurtleProgram::new(CesaroTriFractal::new(iterations).unwrap())),
         "dragon"     => Box::new(DragonFractal::new(iterations).unwrap()),
@@ -81,7 +70,13 @@ fn main() {
         "levyccurve" => Box::new(LindenmayerSystemTurtleProgram::new(LevyCCurve::new(iterations).unwrap())),
         "terdragon"  => Box::new(LindenmayerSystemTurtleProgram::new(TerdragonFractal::new(iterations).unwrap())),
         _            => panic!("Unknown program type")
-    };
+    }
+}
 
-    glwindow::run(&*program);
+fn main() {
+    let args = parse_args();
+
+    let program = construct_program(args.curve_name.as_ref(), args.iterations);
+
+    glwindow::run(&*program, args.animate);
 }
