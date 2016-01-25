@@ -35,7 +35,7 @@ pub trait WindowHandler<'a> {
 }
 
 /// Renders a TurtleProgram in a PistonWindow.
-pub fn run(program: &TurtleProgram, animate: bool) {
+pub fn run(program: &TurtleProgram, animate: u64) {
 
     let opengl = OpenGL::V3_2;
     let window: PistonWindow = WindowSettings::new("Fractal", [800, 600])
@@ -45,8 +45,8 @@ pub fn run(program: &TurtleProgram, animate: bool) {
                                    .unwrap_or_else(|e| panic!("Failed to build Window: {}", e));
 
     let mut window_handler: Box<WindowHandler> = match animate {
-        true => Box::new(DoubleBufferedAnimatedWindowHandler::new()),
-        false => Box::new(DoubleBufferedWindowHandler::new()),
+        0 => Box::new(DoubleBufferedWindowHandler::new()),
+        _ => Box::new(DoubleBufferedAnimatedWindowHandler::new(animate)),
     };
 
     let mut frame_num: u32 = 0;
@@ -248,6 +248,7 @@ struct DoubleBufferedAnimatedWindowHandler<'a> {
     turtles: [GlTurtleState; 2],
     /// Two iterators.
     iters: [TurtleCollectToNextForwardIterator<'a>; 2],
+    forwards_per_frame: u64,
     /// Whether we need to re-render for double-buffered frames.
     first_draw: [bool; 2],
     frame_is_first: bool,
@@ -268,11 +269,12 @@ impl<'a> fmt::Debug for DoubleBufferedAnimatedWindowHandler<'a> {
 }
 
 impl<'a> DoubleBufferedAnimatedWindowHandler<'a> {
-    pub fn new() -> DoubleBufferedAnimatedWindowHandler<'a> {
+    pub fn new(animate: u64) -> DoubleBufferedAnimatedWindowHandler<'a> {
         DoubleBufferedAnimatedWindowHandler {
             turtles: [GlTurtleState::new(), GlTurtleState::new()],
             iters: [TurtleCollectToNextForwardIterator::new_null_iter(),
                     TurtleCollectToNextForwardIterator::new_null_iter()],
+            forwards_per_frame: animate,
             first_draw: [true, true],
             frame_is_first: true,
             frame_is_second: false,
@@ -324,9 +326,13 @@ impl<'a> WindowHandler<'a> for DoubleBufferedAnimatedWindowHandler<'a> {
         }
 
         let mut turtle = GlTurtle::new(&mut self.turtles[bufnum], gfx, window_size, context);
-        // Make 2 moves per frame since we are double buffered.
-        DoubleBufferedAnimatedWindowHandler::draw_one_move(&mut turtle, &mut self.iters[bufnum]);
-        DoubleBufferedAnimatedWindowHandler::draw_one_move(&mut turtle, &mut self.iters[bufnum]);
+        for _ in 0..self.forwards_per_frame {
+            // Make 2 moves per frame since we are double buffered.
+            DoubleBufferedAnimatedWindowHandler::draw_one_move(&mut turtle,
+                                                               &mut self.iters[bufnum]);
+            DoubleBufferedAnimatedWindowHandler::draw_one_move(&mut turtle,
+                                                               &mut self.iters[bufnum]);
+        }
 
         if self.frame_is_first {
             self.frame_is_first = false;
