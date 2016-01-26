@@ -14,6 +14,7 @@
 
 use graphics;
 use piston_window::*;
+use std::fmt;
 
 use geometry::{Point, Vector};
 use turtle::{Turtle, TurtleProgram, TurtleCollectToNextForwardIterator};
@@ -241,6 +242,13 @@ impl<'a, G> Turtle for GlTurtle<'a, G> where G: Graphics + 'a
     }
 }
 
+#[derive(Debug,PartialEq)]
+enum WhichFrame {
+    FirstFrame,
+    SecondFrame,
+    AllOtherFrames,
+}
+
 /// WindowHandler that animates the rendering of the curve.
 struct DoubleBufferedAnimatedWindowHandler<'a> {
     /// stored turtle state for each turtle. double-buffered means we need to animate the curve
@@ -251,20 +259,20 @@ struct DoubleBufferedAnimatedWindowHandler<'a> {
     forwards_per_frame: u64,
     /// Whether we need to re-render for double-buffered frames.
     first_draw: [bool; 2],
-    frame_is_first: bool,
-    frame_is_second: bool,
+    /// Which frame we are rendering. We need to perform the initial steps for the first frame, and
+    /// we need perform the initial steps and do one extra move forward for the second frame (to
+    /// stagger the double buffer). The rest of the frames then just move forward.
+    which_frame: WhichFrame,
 }
 
-use std::fmt;
 impl<'a> fmt::Debug for DoubleBufferedAnimatedWindowHandler<'a> {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f,
                "DoubleBufferedAnimatedWindowHandler(turtles:{:?}, iters:<iters>, first_draw:{:?}, \
-                frame_is_first:{}, frame_is_second:{})",
+                which_frame:{:?})",
                self.turtles,
                self.first_draw,
-               self.frame_is_first,
-               self.frame_is_second)
+               self.which_frame)
     }
 }
 
@@ -276,8 +284,7 @@ impl<'a> DoubleBufferedAnimatedWindowHandler<'a> {
                     TurtleCollectToNextForwardIterator::new_null_iter()],
             forwards_per_frame: animate,
             first_draw: [true, true],
-            frame_is_first: true,
-            frame_is_second: false,
+            which_frame: WhichFrame::FirstFrame,
         }
     }
 }
@@ -286,7 +293,7 @@ impl<'a> WindowHandler<'a> for DoubleBufferedAnimatedWindowHandler<'a> {
     fn window_resized(&mut self) {
         self.first_draw[0] = true;
         self.first_draw[1] = true;
-        self.frame_is_first = true;
+        self.which_frame = WhichFrame::FirstFrame;
         self.turtles[0] = GlTurtleState::new();
         self.turtles[1] = GlTurtleState::new();
     }
@@ -298,20 +305,33 @@ impl<'a> WindowHandler<'a> for DoubleBufferedAnimatedWindowHandler<'a> {
                     program: &'a TurtleProgram,
                     frame_num: u32) {
         let bufnum = (frame_num % 2) as usize;
-        if self.first_draw[bufnum] {
-            // If we are starting the animation, then we need to:
-            // * clear the frame buffer
-            // * initialize the turtle
-            // * construct and store a program iterator for this buffer
-            // * add an extra move to the second frame (to offset it's moves from the first
-            //   frame)
-            clear(WHITE, gfx);
-            let mut turtle = GlTurtle::new(&mut self.turtles[bufnum], gfx, window_size, context);
-            for action in program.init_turtle() {
-                turtle.perform(action)
+
+        match self.which_frame {
+            WhichFrame::FirstFrame => {
+                // gfx can only be &mut borrowed by one thing at a time. If we loan it to the
+                // turtle and also use it elsewhere, this would trigger the static analysis.
+                // This could be worked around by placing gfx into a RefCell.
+                clear(WHITE, gfx);
+                let mut turtle = GlTurtle::new(&mut self.turtles[bufnum],
+                                               gfx,
+                                               window_size,
+                                               context);
+                for action in program.init_turtle() {
+                    turtle.perform(action)
+                }
+                self.iters[bufnum] = program.turtle_program_iter().collect_to_next_forward();
+                self.which_frame = WhichFrame::SecondFrame;
             }
-            self.iters[bufnum] = program.turtle_program_iter().collect_to_next_forward();
-            if self.frame_is_second {
+            WhichFrame::SecondFrame => {
+                clear(WHITE, gfx);
+                let mut turtle = GlTurtle::new(&mut self.turtles[bufnum],
+                                               gfx,
+                                               window_size,
+                                               context);
+                for action in program.init_turtle() {
+                    turtle.perform(action)
+                }
+                self.iters[bufnum] = program.turtle_program_iter().collect_to_next_forward();
                 // if we are the second frame, then we need to stagger our buffer from
                 // the first buffer.
                 let one_move = self.iters[bufnum].next();
@@ -320,23 +340,21 @@ impl<'a> WindowHandler<'a> for DoubleBufferedAnimatedWindowHandler<'a> {
                         turtle.perform(action)
                     }
                 }
-                self.frame_is_second = false;
+                self.which_frame = WhichFrame::AllOtherFrames;
             }
-            self.first_draw[bufnum] = false;
-        }
-
-        let mut turtle = GlTurtle::new(&mut self.turtles[bufnum], gfx, window_size, context);
-        for _ in 0..self.forwards_per_frame {
-            // Make 2 moves per frame since we are double buffered.
-            DoubleBufferedAnimatedWindowHandler::draw_one_move(&mut turtle,
-                                                               &mut self.iters[bufnum]);
-            DoubleBufferedAnimatedWindowHandler::draw_one_move(&mut turtle,
-                                                               &mut self.iters[bufnum]);
-        }
-
-        if self.frame_is_first {
-            self.frame_is_first = false;
-            self.frame_is_second = true;
+            _ => {
+                let mut turtle = GlTurtle::new(&mut self.turtles[bufnum],
+                                               gfx,
+                                               window_size,
+                                               context);
+                for _ in 0..self.forwards_per_frame {
+                    // Make 2 moves per frame since we are double buffered.
+                    DoubleBufferedAnimatedWindowHandler::draw_one_move(&mut turtle,
+                                                                       &mut self.iters[bufnum]);
+                    DoubleBufferedAnimatedWindowHandler::draw_one_move(&mut turtle,
+                                                                       &mut self.iters[bufnum]);
+                }
+            }
         }
     }
 }
