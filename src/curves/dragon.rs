@@ -51,9 +51,8 @@ impl DragonFractal {
     ///     |  |
     ///     |__|
     /// ```
-    pub fn new(iterations: u64) -> Result<DragonFractal, &'static str> {
-        let df = DragonFractal { iterations: iterations };
-        Ok(df)
+    pub fn new(iterations: u64) -> DragonFractal {
+        DragonFractal { iterations: iterations }
     }
 
     /// The number of lines that will be drawn.
@@ -160,11 +159,11 @@ mod test {
 
     #[test]
     fn test_step_count() {
-        assert_eq!(DragonFractal::new(0).unwrap().number_of_steps(), 1);
-        assert_eq!(DragonFractal::new(1).unwrap().number_of_steps(), 2);
-        assert_eq!(DragonFractal::new(2).unwrap().number_of_steps(), 4);
-        assert_eq!(DragonFractal::new(3).unwrap().number_of_steps(), 8);
-        assert_eq!(DragonFractal::new(4).unwrap().number_of_steps(), 16);
+        assert_eq!(DragonFractal::new(0).number_of_steps(), 1);
+        assert_eq!(DragonFractal::new(1).number_of_steps(), 2);
+        assert_eq!(DragonFractal::new(2).number_of_steps(), 4);
+        assert_eq!(DragonFractal::new(3).number_of_steps(), 8);
+        assert_eq!(DragonFractal::new(4).number_of_steps(), 16);
     }
 
     #[test]
@@ -188,19 +187,19 @@ mod test {
 
     #[test]
     fn test_lines_between_endpoints() {
-        assert_approx_eq!(DragonFractal::new(0).unwrap().lines_between_endpoints(),
+        assert_approx_eq!(DragonFractal::new(0).lines_between_endpoints(),
                           1.0,
                           0.000001);
-        assert_approx_eq!(DragonFractal::new(1).unwrap().lines_between_endpoints(),
+        assert_approx_eq!(DragonFractal::new(1).lines_between_endpoints(),
                           SQRT_2,
                           0.000001);
-        assert_approx_eq!(DragonFractal::new(2).unwrap().lines_between_endpoints(),
+        assert_approx_eq!(DragonFractal::new(2).lines_between_endpoints(),
                           2.0,
                           0.000001);
-        assert_approx_eq!(DragonFractal::new(3).unwrap().lines_between_endpoints(),
+        assert_approx_eq!(DragonFractal::new(3).lines_between_endpoints(),
                           2.0 * SQRT_2,
                           0.000001);
-        assert_approx_eq!(DragonFractal::new(4).unwrap().lines_between_endpoints(),
+        assert_approx_eq!(DragonFractal::new(4).lines_between_endpoints(),
                           4.0,
                           0.000001);
     }
@@ -208,7 +207,7 @@ mod test {
     #[test]
     fn test_init_turtle() {
         fn check_init_turtle(iteration: u64, expected_angle: f64) {
-            let initial_steps = DragonFractal::new(iteration).unwrap().init_turtle();
+            let initial_steps = DragonFractal::new(iteration).init_turtle();
             assert_eq!(initial_steps.len(), 3);
             match initial_steps.get(0) {
                 Some(&TurtleStep::SetPos(point)) => {

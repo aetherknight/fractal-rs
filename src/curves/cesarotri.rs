@@ -36,18 +36,17 @@ pub enum LSA {
 }
 
 impl CesaroTriFractal {
-    pub fn new(iterations: u64) -> Result<CesaroTriFractal, &'static str> {
-        let lcc = CesaroTriFractal { iterations: iterations };
-        Ok(lcc)
+    pub fn new(iterations: u64) -> CesaroTriFractal {
+        CesaroTriFractal { iterations: iterations }
     }
 }
 
 impl LindenmayerSystem<LSA> for CesaroTriFractal {
-    fn initial() -> Vec<LSA> {
+    fn initial(&self) -> Vec<LSA> {
         vec![LSA::F1, LSA::Q1, LSA::F2, LSA::Q2, LSA::F3, LSA::Q3]
     }
 
-    fn apply_rule(lstr: LSA) -> Vec<LSA> {
+    fn apply_rule(&self, lstr: LSA) -> Vec<LSA> {
         match lstr {
             LSA::F1 => vec![LSA::F1, LSA::L, LSA::F1, LSA::R, LSA::R, LSA::F1, LSA::L, LSA::F1],
             LSA::F2 => vec![LSA::F2, LSA::L, LSA::F2, LSA::R, LSA::R, LSA::F2, LSA::L, LSA::F2],
@@ -108,21 +107,21 @@ mod test {
 
     #[test]
     fn test_initial_pos() {
-        assert_point_eq!(CesaroTriFractal::new(0).unwrap().initial_pos(),
+        assert_point_eq!(CesaroTriFractal::new(0).initial_pos(),
                          Point { x: 0.0, y: 0.0 },
                          0.000000001);
-        assert_point_eq!(CesaroTriFractal::new(1).unwrap().initial_pos(),
+        assert_point_eq!(CesaroTriFractal::new(1).initial_pos(),
                          Point { x: 0.0, y: 0.0 },
                          0.000000001);
-        assert_point_eq!(CesaroTriFractal::new(2).unwrap().initial_pos(),
+        assert_point_eq!(CesaroTriFractal::new(2).initial_pos(),
                          Point { x: 0.0, y: 0.0 },
                          0.000000001);
     }
 
     #[test]
     fn test_initial_angle() {
-        assert_eq!(CesaroTriFractal::new(0).unwrap().initial_rad(), 0.0);
-        assert_eq!(CesaroTriFractal::new(1).unwrap().initial_rad(), 0.0);
-        assert_eq!(CesaroTriFractal::new(2).unwrap().initial_rad(), 0.0);
+        assert_eq!(CesaroTriFractal::new(0).initial_rad(), 0.0);
+        assert_eq!(CesaroTriFractal::new(1).initial_rad(), 0.0);
+        assert_eq!(CesaroTriFractal::new(2).initial_rad(), 0.0);
     }
 }

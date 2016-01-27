@@ -33,9 +33,8 @@ pub enum LSA {
 }
 
 impl LevyCCurve {
-    pub fn new(iterations: u64) -> Result<LevyCCurve, &'static str> {
-        let lcc = LevyCCurve { iterations: iterations };
-        Ok(lcc)
+    pub fn new(iterations: u64) -> LevyCCurve {
+        LevyCCurve { iterations: iterations }
     }
 
     fn lines_between_endpoints(self) -> f64 {
@@ -51,11 +50,11 @@ impl LevyCCurve {
 }
 
 impl LindenmayerSystem<LSA> for LevyCCurve {
-    fn initial() -> Vec<LSA> {
+    fn initial(&self) -> Vec<LSA> {
         vec![LSA::F]
     }
 
-    fn apply_rule(lstr: LSA) -> Vec<LSA> {
+    fn apply_rule(&self, lstr: LSA) -> Vec<LSA> {
         match lstr {
             LSA::F => vec![LSA::L, LSA::F, LSA::R, LSA::R, LSA::F, LSA::L],
             x => vec![x],
@@ -85,21 +84,21 @@ mod test {
 
     #[test]
     fn test_initial_pos() {
-        assert_point_eq!(LevyCCurve::new(0).unwrap().initial_pos(),
+        assert_point_eq!(LevyCCurve::new(0).initial_pos(),
                          Point { x: 0.0, y: 0.0 },
                          0.000000001);
-        assert_point_eq!(LevyCCurve::new(1).unwrap().initial_pos(),
+        assert_point_eq!(LevyCCurve::new(1).initial_pos(),
                          Point { x: 0.0, y: 0.0 },
                          0.000000001);
-        assert_point_eq!(LevyCCurve::new(2).unwrap().initial_pos(),
+        assert_point_eq!(LevyCCurve::new(2).initial_pos(),
                          Point { x: 0.0, y: 0.0 },
                          0.000000001);
     }
 
     #[test]
     fn test_initial_angle() {
-        assert_eq!(LevyCCurve::new(0).unwrap().initial_rad(), 0.0);
-        assert_eq!(LevyCCurve::new(1).unwrap().initial_rad(), 0.0);
-        assert_eq!(LevyCCurve::new(2).unwrap().initial_rad(), 0.0);
+        assert_eq!(LevyCCurve::new(0).initial_rad(), 0.0);
+        assert_eq!(LevyCCurve::new(1).initial_rad(), 0.0);
+        assert_eq!(LevyCCurve::new(2).initial_rad(), 0.0);
     }
 }

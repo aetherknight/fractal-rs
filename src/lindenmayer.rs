@@ -22,28 +22,34 @@
 //! drawing program, can then use to draw a curve/fractal/plant (which is what
 //! this implementation provides).
 
+use std::marker::PhantomData;
+
 use geometry::Point;
 use turtle::*;
 
 /// Represents a particular Lindenmayer system. It requires an alphabet (represented as an enum),
 /// an initial sequence ("string"), and one or more rules that transform the sequence with each
 /// iteration/generation.
+///
+/// Under many circumstances, these methods will not actually use &self. However, having a &self
+/// allows for more flexibility, such as creating caching objects or creating L-systems that can be
+/// defined at runtime instead of at compile time.
 pub trait LindenmayerSystem<Alphabet: Clone> {
     /// Should return the initial Lindenmayer system string (iteration 0).
-    fn initial() -> Vec<Alphabet>;
+    fn initial(&self) -> Vec<Alphabet>;
 
     /// Apply Lindenmayer system rules to a given character.
     ///
-    /// This is done to efficiently use `match`ing at compile time, rather than returning a hashmap
-    /// and handling it at runtime.
-    fn apply_rule(Alphabet) -> Vec<Alphabet>;
+    /// This is done to be able to efficiently use `match` at compile time, rather than returning a
+    /// hashmap and handling it at runtime.
+    fn apply_rule(&self, curr_symbol: Alphabet) -> Vec<Alphabet>;
 
     /// Generates a Lindenmayer system string for `iteration`.
     ///
     /// This is done by starting with the initial sequence, and repeatedly applying the rules to
     /// the sequence `iteration` times. The result is a new vector that contains the sequence for
     /// the specified iteration.
-    fn generate(iteration: u64) -> Vec<Alphabet> {
+    fn generate(&self, iteration: u64) -> Vec<Alphabet> {
         let mut lstr: Vec<Alphabet> = Self::initial();
         let mut i = 0;
         while i < iteration {
@@ -87,7 +93,6 @@ pub trait LindenmayerSystemDrawingParameters<Alphabet> {
     fn interpret_symbol(&self, symbol: Alphabet) -> TurtleStep;
 }
 
-use std::marker::PhantomData;
 
 pub struct LindenmayerSystemTurtleProgram<L, A>
     where L: LindenmayerSystem<A> + LindenmayerSystemDrawingParameters<A>,
@@ -123,7 +128,7 @@ impl<L, A> TurtleProgram for LindenmayerSystemTurtleProgram<L, A>
 
     fn turtle_program_iter<'a>(&'a self) -> TurtleProgramIterator<'a> {
         println!("Generating L-System sequence...");
-        let sequence = L::generate(self.system.iteration());
+        let sequence = self.system.generate(self.system.iteration());
         println!("Done");
 
         TurtleProgramIterator::new(Box::new(LindenmayerSystemTurtleProgramIterator {
@@ -178,11 +183,11 @@ mod test {
     struct TestLS;
 
     impl LindenmayerSystem<TestABC> for TestLS {
-        fn initial() -> Vec<TestABC> {
+        fn initial(&self) -> Vec<TestABC> {
             vec![TestABC::A, TestABC::B, TestABC::C]
         }
 
-        fn apply_rule(l: TestABC) -> Vec<TestABC> {
+        fn apply_rule(&self, l: TestABC) -> Vec<TestABC> {
             match l {
                 TestABC::A => vec![TestABC::A, TestABC::Foo, TestABC::B, TestABC::C],
                 TestABC::B => vec![TestABC::Foo],
@@ -192,10 +197,11 @@ mod test {
         }
     }
 
+    /// Test a sample TestLS system
     #[test]
-    fn test_ls() {
-        assert_eq!(TestLS::generate(0), [TestABC::A, TestABC::B, TestABC::C]);
-        assert_eq!(TestLS::generate(1),
+    fn test_lsystem() {
+        assert_eq!(TestLS.generate(0), [TestABC::A, TestABC::B, TestABC::C]);
+        assert_eq!(TestLS.generate(1),
                    [TestABC::A,
                     TestABC::Foo,
                     TestABC::B,
@@ -203,7 +209,7 @@ mod test {
                     TestABC::Foo,
                     TestABC::Foo,
                     TestABC::B]);
-        assert_eq!(TestLS::generate(2),
+        assert_eq!(TestLS.generate(2),
                    [TestABC::A,
                     TestABC::Foo,
                     TestABC::B,
@@ -215,7 +221,7 @@ mod test {
                     TestABC::Foo,
                     TestABC::Foo,
                     TestABC::Foo]);
-        assert_eq!(TestLS::generate(3),
+        assert_eq!(TestLS.generate(3),
                    [TestABC::A,
                     TestABC::Foo,
                     TestABC::B,

@@ -32,9 +32,8 @@ pub enum LSA {
 }
 
 impl CesaroFractal {
-    pub fn new(iterations: u64) -> Result<CesaroFractal, &'static str> {
-        let lcc = CesaroFractal { iterations: iterations };
-        Ok(lcc)
+    pub fn new(iterations: u64) -> CesaroFractal {
+        CesaroFractal { iterations: iterations }
     }
 
     fn distance_forward(self) -> f64 {
@@ -45,11 +44,11 @@ impl CesaroFractal {
 }
 
 impl LindenmayerSystem<LSA> for CesaroFractal {
-    fn initial() -> Vec<LSA> {
+    fn initial(&self) -> Vec<LSA> {
         vec![LSA::F, LSA::Q, LSA::F, LSA::Q, LSA::F, LSA::Q, LSA::F, LSA::Q]
     }
 
-    fn apply_rule(lstr: LSA) -> Vec<LSA> {
+    fn apply_rule(&self, lstr: LSA) -> Vec<LSA> {
         match lstr {
             LSA::F => vec![LSA::F, LSA::L, LSA::F, LSA::R, LSA::R, LSA::F, LSA::L, LSA::F],
             x => vec![x],
@@ -85,21 +84,21 @@ mod test {
 
     #[test]
     fn test_initial_pos() {
-        assert_point_eq!(CesaroFractal::new(0).unwrap().initial_pos(),
+        assert_point_eq!(CesaroFractal::new(0).initial_pos(),
                          Point { x: 0.0, y: -0.5 },
                          0.000000001);
-        assert_point_eq!(CesaroFractal::new(1).unwrap().initial_pos(),
+        assert_point_eq!(CesaroFractal::new(1).initial_pos(),
                          Point { x: 0.0, y: -0.5 },
                          0.000000001);
-        assert_point_eq!(CesaroFractal::new(2).unwrap().initial_pos(),
+        assert_point_eq!(CesaroFractal::new(2).initial_pos(),
                          Point { x: 0.0, y: -0.5 },
                          0.000000001);
     }
 
     #[test]
     fn test_initial_angle() {
-        assert_eq!(CesaroFractal::new(0).unwrap().initial_rad(), 0.0);
-        assert_eq!(CesaroFractal::new(1).unwrap().initial_rad(), 0.0);
-        assert_eq!(CesaroFractal::new(2).unwrap().initial_rad(), 0.0);
+        assert_eq!(CesaroFractal::new(0).initial_rad(), 0.0);
+        assert_eq!(CesaroFractal::new(1).initial_rad(), 0.0);
+        assert_eq!(CesaroFractal::new(2).initial_rad(), 0.0);
     }
 }

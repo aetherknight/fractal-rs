@@ -31,9 +31,8 @@ pub enum LSA {
 }
 
 impl KochCurve {
-    pub fn new(iterations: u64) -> Result<KochCurve, &'static str> {
-        let lcc = KochCurve { iterations: iterations };
-        Ok(lcc)
+    pub fn new(iterations: u64) -> KochCurve {
+        KochCurve { iterations: iterations }
     }
 
     /// 0 -> 1
@@ -45,11 +44,11 @@ impl KochCurve {
 }
 
 impl LindenmayerSystem<LSA> for KochCurve {
-    fn initial() -> Vec<LSA> {
+    fn initial(&self) -> Vec<LSA> {
         vec![LSA::F, LSA::L, LSA::L, LSA::F, LSA::L, LSA::L, LSA::F]
     }
 
-    fn apply_rule(lstr: LSA) -> Vec<LSA> {
+    fn apply_rule(&self, lstr: LSA) -> Vec<LSA> {
         match lstr {
             LSA::F => vec![LSA::F, LSA::R, LSA::F, LSA::L, LSA::L, LSA::F, LSA::R, LSA::F],
             x => vec![x],
@@ -79,21 +78,21 @@ mod test {
 
     #[test]
     fn test_initial_pos() {
-        assert_point_eq!(KochCurve::new(0).unwrap().initial_pos(),
+        assert_point_eq!(KochCurve::new(0).initial_pos(),
                          Point { x: 0.0, y: 0.0 },
                          0.000000001);
-        assert_point_eq!(KochCurve::new(1).unwrap().initial_pos(),
+        assert_point_eq!(KochCurve::new(1).initial_pos(),
                          Point { x: 0.0, y: 0.0 },
                          0.000000001);
-        assert_point_eq!(KochCurve::new(2).unwrap().initial_pos(),
+        assert_point_eq!(KochCurve::new(2).initial_pos(),
                          Point { x: 0.0, y: 0.0 },
                          0.000000001);
     }
 
     #[test]
     fn test_initial_angle() {
-        assert_eq!(KochCurve::new(0).unwrap().initial_rad(), 0.0);
-        assert_eq!(KochCurve::new(1).unwrap().initial_rad(), 0.0);
-        assert_eq!(KochCurve::new(2).unwrap().initial_rad(), 0.0);
+        assert_eq!(KochCurve::new(0).initial_rad(), 0.0);
+        assert_eq!(KochCurve::new(1).initial_rad(), 0.0);
+        assert_eq!(KochCurve::new(2).initial_rad(), 0.0);
     }
 }
