@@ -16,8 +16,8 @@ use graphics;
 use piston_window::*;
 use std::fmt;
 
-use geometry::{Point, Vector};
-use turtle::{Turtle, TurtleProgram, TurtleCollectToNextForwardIterator};
+use fractal::geometry::{Point, Vector};
+use fractal::turtle::{Turtle, TurtleProgram, TurtleCollectToNextForwardIterator};
 
 const WHITE: [f32; 4] = [1.0, 1.0, 1.0, 1.0];
 const BLACK: [f32; 4] = [0.0, 0.0, 0.0, 1.0];

@@ -17,26 +17,19 @@ extern crate graphics;
 extern crate piston;
 extern crate piston_window;
 
-// must be before any local modules that use the macros
-#[macro_use]
-mod macros;
-
-pub mod curves;
-pub mod geometry;
-pub mod lindenmayer;
-pub mod turtle;
+extern crate fractal;
 mod glwindow;
 
 use argparse::{ArgumentParser, Store, StoreTrue};
 
-use curves::cesaro::CesaroFractal;
-use curves::cesarotri::CesaroTriFractal;
-use curves::dragon::DragonFractal;
-use curves::kochcurve::KochCurve;
-use curves::levyccurve::LevyCCurve;
-use curves::terdragon::TerdragonFractal;
-use lindenmayer::LindenmayerSystemTurtleProgram;
-use turtle::TurtleProgram;
+use fractal::curves::cesaro::CesaroFractal;
+use fractal::curves::cesarotri::CesaroTriFractal;
+use fractal::curves::dragon::DragonFractal;
+use fractal::curves::kochcurve::KochCurve;
+use fractal::curves::levyccurve::LevyCCurve;
+use fractal::curves::terdragon::TerdragonFractal;
+use fractal::lindenmayer::LindenmayerSystemTurtleProgram;
+use fractal::turtle::TurtleProgram;
 
 struct Arguments {
     curve_name: String,

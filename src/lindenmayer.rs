@@ -40,8 +40,32 @@ pub trait LindenmayerSystem<Alphabet: Clone> {
 
     /// Apply Lindenmayer system rules to a given character.
     ///
-    /// This is done to be able to efficiently use `match` at compile time, rather than returning a
-    /// hashmap and handling it at runtime.
+    /// A common implementation approach would be to use `match` with the Alphabet. For example:
+    ///
+    /// ```
+    /// use fractal::lindenmayer::LindenmayerSystem;
+    ///
+    /// /// Our Alphbet
+    /// #[derive(Clone)]
+    /// enum SomeAlphabet { A, B, C, Foo }
+    ///
+    /// struct SomeLSystem;
+    ///
+    /// impl LindenmayerSystem<SomeAlphabet> for SomeLSystem {
+    ///      fn initial(&self) -> Vec<SomeAlphabet> {
+    ///          vec![SomeAlphabet::A, SomeAlphabet::B, SomeAlphabet::C]
+    ///      }
+    ///
+    ///     fn apply_rule(&self, l: SomeAlphabet) -> Vec<SomeAlphabet> {
+    ///         match l {
+    ///             SomeAlphabet::A => vec![SomeAlphabet::A, SomeAlphabet::Foo, SomeAlphabet::B, SomeAlphabet::C],
+    ///             SomeAlphabet::B => vec![SomeAlphabet::Foo],
+    ///             SomeAlphabet::C => vec![SomeAlphabet::Foo, SomeAlphabet::B],
+    ///             SomeAlphabet::Foo => vec![SomeAlphabet::Foo],
+    ///         }
+    ///     }
+    /// }
+    /// ```
     fn apply_rule(&self, curr_symbol: Alphabet) -> Vec<Alphabet>;
 
     /// Generates a Lindenmayer system string for `iteration`.

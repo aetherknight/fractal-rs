@@ -48,8 +48,9 @@ impl TerdragonFractal {
     /// drawing of the fractal ends at the desired endpoints. For example, if the starting point is
     /// (0, 0) and the endpoint should be (1, 0), then the size of each line segment would be:
     /// 
-    ///     (x_start - x_end).abs() / df.lines_between_endpoints()
-    /// 
+    /// ```text
+    /// (x_start - x_end).abs() / df.lines_between_endpoints()
+    /// ```
     pub fn lines_between_endpoints(self) -> f64 {
         match self.iterations {
             0 => 1.0,
