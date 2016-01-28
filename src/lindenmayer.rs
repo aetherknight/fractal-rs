@@ -22,6 +22,7 @@
 //! drawing program, can then use to draw a curve/fractal/plant (which is what
 //! this implementation provides).
 
+use std::cell::RefCell;
 use std::marker::PhantomData;
 
 use geometry::Point;
@@ -68,26 +69,30 @@ pub trait LindenmayerSystem<Alphabet: Clone> {
     /// ```
     fn apply_rule(&self, curr_symbol: Alphabet) -> Vec<Alphabet>;
 
+    fn generate_next_iteration(&self, last_iteration: &Vec<Alphabet>) -> Vec<Alphabet> {
+        let mut newlstr: Vec<Alphabet> = vec![];
+
+        for l in last_iteration.iter().cloned() {
+            for other in self.apply_rule(l).iter().cloned() {
+                newlstr.push(other);
+            }
+        }
+        newlstr
+    }
+
     /// Generates a Lindenmayer system string for `iteration`.
     ///
     /// This is done by starting with the initial sequence, and repeatedly applying the rules to
     /// the sequence `iteration` times. The result is a new vector that contains the sequence for
     /// the specified iteration.
     fn generate(&self, iteration: u64) -> Vec<Alphabet> {
-        let mut lstr: Vec<Alphabet> = Self::initial();
+        let mut last: Vec<Alphabet> = self.initial();
         let mut i = 0;
         while i < iteration {
             i = i + 1;
-            let mut newlstr: Vec<Alphabet> = vec![];
-
-            for l in lstr.iter().cloned() {
-                for other in Self::apply_rule(l).iter().cloned() {
-                    newlstr.push(other);
-                }
-            }
-            lstr = newlstr;
+            last = self.generate_next_iteration(&last);
         }
-        lstr
+        last
     }
 }
 
@@ -117,23 +122,92 @@ pub trait LindenmayerSystemDrawingParameters<Alphabet> {
     fn interpret_symbol(&self, symbol: Alphabet) -> TurtleStep;
 }
 
+/// In order to improve the performance of using a Lindenmayer System under some circumstances, it
+/// is beneficial to cache each iteration. This allows O(1) lookups for every iteration less than
+/// or equal to the largest iteration already looked up at the cost of storing every iteration
+/// below the largest iteration computed (the amount of memory used changes depending on
+/// characteristics of the L-System, such as how rapidly the strings grow between each iteration).
+pub struct LindenmayerSystemCachingDecorator<L, A>
+    where L: LindenmayerSystem<A>,
+          A: Clone + 'static
+{
+    alphabet: PhantomData<A>,
+    pub system: L,
+    iteration_cache: RefCell<Vec<Vec<A>>>,
+}
+
+impl<'a, L, A> LindenmayerSystemCachingDecorator<L, A>
+    where L: LindenmayerSystem<A>,
+          A: Clone + 'static
+{
+    /// Return a new LindenmayerSystemCachingDecorator that wraps the input `system` and caches its
+    /// iterations.
+    pub fn new(system: L) -> LindenmayerSystemCachingDecorator<L, A> {
+        LindenmayerSystemCachingDecorator {
+            alphabet: PhantomData,
+            system: system,
+            iteration_cache: RefCell::new(vec![]),
+        }
+    }
+}
+
+impl<L, A> LindenmayerSystem<A> for LindenmayerSystemCachingDecorator<L, A>
+    where L: LindenmayerSystem<A>,
+          A: Clone + 'static
+{
+    /// Delegate to system
+    fn initial(&self) -> Vec<A> {
+        self.system.initial()
+    }
+
+    /// Delegate to system
+    fn apply_rule(&self, curr_symbol: A) -> Vec<A> {
+        self.system.apply_rule(curr_symbol)
+    }
+
+    /// Reimplement to to use caching. Currently using recursion.
+    fn generate(&self, iteration: u64) -> Vec<A> {
+        {
+            let cache = self.iteration_cache.borrow_mut();
+            let val = cache.get(iteration as usize);
+            if val.is_some() {
+                println!("found {}", iteration);
+                return val.unwrap().clone();
+            }
+        } // end borrow of the cache
+        {
+            println!("generating {}", iteration);
+            let curr = match iteration {
+                0 => self.system.initial(), // terminating case
+                _ => {
+                    let last = self.generate(iteration - 1);
+                    self.system.generate_next_iteration(&last)
+                }
+            };
+            let mut cache = self.iteration_cache.borrow_mut();
+            cache.push(curr);
+        } // end borrow of the cache
+        // Now that we have cached, try again (which should use the cache)
+        self.generate(iteration)
+    }
+}
 
 pub struct LindenmayerSystemTurtleProgram<L, A>
     where L: LindenmayerSystem<A> + LindenmayerSystemDrawingParameters<A>,
           A: Clone + 'static
 {
     alphabet: PhantomData<A>,
-    system: L,
+    cacheable_system: LindenmayerSystemCachingDecorator<L, A>, // system: L,
 }
 
-impl<'a, L, A> LindenmayerSystemTurtleProgram<L, A>
+impl<L, A> LindenmayerSystemTurtleProgram<L, A>
     where L: LindenmayerSystem<A> + LindenmayerSystemDrawingParameters<A>,
           A: Clone
 {
     pub fn new(system: L) -> LindenmayerSystemTurtleProgram<L, A> {
         LindenmayerSystemTurtleProgram {
-            system: system,
             alphabet: PhantomData,
+            cacheable_system: LindenmayerSystemCachingDecorator::new(system), // system: system,
         }
     }
 }
@@ -144,15 +218,14 @@ impl<L, A> TurtleProgram for LindenmayerSystemTurtleProgram<L, A>
 {
     fn init_turtle(&self) -> Vec<TurtleStep> {
         vec![
-            TurtleStep::SetPos(self.system.initial_pos()),
-            TurtleStep::SetRad(self.system.initial_rad()),
+            TurtleStep::SetPos(self.cacheable_system.system.initial_pos()),
+            TurtleStep::SetRad(self.cacheable_system.system.initial_rad()),
             TurtleStep::Down,
         ]
     }
 
     fn turtle_program_iter<'a>(&'a self) -> TurtleProgramIterator<'a> {
-        println!("Generating L-System sequence...");
-        let sequence = self.system.generate(self.system.iteration());
+        let sequence = self.cacheable_system.generate(self.cacheable_system.system.iteration());
         println!("Done");
 
         TurtleProgramIterator::new(Box::new(LindenmayerSystemTurtleProgramIterator {
@@ -188,13 +261,13 @@ impl<'a, L, A> Iterator for LindenmayerSystemTurtleProgramIterator<'a, L, A>
         let symbol = self.sequence[self.curr_step].clone();
         self.curr_step += 1;
 
-        Some(self.program.system.interpret_symbol(symbol))
+        Some(self.program.cacheable_system.system.interpret_symbol(symbol))
     }
 }
 
 #[cfg(test)]
 mod test {
-    use super::LindenmayerSystem;
+    use super::*;
 
     #[derive(Clone, PartialEq, Eq, Debug)]
     enum TestABC {
@@ -261,5 +334,61 @@ mod test {
                     TestABC::Foo,
                     TestABC::Foo,
                     TestABC::Foo]);
+    }
+
+    /// Test the caching decorator
+    #[test]
+    fn test_caching() {
+        // All this can really test is verify that multiple calls for the same
+        // generation come out the same.
+        let orig_system = TestLS;
+        let system = LindenmayerSystemCachingDecorator::new(orig_system);
+        // baseline
+        assert_eq!(system.generate(0), [TestABC::A, TestABC::B, TestABC::C]);
+        // again
+        assert_eq!(system.generate(0), [TestABC::A, TestABC::B, TestABC::C]);
+        // something that will require caching 1 and 2 and use 0's cache
+        assert_eq!(system.generate(3),
+                   [TestABC::A,
+                    TestABC::Foo,
+                    TestABC::B,
+                    TestABC::C,
+                    TestABC::Foo,
+                    TestABC::Foo,
+                    TestABC::Foo,
+                    TestABC::B,
+                    TestABC::Foo,
+                    TestABC::Foo,
+                    TestABC::Foo,
+                    TestABC::Foo,
+                    TestABC::Foo,
+                    TestABC::Foo,
+                    TestABC::Foo]);
+        // use cache
+        assert_eq!(system.generate(3),
+                   [TestABC::A,
+                    TestABC::Foo,
+                    TestABC::B,
+                    TestABC::C,
+                    TestABC::Foo,
+                    TestABC::Foo,
+                    TestABC::Foo,
+                    TestABC::B,
+                    TestABC::Foo,
+                    TestABC::Foo,
+                    TestABC::Foo,
+                    TestABC::Foo,
+                    TestABC::Foo,
+                    TestABC::Foo,
+                    TestABC::Foo]);
+        // use cache
+        assert_eq!(system.generate(1),
+                   [TestABC::A,
+                    TestABC::Foo,
+                    TestABC::B,
+                    TestABC::C,
+                    TestABC::Foo,
+                    TestABC::Foo,
+                    TestABC::B]);
     }
 }
