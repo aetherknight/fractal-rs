@@ -1,14 +1,15 @@
 # fractal-rs
 
-A Rust application (and library) for exploring a variety of fractals and to learn more about rust.
+A Rust application (and library) for exploring a variety of fractals and to
+learn more about Rust.
 
 Features include:
 
-* Piston-based turtle graphics engine for line-drawn curves (using OpenGL
-  bindings)
-* Support for computing turtle directions using the [Lindenmeyer
+* Piston-based turtle graphics renderer for line-drawn curves
+* Ability to animate the drawing of the curves
+* Library support for computing turtle directions using the [Lindenmeyer
   system](https://en.wikipedia.org/wiki/L-system)
-* Fractals supported:
+* Curves supported:
     * [Cesàro square fractal (torn
       fractal)](http://mathworld.wolfram.com/CesaroFractal.html)
     * Cesàro triangle fractal
@@ -19,36 +20,57 @@ Features include:
 
 Some future ideas (in no particular order):
 
-* Improve performance in various ways. The current implementation is single
-  threaded, naively uses the graphics engine, etc.
-* Animating Turtle programs while drawing instead of (re)drawing the entire
-  program before displaying it (this may also help improve responsiveness for
-  larger fractals that take a long time to draw).
+* Option to automatically profile and adjust how much can be animated per-frame
+  based on system performance.
 * Display information about the current fractal.
 * Greater interactivity, maybe a UI for choosing and configuring which fractal
   to display, or arrow keys to increment/decrement the iteration number.
 * Color for various curves
-* Ability to export images
+* Ability to export images or animations
+* Dynamically specify a curve's parameters through configuration instead of
+  compiling them in. Alternately, make it easy to write a rust module for a
+  curve and add it to the application loop.
 * More [Iterated Function
   Systems](https://en.wikipedia.org/wiki/Iterated_function_system), such as
   those drawn using the chaos game, or that can be draw with shapes
-* Mandelbrot sets, Julia sets, Burning ship fractal, etc.
+* Other kinds of fractals like Mandelbrot sets, Julia sets, Burning ship
+  fractal, etc.
+* Explore using threading and channels to construct a generic iterator of turtle
+  program steps (simulating coroutines). This might allow for more programming
+  styles within a TurtleProgram instead of having to create custom iterators
+  for each TurtleProgram implementation that have to track state/program
+  counter for the program. It would also be a great exercise in multi-threading.
 
 
 ## Usage
 
-Fetch the git repository, and then use cargo to build and run it:
+Fetch the git repository, and then use cargo to build it:
 
 ```sh
 git clone https://github.com/aetherknight/fractal-rs.git
 cd fractal-rs
 cargo build
-cargo run dragon ${ITERATION}
 ```
 
-Where `${ITERATION}` is a non-negative integer (0 or greater). This will
-eventually bring up a window that displays the fractal. You can exit by
-pressing your `esc` key.
+To run the application, you can use `cargo run` or call the binary directly
+(Eg, if you use `cargo install` to install the program). Resizing the window
+will dynamically resize the curve as well. You can exit by pressing the `esc`
+key.
+
+To open a window and draw iteration 4 of the Cesàro square fractal:
+
+```sh
+cargo run -- cesaro 4
+```
+
+To animate the drawing of a curve, you can use the `--animate` option. You must
+specify the number of line segments that should be drawn per frame as well,
+such as `1` for one line per frame. The following will animate iteration 11 of
+the dragon fractal at a rate of 10 line segments per frame:
+
+```sh
+cargo run -- --animate 10 dragon 11
+```
 
 
 ### Exploring Fractals
@@ -59,12 +81,12 @@ Note that for most fractals the iteration number results in an exponential
 increase in computation, so if you want to explore a higher
 iteration/generation of a curve, you may want to start with a low iteration
 number and increment your way up. (At the moment, the dragon fractal tends to
-take more than a few seconds to draw iterations above 15 on modern computers).
+take more than a few seconds to draw iterations above 15 my laptop when it
+draws the entire curve in a single frame).
 
-At present, if you want to play with other parameters --- such as the
-coordinate space where a fractal is drawn, the L-system used to determine what
-steps to take, or the angles chosen --- then you will need to update the source
-code and use cargo to build and run the program.
+At present, the other parameters that make up one of the curves --- such as the
+coordinate space, the L-system used to determine the drawing steps, or the
+angles chosen --- require changing the source code.
 
 ## Contributing
 
@@ -72,6 +94,8 @@ code and use cargo to build and run the program.
   ticket.
 * If you would like to implement a feature, feel free to submit a pull request
   or open a ticket to discuss followed by a pull request.
+* If I receive many contributions, I will shift the project's copyright
+  structure to reference a contributers file.
 
 A few rules about contributed code:
 
@@ -83,8 +107,7 @@ A few rules about contributed code:
   code before committing.
 * Write tests where it makes sense to do so (ie, test behaviors and
   functionality that could change as a side-effect of some other change), but
-  do not fret about it. It can be difficult to write effective, non-brittle
-  tests for graphically oriented programs.
+  do not fret about it.
 
 
 ## License
