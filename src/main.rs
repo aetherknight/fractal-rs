@@ -46,8 +46,8 @@ fn parse_args() -> Arguments {
         parser.refer(&mut retargs.animate).add_option(&["--animate"], Store, "Animate the drawing of the fractal instead of drawing it all at once. ANIMATE specifies the number of moves to make per frame of animation. Set to 0 to explicitly disable.");
         parser.refer(&mut retargs.version).add_option(&["-v", "--version"], StoreTrue, "Display the version");
 
-        parser.refer(&mut retargs.curve_name).add_argument("curve", Store, "Which curve to draw. Valid options are: cesaro, cesarotri, dragon, kochcurve, levyccurve, and terdragon.");
-        parser.refer(&mut retargs.iterations).add_argument("iterations", Store, "The iteration of the specified curve to draw. should be a non-negative integer.");
+        parser.refer(&mut retargs.curve_name).add_argument("curve", Store, "Which curve to draw. Valid options are: cesaro, cesarotri, dragon, kochcurve, levyccurve, and terdragon.").required();
+        parser.refer(&mut retargs.iterations).add_argument("iterations", Store, "The iteration of the specified curve to draw. should be a non-negative integer.").required();
         parser.parse_args_or_exit();
     }
 
