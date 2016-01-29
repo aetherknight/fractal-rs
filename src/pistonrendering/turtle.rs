@@ -178,7 +178,7 @@ impl<'a> fmt::Debug for DoubleBufferedWindowHandler<'a> {
     }
 }
 
-impl<'a> WindowHandler<'a> for DoubleBufferedWindowHandler<'a> {
+impl<'a> WindowHandler for DoubleBufferedWindowHandler<'a> {
     fn window_resized(&mut self) {
         self.redraw[0] = true;
         self.redraw[1] = true;
@@ -272,7 +272,7 @@ impl<'a> DoubleBufferedAnimatedWindowHandler<'a> {
     }
 }
 
-impl<'a> WindowHandler<'a> for DoubleBufferedAnimatedWindowHandler<'a> {
+impl<'a> WindowHandler for DoubleBufferedAnimatedWindowHandler<'a> {
     fn window_resized(&mut self) {
         self.first_draw[0] = true;
         self.first_draw[1] = true;
