@@ -18,18 +18,11 @@ extern crate piston;
 extern crate piston_window;
 
 extern crate fractal;
-mod glwindow;
 
 use argparse::{ArgumentParser, Store, Print};
 
-use fractal::curves::cesaro::CesaroFractal;
-use fractal::curves::cesarotri::CesaroTriFractal;
-use fractal::curves::dragon::DragonFractal;
-use fractal::curves::kochcurve::KochCurve;
-use fractal::curves::levyccurve::LevyCCurve;
-use fractal::curves::terdragon::TerdragonFractal;
-use fractal::lindenmayer::LindenmayerSystemTurtleProgram;
-use fractal::turtle::TurtleProgram;
+use fractal::curves;
+use fractal::pistonrendering;
 
 struct Arguments {
     curve_name: String,
@@ -38,56 +31,52 @@ struct Arguments {
 }
 
 fn parse_args() -> Arguments {
-    let mut retargs = Arguments { curve_name: String::from(""), iterations: 0, animate: 0};
+    let mut retargs = Arguments {
+        curve_name: String::from(""),
+        iterations: 0,
+        animate: 0,
+    };
     {
         let mut parser = ArgumentParser::new();
         parser.set_description("Renders fractal curves.");
         parser.refer(&mut retargs.animate)
-            .add_option(
-                &["--animate"],
-                Store,
-                "Animate the drawing of the fractal instead of drawing it all at once. ANIMATE specifies the number of moves to make per frame of animation. Set to 0 to explicitly disable."
-                );
-        parser.add_option(
-            &["-v", "--version"],
-            Print(env!("CARGO_PKG_VERSION").to_string()),
-            "Display the version and exit"
-            );
+              .add_option(&["--animate"],
+                          Store,
+                          "Animate the drawing of the fractal instead of drawing it all at once. \
+                           ANIMATE specifies the number of moves to make per frame of animation. \
+                           Set to 0 to explicitly disable.");
+        parser.add_option(&["-v", "--version"],
+                          Print(env!("CARGO_PKG_VERSION").to_string()),
+                          "Display the version and exit");
 
         parser.refer(&mut retargs.curve_name)
-            .add_argument(
-                "curve",
-                Store,
-                "Which curve to draw. Valid options are: cesaro, cesarotri, dragon, kochcurve, levyccurve, and terdragon."
-                ).required();
+              .add_argument("curve",
+                            Store,
+                            "Which curve to draw. Valid options are: cesaro, cesarotri, dragon, \
+                             kochcurve, levyccurve, and terdragon.")
+              .required();
         parser.refer(&mut retargs.iterations)
-            .add_argument(
-                "iterations",
-                Store,
-                "The iteration of the specified curve to draw. should be a non-negative integer."
-                ).required();
+              .add_argument("iterations",
+                            Store,
+                            "The iteration of the specified curve to draw. should be a \
+                             non-negative integer.")
+              .required();
         parser.parse_args_or_exit();
     }
 
     retargs
 }
 
-fn construct_program(program_name: &str, iterations: u64) -> Box<TurtleProgram> {
-    match program_name {
-        "cesaro"     => Box::new(LindenmayerSystemTurtleProgram::new(CesaroFractal::new(iterations))),
-        "cesarotri"  => Box::new(LindenmayerSystemTurtleProgram::new(CesaroTriFractal::new(iterations))),
-        "dragon"     => Box::new(DragonFractal::new(iterations)),
-        "kochcurve"  => Box::new(LindenmayerSystemTurtleProgram::new(KochCurve::new(iterations))),
-        "levyccurve" => Box::new(LindenmayerSystemTurtleProgram::new(LevyCCurve::new(iterations))),
-        "terdragon"  => Box::new(LindenmayerSystemTurtleProgram::new(TerdragonFractal::new(iterations))),
-        _            => panic!("Unknown program type")
-    }
-}
-
 fn main() {
     let args = parse_args();
 
-    let program = construct_program(args.curve_name.as_ref(), args.iterations);
+    let program_res = curves::lookup_turtle_program(args.curve_name.as_ref(), args.iterations);
+    let program = match program_res {
+        Ok(program) => program,
+        Err(error) => panic!(error.to_string()),
+    };
+    let mut handler = pistonrendering::turtle::construct_turtle_window_handler(&*program,
+                                                                               args.animate);
 
-    glwindow::run(&*program, args.animate);
+    pistonrendering::run(&mut *handler);
 }
