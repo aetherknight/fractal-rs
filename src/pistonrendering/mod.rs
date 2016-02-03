@@ -22,6 +22,14 @@ use piston_window::*;
 const WHITE: [f32; 4] = [1.0, 1.0, 1.0, 1.0];
 const BLACK: [f32; 4] = [0.0, 0.0, 0.0, 1.0];
 
+/// State machine for WindowHandlers that want to animate across the double buffered frames.
+#[derive(Debug,PartialEq)]
+pub enum WhichFrame {
+    FirstFrame,
+    SecondFrame,
+    AllOtherFrames,
+}
+
 /// An object that can render frames of a drawing/animation/program/game.
 pub trait WindowHandler {
     /// When the window is resized, we may need to plan to re-render.

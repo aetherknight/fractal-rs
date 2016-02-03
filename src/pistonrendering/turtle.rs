@@ -19,7 +19,7 @@ use piston_window::*;
 use std::fmt;
 
 use geometry::{Point, Vector};
-use super::{BLACK, WHITE, WindowHandler};
+use super::{BLACK, WHITE, WindowHandler, WhichFrame};
 use turtle::{Turtle, TurtleProgram, TurtleCollectToNextForwardIterator};
 
 pub fn construct_turtle_window_handler<'a>(program: &'a TurtleProgram,
@@ -204,14 +204,6 @@ impl<'a> WindowHandler for DoubleBufferedWindowHandler<'a> {
     }
 }
 
-/// State machine for DoubleBufferedAnimatedWindowHandler.
-#[derive(Debug,PartialEq)]
-enum WhichFrame {
-    FirstFrame,
-    SecondFrame,
-    AllOtherFrames,
-}
-
 /// WindowHandler that animates the drawing of the curve by only adding a few line segments per
 /// frame.
 pub struct DoubleBufferedAnimatedWindowHandler<'a> {
@@ -222,8 +214,6 @@ pub struct DoubleBufferedAnimatedWindowHandler<'a> {
     /// Two iterators.
     iters: [TurtleCollectToNextForwardIterator<'a>; 2],
     lines_per_frame: u64,
-    /// Whether we need to re-render for double-buffered frames.
-    first_draw: [bool; 2],
     /// Which frame we are rendering. We need to perform the initial steps for the first frame, and
     /// we need perform the initial steps and do one extra move forward for the second frame (to
     /// stagger the double buffer). The rest of the frames then just move forward.
@@ -233,10 +223,8 @@ pub struct DoubleBufferedAnimatedWindowHandler<'a> {
 impl<'a> fmt::Debug for DoubleBufferedAnimatedWindowHandler<'a> {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f,
-               "DoubleBufferedAnimatedWindowHandler(turtles:{:?}, iters:<iters>, first_draw:{:?}, \
-                which_frame:{:?})",
+               "DoubleBufferedAnimatedWindowHandler(turtles:{:?}, iters:<iters>, which_frame:{:?})",
                self.turtles,
-               self.first_draw,
                self.which_frame)
     }
 }
@@ -254,7 +242,6 @@ impl<'a> DoubleBufferedAnimatedWindowHandler<'a> {
             iters: [TurtleCollectToNextForwardIterator::new_null_iter(),
                     TurtleCollectToNextForwardIterator::new_null_iter()],
             lines_per_frame: lines_per_frame,
-            first_draw: [true, true],
             which_frame: WhichFrame::FirstFrame,
         }
     }
@@ -274,8 +261,6 @@ impl<'a> DoubleBufferedAnimatedWindowHandler<'a> {
 
 impl<'a> WindowHandler for DoubleBufferedAnimatedWindowHandler<'a> {
     fn window_resized(&mut self) {
-        self.first_draw[0] = true;
-        self.first_draw[1] = true;
         self.which_frame = WhichFrame::FirstFrame;
         self.turtles[0] = TurtleState::new();
         self.turtles[1] = TurtleState::new();
