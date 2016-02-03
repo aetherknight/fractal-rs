@@ -16,6 +16,7 @@
 //! [Wikipedia page](https://en.wikipedia.org/wiki/Chaos_game) provides a detailed and technical
 //! explanation for this process.
 
+pub mod barnsleyfern;
 pub mod sierpinski;
 
 use std::error::Error;
@@ -24,6 +25,7 @@ use std::sync::Arc;
 use std::sync::mpsc::{Receiver, SyncSender, sync_channel};
 use std::thread;
 
+use self::barnsleyfern::BarnsleyFern;
 use self::sierpinski::SierpinskiChaosGame;
 use super::geometry::Point;
 
@@ -53,7 +55,8 @@ pub fn construct_chaos_game(name: &str) -> Result<Arc<ChaosGame>, CouldNotfindCh
     match name {
         "sierpinski" => {
             Ok(Arc::new(SierpinskiChaosGame::new()))
-        }
+        },
+        "barnsleyfern" => { Ok(Arc::new(BarnsleyFern::new())) },
         _ => Err(CouldNotfindChaosGameError { requested_chaos_game: name.to_string() }),
     }
 }
