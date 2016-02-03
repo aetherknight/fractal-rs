@@ -14,6 +14,7 @@
 
 //! A piston window-based renderer and event loop.
 
+pub mod chaosgame;
 pub mod turtle;
 
 use graphics;

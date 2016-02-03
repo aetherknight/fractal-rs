@@ -108,6 +108,8 @@ A few rules about contributed code:
 * Write tests where it makes sense to do so (ie, test behaviors and
   functionality that could change as a side-effect of some other change), but
   do not fret about it.
+* Try to keep the `use` statements lexicographically sorted, with std and crate
+  modules grouped together, and local modules grouped together after them.
 
 
 ## License

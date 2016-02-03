@@ -21,6 +21,7 @@ extern crate fractal;
 
 use argparse::{ArgumentParser, Store, Print};
 
+use fractal::chaosgame;
 use fractal::curves;
 use fractal::pistonrendering;
 
@@ -70,13 +71,18 @@ fn parse_args() -> Arguments {
 fn main() {
     let args = parse_args();
 
-    let program_res = curves::lookup_turtle_program(args.curve_name.as_ref(), args.iterations);
-    let program = match program_res {
-        Ok(program) => program,
-        Err(error) => panic!(error.to_string()),
-    };
-    let mut handler = pistonrendering::turtle::construct_turtle_window_handler(&*program,
-                                                                               args.animate);
-
-    pistonrendering::run(&mut *handler);
+    if let Ok(chaosgame) = chaosgame::construct_chaos_game(args.curve_name
+                                                               .as_ref()) {
+        let mut handler =
+            Box::new(pistonrendering::chaosgame::ChaosGameWindowHandler::new(chaosgame));
+        pistonrendering::run(&mut *handler);
+    } else if let Ok(program) = curves::lookup_turtle_program(args.curve_name
+                                                           .as_ref(),
+                                                       args.iterations) {
+        let mut handler = pistonrendering::turtle::construct_turtle_window_handler(&*program,
+                                                                                   args.animate);
+        pistonrendering::run(&mut *handler);
+    } else {
+        panic!("Unknown curve/program");
+    }
 }

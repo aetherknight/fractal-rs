@@ -9,6 +9,7 @@ argparse = "0.2.1"
 piston = "0.17.0"
 piston2d-graphics = "0.13.1"
 piston_window = "0.34.0"
+rand = "0.3"
 
 #[dev-dependencies]
 #float-cmp = "~0.2.1"

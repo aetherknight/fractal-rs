@@ -17,11 +17,13 @@ extern crate argparse;
 extern crate graphics;
 extern crate piston;
 extern crate piston_window;
+extern crate rand;
 
 // must be before any local modules that use the macros
 #[macro_use]
 mod macros;
 
+pub mod chaosgame;
 pub mod curves;
 pub mod geometry;
 pub mod lindenmayer;
