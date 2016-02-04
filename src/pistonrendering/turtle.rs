@@ -56,11 +56,8 @@ impl TurtleState {
 pub struct PistonTurtle<'a, G>
     where G: Graphics + 'a
 {
-    gfx: &'a mut G,
-    /// Needed to calculate transformations from the turtle coordinate system to the window's
-    /// coordinate system.
-    window_size: Size,
     context: graphics::context::Context,
+    gfx: &'a mut G,
 
     state: &'a mut TurtleState,
 }
@@ -68,14 +65,12 @@ pub struct PistonTurtle<'a, G>
 impl<'a, G> PistonTurtle<'a, G> where G: Graphics + 'a
 {
     pub fn new(state: &'a mut TurtleState,
-               gfx: &'a mut G,
-               window_size: Size,
-               context: graphics::context::Context)
+               context: graphics::context::Context,
+               gfx: &'a mut G)
                -> PistonTurtle<'a, G> {
         PistonTurtle {
-            gfx: gfx,
-            window_size: window_size,
             context: context,
+            gfx: gfx,
             state: state,
         }
     }
@@ -91,12 +86,13 @@ impl<'a, G> Turtle for PistonTurtle<'a, G> where G: Graphics + 'a
         });
 
         if self.state.down {
-            let screen_width = self.window_size.width;
-            let screen_height = self.window_size.height;
+            let view_size = self.context.get_view_size();
+            let screen_width = view_size[0];
+            let screen_height = view_size[1];
 
-            let startx = (screen_width / 4) as f64;
-            let starty = (screen_height / 2) as f64;
-            let endx = (3 * screen_width / 4) as f64;
+            let startx = screen_width / 4f64;
+            let starty = screen_height / 2f64;
+            let endx = 3f64 * screen_width / 4f64;
             // let endy = (screen_height / 2) as f64;
 
             let linesize = (startx - endx).abs() as f64;
@@ -185,7 +181,6 @@ impl<'a> WindowHandler for DoubleBufferedWindowHandler<'a> {
     }
 
     fn render_frame(&mut self,
-                    window_size: Size,
                     context: graphics::context::Context,
                     gfx: &mut G2d,
                     frame_num: u32) {
@@ -195,7 +190,7 @@ impl<'a> WindowHandler for DoubleBufferedWindowHandler<'a> {
             clear(WHITE, gfx);
 
             let mut state = TurtleState::new();
-            let mut turtle = PistonTurtle::new(&mut state, gfx, window_size, context);
+            let mut turtle = PistonTurtle::new(&mut state, context, gfx);
             DoubleBufferedWindowHandler::turtledraw(self.program, &mut turtle);
 
             println!("Done redrawing frame");
@@ -267,7 +262,6 @@ impl<'a> WindowHandler for DoubleBufferedAnimatedWindowHandler<'a> {
     }
 
     fn render_frame(&mut self,
-                    window_size: Size,
                     context: graphics::context::Context,
                     gfx: &mut G2d,
                     frame_num: u32) {
@@ -279,10 +273,7 @@ impl<'a> WindowHandler for DoubleBufferedAnimatedWindowHandler<'a> {
                 // turtle and also use it elsewhere, this would trigger the static analysis.
                 // This could be worked around by placing gfx into a RefCell.
                 clear(WHITE, gfx);
-                let mut turtle = PistonTurtle::new(&mut self.turtles[bufnum],
-                                                   gfx,
-                                                   window_size,
-                                                   context);
+                let mut turtle = PistonTurtle::new(&mut self.turtles[bufnum], context, gfx);
                 for action in self.program.init_turtle() {
                     turtle.perform(action)
                 }
@@ -291,10 +282,7 @@ impl<'a> WindowHandler for DoubleBufferedAnimatedWindowHandler<'a> {
             }
             WhichFrame::SecondFrame => {
                 clear(WHITE, gfx);
-                let mut turtle = PistonTurtle::new(&mut self.turtles[bufnum],
-                                                   gfx,
-                                                   window_size,
-                                                   context);
+                let mut turtle = PistonTurtle::new(&mut self.turtles[bufnum], context, gfx);
                 for action in self.program.init_turtle() {
                     turtle.perform(action)
                 }
@@ -310,10 +298,7 @@ impl<'a> WindowHandler for DoubleBufferedAnimatedWindowHandler<'a> {
                 self.which_frame = WhichFrame::AllOtherFrames;
             }
             _ => {
-                let mut turtle = PistonTurtle::new(&mut self.turtles[bufnum],
-                                                   gfx,
-                                                   window_size,
-                                                   context);
+                let mut turtle = PistonTurtle::new(&mut self.turtles[bufnum], context, gfx);
                 for _ in 0..self.lines_per_frame {
                     // Make 2 moves per frame since we are double buffered.
                     DoubleBufferedAnimatedWindowHandler::draw_one_move(&mut turtle,

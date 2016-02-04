@@ -45,21 +45,22 @@ impl ChaosGameWindowHandler {
 
 /// Draw a dot at the given point. (0.0,0.0) is the center of the screen, (1.0,1.0) is near the top
 /// right, and (-1.0,-1.0) is near the bottom left.
-fn draw_dot(gfx: &mut G2d, window_size: Size, context: graphics::context::Context, point: Point) {
-    let screen_width = window_size.width;
-    let screen_height = window_size.height;
+fn draw_dot(context: graphics::context::Context, gfx: &mut G2d, point: Point) {
+    let view_size = context.get_view_size();
+    let screen_width = view_size[0];
+    let screen_height = view_size[1];
 
-    let originx = (screen_width / 2) as f64;
-    let originy = (screen_height / 2) as f64;
+    let originx = screen_width / 2.0f64;
+    let originy = screen_height / 2.0f64;
 
     let taller = (screen_height as i64 - screen_width as i64) > 0;
 
     // use the smaller direction to determine how many pixels are in one unit of
     // distance here.
     let one_unit_to_pixels = if taller {
-        (screen_width / 2) as f64
+        (screen_width / 2f64)
     } else {
-        (screen_height / 2) as f64
+        (screen_height / 2f64)
     };
 
     let transform = context.transform
@@ -90,11 +91,7 @@ impl WindowHandler for ChaosGameWindowHandler {
     //
     // the RNG and seed must match for each buffer. otherwise, the double buffering
     // will flicker.
-    fn render_frame(&mut self,
-                    window_size: Size,
-                    context: graphics::context::Context,
-                    gfx: &mut G2d,
-                    _: u32) {
+    fn render_frame(&mut self, context: graphics::context::Context, gfx: &mut G2d, _: u32) {
         match self.which_frame {
             WhichFrame::FirstFrame => {
                 // The first frame clears its screen and draws a point.
@@ -102,7 +99,7 @@ impl WindowHandler for ChaosGameWindowHandler {
                 self.iter = Some(ChaosGameMoveIterator::new(self.game.clone()));
                 for i in 0..DOTS_PER_FRAME {
                     if let Some(next_point) = self.iter.as_mut().unwrap().next() {
-                        draw_dot(gfx, window_size, context, next_point);
+                        draw_dot(context, gfx, next_point);
                         self.last_moves[i] = next_point;
                     }
                 }
@@ -113,11 +110,11 @@ impl WindowHandler for ChaosGameWindowHandler {
                 // draw the first point, and then draw the next point.
                 clear(WHITE, gfx);
                 for i in 0..DOTS_PER_FRAME {
-                    draw_dot(gfx, window_size, context, self.last_moves[i]);
+                    draw_dot(context, gfx, self.last_moves[i]);
                 }
                 for i in 0..DOTS_PER_FRAME {
                     if let Some(next_point) = self.iter.as_mut().unwrap().next() {
-                        draw_dot(gfx, window_size, context, next_point);
+                        draw_dot(context, gfx, next_point);
                         self.last_moves[i] = next_point;
                     }
                 }
@@ -127,11 +124,11 @@ impl WindowHandler for ChaosGameWindowHandler {
                 // All other frames need to draw the last point (already drawn on the other
                 // buffer) and then add a point to the current buffer.
                 for i in 0..DOTS_PER_FRAME {
-                    draw_dot(gfx, window_size, context, self.last_moves[i]);
+                    draw_dot(context, gfx, self.last_moves[i]);
                 }
                 for i in 0..DOTS_PER_FRAME {
                     if let Some(next_point) = self.iter.as_mut().unwrap().next() {
-                        draw_dot(gfx, window_size, context, next_point);
+                        draw_dot(context, gfx, next_point);
                         self.last_moves[i] = next_point;
                     }
                 }

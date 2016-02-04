@@ -18,6 +18,7 @@ pub mod chaosgame;
 pub mod turtle;
 
 use graphics;
+use graphics::math::Vec2d;
 use piston_window::*;
 
 const WHITE: [f32; 4] = [1.0, 1.0, 1.0, 1.0];
@@ -38,7 +39,6 @@ pub trait WindowHandler {
 
     /// Render a frame.
     fn render_frame(&mut self,
-                    window_size: Size,
                     context: graphics::context::Context,
                     gfx: &mut G2d,
                     frame_num: u32);
@@ -55,22 +55,18 @@ pub fn run(window_handler: &mut WindowHandler) {
         .unwrap_or_else(|e| panic!("Failed to build Window: {}", e));
 
     let mut frame_num: u32 = 0;
-    let mut old_size: Size = Size {
-        width: 0,
-        height: 0,
-    };
+    let mut old_size: Vec2d = [0.0,0.0];
     for e in window {
         e.draw_2d(|context, gfx| {
-            let size = e.size();
-            // Size doesn't implement PartialEq, so we have to check ourselves.
-            if size.width != old_size.width || size.height != old_size.height {
+            let size = context.get_view_size();
+            if size != old_size {
                 println!("resized");
                 old_size = size;
                 window_handler.window_resized();
             }
             frame_num += 1;
             println!("Render frame {}, window: {:?}", frame_num, size);
-            window_handler.render_frame(size, context, gfx, frame_num);
+            window_handler.render_frame(context, gfx, frame_num);
         });
         //     // Some(Event::Input(i)) => {
         //     //     match i {
