@@ -94,7 +94,7 @@ impl WindowHandler for ChaosGameWindowHandler {
                     window_size: Size,
                     context: graphics::context::Context,
                     gfx: &mut G2d,
-                    frame_num: u32) {
+                    _: u32) {
         match self.which_frame {
             WhichFrame::FirstFrame => {
                 // The first frame clears its screen and draws a point.
