@@ -56,7 +56,9 @@ pub fn construct_chaos_game(name: &str) -> Result<Arc<ChaosGame>, CouldNotfindCh
         "sierpinski" => {
             Ok(Arc::new(SierpinskiChaosGame::new()))
         },
-        "barnsleyfern" => { Ok(Arc::new(BarnsleyFern::new())) },
+        "barnsleyfern" => {
+            Ok(Arc::new(BarnsleyFern::new(&barnsleyfern::REFERENCE_TRANSFORMS, &barnsleyfern::REFERENCE_WEIGHTS)))
+        },
         _ => Err(CouldNotfindChaosGameError { requested_chaos_game: name.to_string() }),
     }
 }

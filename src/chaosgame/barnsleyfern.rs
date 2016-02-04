@@ -14,77 +14,62 @@
 
 //! Implementation of the Barnsley Fern.
 
-use std::sync::mpsc::SyncSender;
-use rand;
 use rand::distributions::{IndependentSample, WeightedChoice, Weighted};
+use rand;
+use std::sync::mpsc::SyncSender;
 
 use super::ChaosGame;
 use super::super::geometry::*;
 
+/// The reference affine transforms for the Barnsley Fern.
+pub const REFERENCE_TRANSFORMS: [CartesianAffineTransform; 4] = [[[0.0, 0.0, 0.0],
+                                                                  [0.0, 0.16, 0.0]],
+                                                                 [[0.85, 0.04, 0.0],
+                                                                  [-0.04, 0.85, 1.6]],
+                                                                 [[0.2, -0.26, 0.0],
+                                                                  [0.23, 0.22, 1.6]],
+                                                                 [[-0.15, 0.28, 0.0],
+                                                                  [0.26, 0.24, 0.44]]];
+/// The reference affine transform weights for the Barnsley Fern.
+pub const REFERENCE_WEIGHTS: [u32; 4] = [1, 85, 7, 7];
+
+/// [Barnsley Fern](https://en.wikipedia.org/wiki/Barnsley_fern) fractal, generated using an IFS
+/// and a chaos game. A fern is constructed by starting at (0,0), randomly picking one of 4 affine
+/// transformations (each has a separate weight), and applying the chosen affine transformation
+/// function to the point to get the next point. The process is then applied again to the new
+/// point, indefinitely.
 #[derive(Clone)]
-pub struct BarnsleyFern;
+pub struct BarnsleyFern {
+    /// Defined by 4 affine transforms
+    transforms: [CartesianAffineTransform; 4],
+    /// And their probabilistic weights
+    weights: [u32; 4],
+}
 
 impl BarnsleyFern {
-    pub fn new() -> BarnsleyFern {
-        BarnsleyFern
-    }
-
-    /// 1%
-    fn f1(n: Point) -> Point {
-        Point {
-            x: 0.0,
-            y: 0.16 * n.y,
-        }
-    }
-    /// 85%
-    fn f2(n: Point) -> Point {
-        Point {
-            x: 0.85 * n.x + 0.04 * n.y,
-            y: -0.04 * n.x + 0.85 * n.y + 1.6,
-        }
-    }
-    /// 7%
-    fn f3(n: Point) -> Point {
-        Point {
-            x: 0.2 * n.x + -0.26 * n.y,
-            y: 0.23 * n.x + 0.22 * n.y + 1.6,
-        }
-    }
-    /// 7%
-    fn f4(n: Point) -> Point {
-        Point {
-            x: -0.15 * n.x + 0.28 * n.y,
-            y: 0.26 * n.x + 0.24 * n.y + 0.44,
+    pub fn new(transforms: &[CartesianAffineTransform; 4], weights: &[u32; 4]) -> BarnsleyFern {
+        BarnsleyFern {
+            transforms: transforms.clone(),
+            weights: weights.clone(),
         }
     }
 
-    // fn pick_and_apply_function(n: Point) -> Point {
-    // }
-    fn pick_function() -> Box<Fn(Point) -> Point> {
-        // TODO: macro the weighted_indices to avoid doing it at runtime.
-        let weights = [1, 85, 7, 7];
+    fn pick_transform<'a>(&'a self) -> Box<Fn(Point) -> Point + 'a> {
+        // TODO: macro to unwrap creating the iterators used to create weighted_indices.
         let mut weighted_indices: Vec<Weighted<usize>> = (0..4)
                                                              .into_iter()
                                                              .map(|i| {
                                                                  Weighted {
-                                                                     weight: weights[i],
+                                                                     weight: self.weights[i],
                                                                      item: i as usize,
                                                                  }
                                                              })
                                                              .collect();
         let chooser = rand::distributions::WeightedChoice::new(&mut weighted_indices);
         let mut rng = rand::thread_rng();
-        match chooser.ind_sample(&mut rng) {
-            0 => Box::new(BarnsleyFern::f1),
-            1 => Box::new(BarnsleyFern::f2),
-            2 => Box::new(BarnsleyFern::f3),
-            3 => Box::new(BarnsleyFern::f4),
-            _ => panic!("not reachable?"),
-        }
-    }
-
-    fn apply_function(n: Point) -> Point {
-        Self::pick_function()(n)
+        let chosen_index = chooser.ind_sample(&mut rng);
+        // box up and return a closure to do the call
+        Box::new(move |p| self.transforms[chosen_index].transform(p))
     }
 }
 
@@ -95,7 +80,7 @@ impl ChaosGame for BarnsleyFern {
             x: curr_point.x / 10.0,
             y: curr_point.y / 10.0,
         }) {
-            curr_point = Self::apply_function(curr_point);
+            curr_point = self.pick_transform()(curr_point);
         }
     }
 }

@@ -73,12 +73,49 @@ pub fn deg2rad(degrees: f64) -> f64 {
     degrees / 360.0 * 2.0 * PI
 }
 
+pub trait AffineTransform<T> {
+    /// Apply the affine transform to the specified type (usually a vector, point, or similar
+    /// object)
+    fn transform(&self, v: T) -> T;
+}
+
+/// Row-major matrix for applying affine transforms to Cartesian points.
+/// Affine transformations on the Cartesian plane are usually defined by 6 parameters that
+/// correspond to a 2x2 matrix and a vector:
+///
+/// ```text
+///     ⎡ x' ⎤ = ⎡ a b ⎤ * ⎡ x⎤ + ⎡ e ⎤
+///     ⎣ y' ⎦   ⎣ c d ⎦   ⎣ y⎦   ⎣ f ⎦
+/// ```
+///
+/// Or a 3x3 augmented matrix:
+///
+/// ```text
+///     ⎡ x' ⎤   ⎡ a b e ⎤   ⎡ x ⎤
+///     ⎢ y' ⎥ = ⎢ c d f ⎥ * ⎢ y ⎥
+///     ⎣  1 ⎦   ⎣ 0 0 1 ⎦   ⎣ 1 ⎦
+/// ```
+///
+/// For this implementation, we use a 3x2 matrix (we omit the third row).
+pub type CartesianAffineTransform = [[f64; 3]; 2];
+
+impl AffineTransform<Point> for CartesianAffineTransform {
+    fn transform(&self, p: Point) -> Point {
+        Point {
+            x: self[0][0] * p.x + self[0][1] * p.y + self[0][2],
+            y: self[1][0] * p.x + self[1][1] * p.y + self[1][2],
+        }
+    }
+}
+
+
+
 #[cfg(test)]
 mod test {
     use std::f64::consts::PI;
     use std::f64::consts::SQRT_2;
 
-    use super::{Point, Vector, deg2rad};
+    use super::*;
 
     #[test]
     fn test_distance_to() {
@@ -268,5 +305,34 @@ mod test {
         assert_approx_eq!(deg2rad(120.0), 2.0 * PI / 3.0, 0.000000001);
         assert_approx_eq!(deg2rad(180.0), PI, 0.000000001);
         assert_approx_eq!(deg2rad(360.0), 2.0 * PI, 0.000000001);
+    }
+
+    #[test]
+    fn test_cartesian_affine_transform() {
+        let test_point = Point { x: 1.45, y: 6.78 };
+
+        let identity: CartesianAffineTransform = [[1.0, 0.0, 0.0], [0.0, 1.0, 0.0]];
+        assert_point_eq!(identity.transform(test_point), test_point, 0.0000000001);
+
+        let move_right: CartesianAffineTransform = [[1.0, 0.0, 1.0], [0.0, 1.0, 0.0]];
+        assert_point_eq!(move_right.transform(test_point),
+                         Point { x: 2.45, y: 6.78 },
+                         0.0000000001);
+
+        let mirror_x: CartesianAffineTransform = [[-1.0, 0.0, 0.0], [0.0, 1.0, 0.0]];
+        assert_point_eq!(mirror_x.transform(test_point),
+                         Point {
+                             x: -1.45,
+                             y: 6.78,
+                         },
+                         0.0000000001);
+
+        let shrink_and_move: CartesianAffineTransform = [[0.5, 0.0, 1.2], [0.0, 0.5, -5.0]];
+        assert_point_eq!(shrink_and_move.transform(Point { x: 5.0, y: 4.9 }),
+                         Point {
+                             x: 0.5 * 5.0 + 0.0 + 1.2,
+                             y: 0.0 + 4.9 * 0.5 - 5.0,
+                         },
+                         0.0000000001);
     }
 }
