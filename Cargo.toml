@@ -4,6 +4,11 @@ version = "0.0.1"
 authors = ["William (B.J.) Snow Orvis <aetherknight@gmail.com>"]
 description = "Fractal rendering program"
 
+
+[[bin]]
+name = "fractal"
+doc = false
+
 [dependencies]
 argparse = "0.2.1"
 piston = "0.17.0"
