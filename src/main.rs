@@ -39,10 +39,10 @@ Arguments:
   ITERATION     Parameter needed by some curves.
 
 Options:
-  -h --help      Show this screen.
-  --version      Show version.
-  --animate=<A>  Animate drawing some curves by drawing A lines or dots per
-                 frame of animation. [default: 1]
+  -h --help       Show this screen.
+  --version       Show version.
+  --drawrate=<r>  The number of lines or dots of the fractal that should be
+                  drawn per frame. [default: 1]
 
 Curves:
   barnsleyfern          Barnsley Fern.
@@ -59,7 +59,7 @@ Curves:
 #[allow(non_snake_case)]
 struct Args {
     flag_version: bool,
-    flag_animate: u64,
+    flag_drawrate: u64,
     arg_ITERATION: Option<u64>,
     arg_CURVE: String,
 }
@@ -70,7 +70,7 @@ impl Into<fractaldata::Arguments> for Args {
         fractaldata::Arguments {
             curve: self.arg_CURVE,
             iterations: iterations,
-            animate: self.flag_animate,
+            drawrate: self.flag_drawrate,
         }
     }
 }

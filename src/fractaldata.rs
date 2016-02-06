@@ -17,7 +17,7 @@ use super::pistonrendering;
 pub struct Arguments {
     pub curve: String,
     pub iterations: u64,
-    pub animate: u64,
+    pub drawrate: u64,
 }
 
 pub struct FractalData {
@@ -50,7 +50,7 @@ static BARNSLEYFERN: FractalData = FractalData {
         let game = Arc::new(barnsleyfern::BarnsleyFern::new(&barnsleyfern::REFERENCE_TRANSFORMS,
                                                             &barnsleyfern::REFERENCE_WEIGHTS));
         let mut handler =
-            pistonrendering::chaosgame::ChaosGameWindowHandler::new(game, args.animate as usize);
+            pistonrendering::chaosgame::ChaosGameWindowHandler::new(game, args.drawrate as usize);
         runner(&mut handler);
     },
 };
@@ -62,7 +62,7 @@ static CESARO: FractalData = FractalData {
     with_window_handler: &|args, runner| {
         let program = LindenmayerSystemTurtleProgram::new(CesaroFractal::new(args.iterations));
         let mut handler = pistonrendering::turtle::construct_turtle_window_handler(&program,
-                                                                                   args.animate);
+                                                                                   args.drawrate);
         runner(&mut *handler);
     },
 };
@@ -74,7 +74,7 @@ static CESAROTRI: FractalData = FractalData {
     with_window_handler: &|args, runner| {
         let program = LindenmayerSystemTurtleProgram::new(CesaroTriFractal::new(args.iterations));
         let mut handler = pistonrendering::turtle::construct_turtle_window_handler(&program,
-                                                                                   args.animate);
+                                                                                   args.drawrate);
         runner(&mut *handler);
     },
 };
@@ -86,7 +86,7 @@ static DRAGON: FractalData = FractalData {
     with_window_handler: &|args, runner| {
         let program = DragonFractal::new(args.iterations);
         let mut handler = pistonrendering::turtle::construct_turtle_window_handler(&program,
-                                                                                   args.animate);
+                                                                                   args.drawrate);
         runner(&mut *handler);
     },
 };
@@ -98,7 +98,7 @@ static KOCHCURVE: FractalData = FractalData {
     with_window_handler: &|args, runner| {
         let program = LindenmayerSystemTurtleProgram::new(KochCurve::new(args.iterations));
         let mut handler = pistonrendering::turtle::construct_turtle_window_handler(&program,
-                                                                                   args.animate);
+                                                                                   args.drawrate);
         runner(&mut *handler);
     },
 };
@@ -110,7 +110,7 @@ static LEVYCCURVE: FractalData = FractalData {
     with_window_handler: &|args, runner| {
         let program = LindenmayerSystemTurtleProgram::new(LevyCCurve::new(args.iterations));
         let mut handler = pistonrendering::turtle::construct_turtle_window_handler(&program,
-                                                                                   args.animate);
+                                                                                   args.drawrate);
         runner(&mut *handler);
     },
 };
@@ -124,7 +124,7 @@ static SIERPINSKI: FractalData = FractalData {
     with_window_handler: &|args, runner| {
         let game = Arc::new(SierpinskiChaosGame::new());
         let mut handler =
-            pistonrendering::chaosgame::ChaosGameWindowHandler::new(game, args.animate as usize);
+            pistonrendering::chaosgame::ChaosGameWindowHandler::new(game, args.drawrate as usize);
         runner(&mut handler);
     },
 };
@@ -136,7 +136,7 @@ static TERDRAGON: FractalData = FractalData {
     with_window_handler: &|args, runner| {
         let program = LindenmayerSystemTurtleProgram::new(TerdragonFractal::new(args.iterations));
         let mut handler = pistonrendering::turtle::construct_turtle_window_handler(&program,
-                                                                                   args.animate);
+                                                                                   args.drawrate);
         runner(&mut *handler);
     },
 };
