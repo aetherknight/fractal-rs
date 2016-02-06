@@ -22,27 +22,6 @@ use super::super::chaosgame::{ChaosGame, ChaosGameMoveIterator};
 use super::{BLACK, WHITE, WindowHandler, WhichFrame};
 use super::super::geometry::Point;
 
-const DOTS_PER_FRAME: usize = 100;
-
-pub struct ChaosGameWindowHandler {
-    game: Arc<ChaosGame>,
-    which_frame: WhichFrame,
-    iter: Option<ChaosGameMoveIterator>,
-    // last_move: Point,
-    last_moves: [Point; DOTS_PER_FRAME],
-}
-
-impl ChaosGameWindowHandler {
-    pub fn new(game: Arc<ChaosGame>) -> ChaosGameWindowHandler {
-        ChaosGameWindowHandler {
-            game: game,
-            which_frame: WhichFrame::FirstFrame,
-            iter: None,
-            last_moves: [Point { x: 0.0, y: 0.0 }; DOTS_PER_FRAME],
-        }
-    }
-}
-
 /// Draw a dot at the given point. (0.0,0.0) is the center of the screen, (1.0,1.0) is near the top
 /// right, and (-1.0,-1.0) is near the bottom left.
 fn draw_dot(context: graphics::context::Context, gfx: &mut G2d, point: Point) {
@@ -78,58 +57,76 @@ fn draw_dot(context: graphics::context::Context, gfx: &mut G2d, point: Point) {
                                gfx);
 }
 
+pub struct ChaosGameWindowHandler {
+    game: Arc<ChaosGame>,
+    which_frame: WhichFrame,
+    iter: Option<ChaosGameMoveIterator>,
+    dots_per_frame: usize,
+    last_moves: Vec<Point>,
+}
+
+impl ChaosGameWindowHandler {
+    pub fn new(game: Arc<ChaosGame>, dots_per_frame: usize) -> ChaosGameWindowHandler {
+        ChaosGameWindowHandler {
+            game: game,
+            which_frame: WhichFrame::FirstFrame,
+            iter: None,
+            dots_per_frame: dots_per_frame,
+            last_moves: Vec::with_capacity(dots_per_frame),
+        }
+    }
+}
+
 impl WindowHandler for ChaosGameWindowHandler {
     fn window_resized(&mut self) {
         self.which_frame = WhichFrame::FirstFrame;
         self.iter = None;
-        // self.last_move = Point { x: 0.0, y: 0.0 };
-        self.last_moves = [Point { x: 0.0, y: 0.0 }; DOTS_PER_FRAME];
+        self.last_moves = Vec::with_capacity(self.dots_per_frame);
     }
 
-    // First frame clears, sets params, draws.
-    // second frame clears, sets params, draws, draws.
-    //
-    // the RNG and seed must match for each buffer. otherwise, the double buffering
-    // will flicker.
     fn render_frame(&mut self, context: graphics::context::Context, gfx: &mut G2d, _: u32) {
         match self.which_frame {
             WhichFrame::FirstFrame => {
-                // The first frame clears its screen and draws a point.
+                // The first frame clears its screen and starts drawing.
                 clear(WHITE, gfx);
                 self.iter = Some(ChaosGameMoveIterator::new(self.game.clone()));
-                for i in 0..DOTS_PER_FRAME {
+                // draw up to dots_per_frame dots, and store them for the next frame to also
+                // draw
+                for _ in 0..self.dots_per_frame {
                     if let Some(next_point) = self.iter.as_mut().unwrap().next() {
                         draw_dot(context, gfx, next_point);
-                        self.last_moves[i] = next_point;
+                        self.last_moves.push(next_point);
                     }
                 }
                 self.which_frame = WhichFrame::SecondFrame;
             }
             WhichFrame::SecondFrame => {
                 // The second frame is on the second buffer, so it needs to clear the screen,
-                // draw the first point, and then draw the next point.
+                // draw the first frame's dots, and then draw some more dots.
                 clear(WHITE, gfx);
-                for i in 0..DOTS_PER_FRAME {
-                    draw_dot(context, gfx, self.last_moves[i]);
+                // catch up to the first frame by draining last_moves
+                for oldmove in self.last_moves.drain(..) {
+                    draw_dot(context, gfx, oldmove);
                 }
-                for i in 0..DOTS_PER_FRAME {
+                // draw up to dots_per_frame dots, and refill last_moves.
+                for _ in 0..self.dots_per_frame {
                     if let Some(next_point) = self.iter.as_mut().unwrap().next() {
                         draw_dot(context, gfx, next_point);
-                        self.last_moves[i] = next_point;
+                        self.last_moves.push(next_point);
                     }
                 }
                 self.which_frame = WhichFrame::AllOtherFrames;
             }
             _ => {
-                // All other frames need to draw the last point (already drawn on the other
-                // buffer) and then add a point to the current buffer.
-                for i in 0..DOTS_PER_FRAME {
-                    draw_dot(context, gfx, self.last_moves[i]);
+                // All remaining frames need to catch up to the last frame, and then move
+                // forward.
+                for oldmove in self.last_moves.drain(..) {
+                    draw_dot(context, gfx, oldmove);
                 }
-                for i in 0..DOTS_PER_FRAME {
+                for _ in 0..self.dots_per_frame {
                     if let Some(next_point) = self.iter.as_mut().unwrap().next() {
                         draw_dot(context, gfx, next_point);
-                        self.last_moves[i] = next_point;
+                        self.last_moves.push(next_point);
                     }
                 }
             }

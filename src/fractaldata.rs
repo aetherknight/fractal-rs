@@ -46,10 +46,11 @@ static BARNSLEYFERN: FractalData = FractalData {
     name: "barnsleyfern",
     desc: "Draws the Barnsley Fern fractal using a chaos game with affine transforms.",
     args: &[],
-    with_window_handler: &|_, runner| {
+    with_window_handler: &|args, runner| {
         let game = Arc::new(barnsleyfern::BarnsleyFern::new(&barnsleyfern::REFERENCE_TRANSFORMS,
                                                             &barnsleyfern::REFERENCE_WEIGHTS));
-        let mut handler = pistonrendering::chaosgame::ChaosGameWindowHandler::new(game);
+        let mut handler =
+            pistonrendering::chaosgame::ChaosGameWindowHandler::new(game, args.animate as usize);
         runner(&mut handler);
     },
 };
@@ -120,9 +121,10 @@ static SIERPINSKI: FractalData = FractalData {
            screen as the vertices of the triangle, finds the center of the triangle, and then \
            moves halfway to a random vertex. Repeat ad nauseum.",
     args: &["foo"],
-    with_window_handler: &|_, runner| {
+    with_window_handler: &|args, runner| {
         let game = Arc::new(SierpinskiChaosGame::new());
-        let mut handler = pistonrendering::chaosgame::ChaosGameWindowHandler::new(game);
+        let mut handler =
+            pistonrendering::chaosgame::ChaosGameWindowHandler::new(game, args.animate as usize);
         runner(&mut handler);
     },
 };
