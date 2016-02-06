@@ -12,77 +12,91 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-extern crate argparse;
+extern crate docopt;
 extern crate graphics;
 extern crate piston;
 extern crate piston_window;
+extern crate rustc_serialize;
 
 extern crate fractal;
 
-use argparse::{ArgumentParser, Store, Print};
+use docopt::Docopt;
+use std::env;
 
-use fractal::chaosgame;
-use fractal::curves;
 use fractal::pistonrendering;
+use fractal::fractaldata;
 
-struct Arguments {
-    curve_name: String,
-    iterations: u64,
-    animate: u64,
+#[cfg_attr(rustfmt, rustfmt_skip)]
+const USAGE: &'static str = "
+Renders fractals in a piston window.
+
+Usage:
+  fractal (-h|--help|--version)
+  fractal [options] CURVE [ITERATION]
+
+Arguments:
+  CURVE         Which curve to draw.
+  ITERATION     Parameter needed by some curves.
+
+Options:
+  -h --help      Show this screen.
+  --version      Show version.
+  --animate=<A>  Animate drawing some curves by drawing A lines or dots per
+                 frame of animation. [default: 1]
+
+Curves:
+  barnsleyfern          Barnsley Fern.
+  cesaro ITERATION      Césaro square fractal.
+  cesarotri ITERATION   Césaro triangle fractal.
+  dragon ITERATION      Dragon curve fractal.
+  kochcurve ITERATION   Koch snowflake fractal.
+  levyccurve ITERATION  Levy C Curve.
+  sierpinski            Sierpinski triangle
+  terdragon ITERATION   Terdragon fractal.
+";
+
+#[derive(Debug, RustcDecodable)]
+#[allow(non_snake_case)]
+struct Args {
+    flag_version: bool,
+    flag_animate: u64,
+    arg_ITERATION: Option<u64>,
+    arg_CURVE: String,
 }
 
-fn parse_args() -> Arguments {
-    let mut retargs = Arguments {
-        curve_name: String::from(""),
-        iterations: 0,
-        animate: 0,
-    };
-    {
-        let mut parser = ArgumentParser::new();
-        parser.set_description("Renders fractal curves.");
-        parser.refer(&mut retargs.animate)
-              .add_option(&["--animate"],
-                          Store,
-                          "Animate the drawing of the fractal instead of drawing it all at once. \
-                           ANIMATE specifies the number of moves to make per frame of animation. \
-                           Set to 0 to explicitly disable.");
-        parser.add_option(&["-v", "--version"],
-                          Print(env!("CARGO_PKG_VERSION").to_string()),
-                          "Display the version and exit");
-
-        parser.refer(&mut retargs.curve_name)
-              .add_argument("curve",
-                            Store,
-                            "Which curve to draw. Valid options are: cesaro, cesarotri, dragon, \
-                             kochcurve, levyccurve, and terdragon.")
-              .required();
-        parser.refer(&mut retargs.iterations)
-              .add_argument("iterations",
-                            Store,
-                            "The iteration of the specified curve to draw. should be a \
-                             non-negative integer.")
-              .required();
-        parser.parse_args_or_exit();
+impl Into<fractaldata::Arguments> for Args {
+    fn into(self) -> fractaldata::Arguments {
+        let iterations = self.arg_ITERATION.unwrap_or(0);
+        fractaldata::Arguments {
+            curve: self.arg_CURVE,
+            iterations: iterations,
+            animate: self.flag_animate,
+        }
     }
+}
 
-    retargs
+fn parse_args() -> Args {
+    Docopt::new(USAGE)
+        .and_then(|d| d.argv(env::args()).decode())
+        .unwrap_or_else(|e| e.exit())
 }
 
 fn main() {
-    let args = parse_args();
+    let args: Args = parse_args();
 
-    if let Ok(chaosgame) = chaosgame::construct_chaos_game(args.curve_name
-                                                               .as_ref()) {
-        let mut handler =
-            Box::new(pistonrendering::chaosgame::ChaosGameWindowHandler::new(chaosgame));
-        pistonrendering::run(&mut *handler);
-    } else if let Ok(program) = curves::lookup_turtle_program(args.curve_name
-                                                           .as_ref(),
-                                                       args.iterations) {
-        let mut handler = pistonrendering::turtle::construct_turtle_window_handler(&*program,
-                                                                                   args.animate);
-        pistonrendering::run(&mut *handler);
+    if args.flag_version {
+        println!("{}", env!("CARGO_PKG_VERSION").to_string());
+        std::process::exit(0);
+    }
+
+    if let Some(command_data) = fractaldata::get_chaos_data().get(args.arg_CURVE.as_ref() as &str) {
+        let callback = command_data.with_window_handler;
+        callback(&args.into(),
+                 &|handler| {
+                     pistonrendering::run(handler);
+                 });
     } else {
-        panic!("Unknown curve/program");
+        panic!("Unknown fractal: {}. Run `fractal --help` for more information.",
+               args.arg_CURVE);
     }
 }

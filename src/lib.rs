@@ -13,7 +13,6 @@
 // limitations under the License.
 
 //! Library of things to explore and draw various fractal curves.
-extern crate argparse;
 extern crate graphics;
 extern crate piston;
 extern crate piston_window;
@@ -25,6 +24,7 @@ mod macros;
 
 pub mod chaosgame;
 pub mod curves;
+pub mod fractaldata;
 pub mod geometry;
 pub mod lindenmayer;
 pub mod pistonrendering;
