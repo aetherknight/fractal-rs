@@ -19,49 +19,11 @@
 pub mod barnsleyfern;
 pub mod sierpinski;
 
-use std::error::Error;
-use std::fmt;
 use std::sync::Arc;
 use std::sync::mpsc::{Receiver, SyncSender, sync_channel};
 use std::thread;
 
-use self::barnsleyfern::BarnsleyFern;
-use self::sierpinski::SierpinskiChaosGame;
 use super::geometry::Point;
-
-/// Error indicating that the library doesn't know about a specified chaos game.
-#[derive(Debug)]
-pub struct CouldNotfindChaosGameError {
-    requested_chaos_game: String,
-}
-
-impl fmt::Display for CouldNotfindChaosGameError {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f,
-               "Could not find the specified ChaosGame: {}",
-               self.requested_chaos_game)
-    }
-}
-
-impl Error for CouldNotfindChaosGameError {
-    fn description(&self) -> &str {
-        "Could not find the specified ChaosGame"
-    }
-}
-
-/// Look up and return an Arc-allocated chaos game. They are wrapped in an Arc because they might
-/// be used by the thread that implements the ChaosGameMoveIterator.
-pub fn construct_chaos_game(name: &str) -> Result<Arc<ChaosGame>, CouldNotfindChaosGameError> {
-    match name {
-        "sierpinski" => {
-            Ok(Arc::new(SierpinskiChaosGame::new()))
-        },
-        "barnsleyfern" => {
-            Ok(Arc::new(BarnsleyFern::new(&barnsleyfern::REFERENCE_TRANSFORMS, &barnsleyfern::REFERENCE_WEIGHTS)))
-        },
-        _ => Err(CouldNotfindChaosGameError { requested_chaos_game: name.to_string() }),
-    }
-}
 
 /// A ChaosGame implementation with a method that will be run in a separate thread to create a
 /// generator function that yields Points across the channel. The ChaosGame should track whatever
