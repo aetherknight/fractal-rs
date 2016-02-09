@@ -46,6 +46,7 @@ Options:
 
 Curves:
   barnsleyfern          Barnsley Fern.
+  burningship MAX_ITER  Burning ship fractal.
   cesaro ITERATION      Césaro square fractal.
   cesarotri ITERATION   Césaro triangle fractal.
   dragon ITERATION      Dragon curve fractal.

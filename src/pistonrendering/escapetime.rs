@@ -17,7 +17,7 @@ use image as im;
 use num::complex::Complex64;
 use piston_window::*;
 
-use super::super::escapetime::mandelbrot::Mandelbrot;
+use super::super::escapetime::EscapeTime;
 use super::*;
 
 const WHITE_U8: [u8; 4] = [255, 255, 255, 255];
@@ -25,8 +25,8 @@ const BLACK_U8: [u8; 4] = [0, 0, 0, 255];
 
 /// Draws escape time fractals by testing the point that each pixel corresponds to on the complex
 /// plane.
-pub struct EscapeTimeWindowHandler {
-    mandelbrot: Mandelbrot,
+pub struct EscapeTimeWindowHandler<'a> {
+    etsystem: &'a EscapeTime,
     screen_size: Vec2d,
     state: WhichFrame,
     /// Must be a u8 to work with Texture::from_image?
@@ -35,12 +35,12 @@ pub struct EscapeTimeWindowHandler {
     texture: Option<Texture<gfx_device_gl::Resources>>,
 }
 
-impl EscapeTimeWindowHandler {
-    pub fn new(mandelbrot: Mandelbrot) -> EscapeTimeWindowHandler {
+impl<'a> EscapeTimeWindowHandler<'a> {
+    pub fn new(etsystem: &'a EscapeTime) -> EscapeTimeWindowHandler {
         let canvas = Box::new(im::ImageBuffer::new(800, 600));
 
         EscapeTimeWindowHandler {
-            mandelbrot: mandelbrot,
+            etsystem: etsystem,
             screen_size: [800.0, 600.0],
             state: WhichFrame::FirstFrame,
             canvas: canvas,
@@ -65,7 +65,7 @@ impl EscapeTimeWindowHandler {
     }
 }
 
-impl WindowHandler for EscapeTimeWindowHandler {
+impl<'a> WindowHandler for EscapeTimeWindowHandler<'a> {
     fn window_resized(&mut self, new_size: Vec2d) {
         self.state = WhichFrame::FirstFrame;
         self.screen_size = new_size;
@@ -78,7 +78,7 @@ impl WindowHandler for EscapeTimeWindowHandler {
                                                         new_size[1] as u32,
                                                         |x, y| {
                                                             let c = self.pixel_to_complex(x, y);
-                                                            if self.mandelbrot
+                                                            if self.etsystem
                                                                    .test_point(c) {
                                                                 im::Rgba(BLACK_U8)
                                                             } else {

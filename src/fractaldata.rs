@@ -10,6 +10,7 @@ use super::curves::dragon::DragonFractal;
 use super::curves::kochcurve::KochCurve;
 use super::curves::levyccurve::LevyCCurve;
 use super::curves::terdragon::TerdragonFractal;
+use super::escapetime::burningship::BurningShip;
 use super::escapetime::mandelbrot::Mandelbrot;
 use super::lindenmayer::LindenmayerSystemTurtleProgram;
 use super::pistonrendering::WindowHandler;
@@ -64,6 +65,20 @@ static BARNSLEYFERN: FractalData = FractalData {
                                                             &barnsleyfern::REFERENCE_WEIGHTS));
         let mut handler =
             pistonrendering::chaosgame::ChaosGameWindowHandler::new(game, args.drawrate as usize);
+        runner(&mut handler);
+    },
+};
+
+static BURNINGSHIP: FractalData = FractalData {
+    name: "burningship",
+    desc: "Draws the burning ship fractal",
+    args: &["MAX_ITERATIONS"],
+    with_window_handler: &|args, runner| {
+        if args.iterations < 1 {
+            abort!("Must specify a MAX_ITERATIONS of 1 or greater!");
+        }
+        let mandelbrot = BurningShip::new(args.iterations);
+        let mut handler = pistonrendering::escapetime::EscapeTimeWindowHandler::new(&mandelbrot);
         runner(&mut handler);
     },
 };
@@ -137,7 +152,7 @@ static MANDELBROT: FractalData = FractalData {
             abort!("Must specify a MAX_ITERATIONS of 1 or greater!");
         }
         let mandelbrot = Mandelbrot::new(args.iterations);
-        let mut handler = pistonrendering::escapetime::EscapeTimeWindowHandler::new(mandelbrot);
+        let mut handler = pistonrendering::escapetime::EscapeTimeWindowHandler::new(&mandelbrot);
         runner(&mut handler);
     },
 };
@@ -172,6 +187,7 @@ static TERDRAGON: FractalData = FractalData {
 pub fn get_chaos_data() -> HashMap<&'static str, &'static FractalData> {
     let mut data = HashMap::new();
     data.insert("barnsleyfern", &BARNSLEYFERN);
+    data.insert("burningship", &BURNINGSHIP);
     data.insert("cesaro", &CESARO);
     data.insert("cesarotri", &CESAROTRI);
     data.insert("dragon", &DRAGON);

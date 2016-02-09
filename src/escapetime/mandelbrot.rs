@@ -22,37 +22,32 @@
 //! converges. Alternately, if it diverges (trends towards a value of ∞ ), then
 //! a point `c` is not in the Mandelbrot set.
 
-use num::complex::Complex64;
+use super::*;
 
 pub struct Mandelbrot {
-    max_iterations: u64,
+    max_iters: u64,
 }
 
 impl Mandelbrot {
     pub fn new(max_iterations: u64) -> Mandelbrot {
-        Mandelbrot { max_iterations: max_iterations }
+        Mandelbrot { max_iters: max_iterations }
+    }
+}
+
+impl EscapeTime for Mandelbrot {
+    fn max_iterations(&self) -> u64 {
+        self.max_iters
     }
 
-    pub fn iterate(&self, c: Complex64, z: Complex64) -> Complex64 {
+    fn iterate(&self, c: Complex64, z: Complex64) -> Complex64 {
         z * z + c
-    }
-
-    pub fn test_point(&self, point: Complex64) -> bool {
-        let mut zp = Complex64::new(0.0, 0.0);
-        for _ in 0..self.max_iterations {
-            zp = self.iterate(point, zp);
-            if zp.norm() >= 2.0 {
-                return false;
-            }
-        }
-        true
     }
 }
 
 #[cfg(test)]
 mod test {
+    use super::super::*;
     use super::*;
-    use num::complex::Complex64;
 
     #[test]
     fn test_test_point() {
