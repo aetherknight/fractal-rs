@@ -14,12 +14,12 @@
 
 //! Window handlers for drawing points as part of playing a ChaosGame.
 
-use std::sync::Arc;
 use graphics;
 use piston_window::*;
+use std::sync::Arc;
 
 use super::super::chaosgame::{ChaosGame, ChaosGameMoveIterator};
-use super::{BLACK, WHITE, WindowHandler, WhichFrame};
+use super::*;
 use super::super::geometry::Point;
 
 /// Draw a dot at the given point. (0.0,0.0) is the center of the screen, (1.0,1.0) is near the top
@@ -78,23 +78,23 @@ impl ChaosGameWindowHandler {
 }
 
 impl WindowHandler for ChaosGameWindowHandler {
-    fn window_resized(&mut self) {
+    fn window_resized(&mut self, _: Vec2d) {
         self.which_frame = WhichFrame::FirstFrame;
         self.iter = None;
         self.last_moves = Vec::with_capacity(self.dots_per_frame);
     }
 
-    fn render_frame(&mut self, context: graphics::context::Context, gfx: &mut G2d, _: u32) {
+    fn render_frame(&mut self, render_context: &mut RenderContext, _: u32) {
         match self.which_frame {
             WhichFrame::FirstFrame => {
                 // The first frame clears its screen and starts drawing.
-                clear(WHITE, gfx);
+                clear(WHITE, render_context.gfx);
                 self.iter = Some(ChaosGameMoveIterator::new(self.game.clone()));
                 // draw up to dots_per_frame dots, and store them for the next frame to also
                 // draw
                 for _ in 0..self.dots_per_frame {
                     if let Some(next_point) = self.iter.as_mut().unwrap().next() {
-                        draw_dot(context, gfx, next_point);
+                        draw_dot(render_context.context, render_context.gfx, next_point);
                         self.last_moves.push(next_point);
                     }
                 }
@@ -103,15 +103,15 @@ impl WindowHandler for ChaosGameWindowHandler {
             WhichFrame::SecondFrame => {
                 // The second frame is on the second buffer, so it needs to clear the screen,
                 // draw the first frame's dots, and then draw some more dots.
-                clear(WHITE, gfx);
+                clear(WHITE, render_context.gfx);
                 // catch up to the first frame by draining last_moves
                 for oldmove in self.last_moves.drain(..) {
-                    draw_dot(context, gfx, oldmove);
+                    draw_dot(render_context.context, render_context.gfx, oldmove);
                 }
                 // draw up to dots_per_frame dots, and refill last_moves.
                 for _ in 0..self.dots_per_frame {
                     if let Some(next_point) = self.iter.as_mut().unwrap().next() {
-                        draw_dot(context, gfx, next_point);
+                        draw_dot(render_context.context, render_context.gfx, next_point);
                         self.last_moves.push(next_point);
                     }
                 }
@@ -121,11 +121,11 @@ impl WindowHandler for ChaosGameWindowHandler {
                 // All remaining frames need to catch up to the last frame, and then move
                 // forward.
                 for oldmove in self.last_moves.drain(..) {
-                    draw_dot(context, gfx, oldmove);
+                    draw_dot(render_context.context, render_context.gfx, oldmove);
                 }
                 for _ in 0..self.dots_per_frame {
                     if let Some(next_point) = self.iter.as_mut().unwrap().next() {
-                        draw_dot(context, gfx, next_point);
+                        draw_dot(render_context.context, render_context.gfx, next_point);
                         self.last_moves.push(next_point);
                     }
                 }

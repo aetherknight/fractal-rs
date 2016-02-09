@@ -21,8 +21,11 @@ use graphics;
 use graphics::math::Vec2d;
 use piston_window::*;
 
-const WHITE: [f32; 4] = [1.0, 1.0, 1.0, 1.0];
-const BLACK: [f32; 4] = [0.0, 0.0, 0.0, 1.0];
+pub use graphics::math::Vec2d;
+
+pub const WHITE: [f32; 4] = [1.0, 1.0, 1.0, 1.0];
+pub const BLACK: [f32; 4] = [0.0, 0.0, 0.0, 1.0];
+pub const GREY:  [f32; 4] = [0.5, 0.5, 0.5, 1.0];
 
 /// State machine for WindowHandlers that want to animate across the double buffered frames.
 #[derive(Debug,PartialEq)]
@@ -32,15 +35,22 @@ pub enum WhichFrame {
     AllOtherFrames,
 }
 
+/// Information about the viewport and graphical backend needed by WindowHandler::render_frame.
+pub struct RenderContext<'a, 'b: 'a> {
+    /// Graphics context, describing the viewport, base transform, etc.
+    pub context: graphics::context::Context,
+    /// Graphics backend
+    pub gfx: &'a mut G2d<'b>,
+}
+
 /// An object that can render frames of a drawing/animation/program/game.
 pub trait WindowHandler {
     /// When the window is resized, we may need to plan to re-render.
-    fn window_resized(&mut self);
+    fn window_resized(&mut self, new_size: Vec2d);
 
     /// Render a frame.
     fn render_frame(&mut self,
-                    context: graphics::context::Context,
-                    gfx: &mut G2d,
+                    context: &mut RenderContext,
                     frame_num: u32);
 }
 
@@ -62,11 +72,16 @@ pub fn run(window_handler: &mut WindowHandler) {
             if size != old_size {
                 println!("resized");
                 old_size = size;
-                window_handler.window_resized();
+                window_handler.window_resized(size);
             }
             frame_num += 1;
             println!("Render frame {}, window: {:?}", frame_num, size);
-            window_handler.render_frame(context, gfx, frame_num);
+            let mut factory = e.factory.borrow_mut();
+            let mut render_context = RenderContext {
+                context: context,
+                gfx: gfx,
+            };
+            window_handler.render_frame(&mut render_context, frame_num);
         });
         //     // Some(Event::Input(i)) => {
         //     //     match i {
