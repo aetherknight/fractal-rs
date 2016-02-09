@@ -15,10 +15,11 @@
 //! A piston window-based renderer and event loop.
 
 pub mod chaosgame;
+pub mod escapetime;
 pub mod turtle;
 
 use graphics;
-use graphics::math::Vec2d;
+use gfx_device_gl;
 use piston_window::*;
 
 pub use graphics::math::Vec2d;
@@ -41,6 +42,8 @@ pub struct RenderContext<'a, 'b: 'a> {
     pub context: graphics::context::Context,
     /// Graphics backend
     pub gfx: &'a mut G2d<'b>,
+    /// graphics backend factory
+    pub factory: &'a mut gfx_device_gl::Factory,
 }
 
 /// An object that can render frames of a drawing/animation/program/game.
@@ -80,6 +83,7 @@ pub fn run(window_handler: &mut WindowHandler) {
             let mut render_context = RenderContext {
                 context: context,
                 gfx: gfx,
+                factory: &mut *factory,
             };
             window_handler.render_frame(&mut render_context, frame_num);
         });

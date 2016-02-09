@@ -1,4 +1,4 @@
-// Copyright (c) 2015-2016 William (B.J.) Snow Orvis
+// Copyright (c) 2016 William (B.J.) Snow Orvis
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,24 +12,4 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-//! Library of things to explore and draw various fractal curves.
-extern crate graphics;
-extern crate gfx_device_gl;
-extern crate num;
-extern crate piston;
-extern crate piston_window;
-extern crate image;
-extern crate rand;
-
-// must be before any local modules that use the macros
-#[macro_use]
-mod macros;
-
-pub mod chaosgame;
-pub mod curves;
-pub mod escapetime;
-pub mod fractaldata;
-pub mod geometry;
-pub mod lindenmayer;
-pub mod pistonrendering;
-pub mod turtle;
+pub mod mandelbrot;

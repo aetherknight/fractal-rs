@@ -10,9 +10,22 @@ use super::curves::dragon::DragonFractal;
 use super::curves::kochcurve::KochCurve;
 use super::curves::levyccurve::LevyCCurve;
 use super::curves::terdragon::TerdragonFractal;
+use super::escapetime::mandelbrot::Mandelbrot;
 use super::lindenmayer::LindenmayerSystemTurtleProgram;
 use super::pistonrendering::WindowHandler;
 use super::pistonrendering;
+
+/// Print a message to stderr and exit with a non-zero exit code
+macro_rules! abort {
+    ( $($arg:tt)* ) => {
+        {
+            use std::io::{stderr, Write};
+            use std;
+            writeln!(&mut stderr(), $($arg)*).unwrap();
+            std::process::exit(1);
+        }
+    }
+}
 
 pub struct Arguments {
     pub curve: String,
@@ -115,6 +128,20 @@ static LEVYCCURVE: FractalData = FractalData {
     },
 };
 
+static MANDELBROT: FractalData = FractalData {
+    name: "mandelbrot",
+    desc: "Draws the traditional mandelbrot fractal",
+    args: &["MAX_ITERATIONS"],
+    with_window_handler: &|args, runner| {
+        if args.iterations < 1 {
+            abort!("Must specify a MAX_ITERATIONS of 1 or greater!");
+        }
+        let mandelbrot = Mandelbrot::new(args.iterations);
+        let mut handler = pistonrendering::escapetime::EscapeTimeWindowHandler::new(mandelbrot);
+        runner(&mut handler);
+    },
+};
+
 static SIERPINSKI: FractalData = FractalData {
     name: "sierpinski",
     desc: "Draws a Sierpinski triangle using a chaos game. It randomly picks 3 points on the \
@@ -150,6 +177,7 @@ pub fn get_chaos_data() -> HashMap<&'static str, &'static FractalData> {
     data.insert("dragon", &DRAGON);
     data.insert("kochcurve", &KOCHCURVE);
     data.insert("levyccurve", &LEVYCCURVE);
+    data.insert("mandelbrot", &MANDELBROT);
     data.insert("sierpinski", &SIERPINSKI);
     data.insert("terdragon", &TERDRAGON);
     data

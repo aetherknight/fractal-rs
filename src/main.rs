@@ -51,6 +51,7 @@ Curves:
   dragon ITERATION      Dragon curve fractal.
   kochcurve ITERATION   Koch snowflake fractal.
   levyccurve ITERATION  Levy C Curve.
+  mandelbrot MAX_ITER   Mandelbrot fractal.
   sierpinski            Sierpinski triangle
   terdragon ITERATION   Terdragon fractal.
 ";

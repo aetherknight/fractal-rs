@@ -3,6 +3,9 @@ name = "fractal"
 version = "0.0.1"
 dependencies = [
  "docopt 0.6.78 (registry+https://github.com/rust-lang/crates.io-index)",
+ "gfx_device_gl 0.7.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "image 0.6.1 (registry+https://github.com/rust-lang/crates.io-index)",
+ "num 0.1.30 (registry+https://github.com/rust-lang/crates.io-index)",
  "piston 0.17.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "piston2d-graphics 0.13.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "piston_window 0.34.0 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -107,6 +110,14 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 [[package]]
 name = "dlib"
 version = "0.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+dependencies = [
+ "libloading 0.2.1 (registry+https://github.com/rust-lang/crates.io-index)",
+]
+
+[[package]]
+name = "dlib"
+version = "0.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
  "libloading 0.2.1 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -746,7 +757,7 @@ dependencies = [
  "dlib 0.2.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "libc 0.2.6 (registry+https://github.com/rust-lang/crates.io-index)",
  "wayland-scanner 0.5.8 (registry+https://github.com/rust-lang/crates.io-index)",
- "wayland-sys 0.5.8 (registry+https://github.com/rust-lang/crates.io-index)",
+ "wayland-sys 0.5.9 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]
@@ -771,10 +782,10 @@ dependencies = [
 
 [[package]]
 name = "wayland-sys"
-version = "0.5.8"
+version = "0.5.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
- "dlib 0.2.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "dlib 0.3.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "lazy_static 0.1.15 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
