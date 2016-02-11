@@ -126,19 +126,53 @@ pub fn run(window_handler: &mut WindowHandler) {
                         },
                         Key::Minus => {
                             println!("zoom out");
+                            // make the current screen's dimension become 50% the new view
                             let halves = [old_size[0]/2.0,old_size[1]/2.0];
-                            let top_left = [-halves[0],-halves[1]];
-                            let bot_right = [old_size[0]+halves[0], old_size[1]+halves[1]];
+                            let new_top_left = [-halves[0],-halves[1]];
+                            let new_bot_right = [old_size[0]+halves[0], old_size[1]+halves[1]];
 
-                            window_handler.zoom([top_left, bot_right]);
-                        }
+                            window_handler.zoom([new_top_left, new_bot_right]);
+                        },
                         Key::Equals => {
                             println!("zoom in");
+                            // zoom in so that 50% of the current view is the new view
                             let quarters = [old_size[0]/4.0,old_size[1]/4.0];
-                            let top_left = [quarters[0],quarters[1]];
-                            let bot_right = [old_size[0]- quarters[0], old_size[1]-quarters[1]];
-                            window_handler.zoom([top_left, bot_right]);
+                            let new_top_left = [quarters[0],quarters[1]];
+                            let new_bot_right = [old_size[0]-quarters[0], old_size[1]-quarters[1]];
+
+                            window_handler.zoom([new_top_left, new_bot_right]);
+                        },
+                        Key::Up => {
+                            println!("up");
+                            // scroll up by 25%
+                            let move_up = old_size[1] * 0.25;
+                            let new_top_left = [0.0, -move_up];
+                            let new_bot_right = [old_size[0], old_size[1] - move_up];
+
+                            window_handler.zoom([new_top_left, new_bot_right]);
+                        },
+                        Key::Down => {
+                            let move_down = old_size[1] * 0.25;
+                            let new_top_left = [0.0, move_down];
+                            let new_bot_right = [old_size[0], old_size[1] + move_down];
+
+                            window_handler.zoom([new_top_left, new_bot_right]);
                         }
+                        ,
+                        Key::Right => {
+                            let move_right = old_size[0] * 0.25;
+                            let new_top_left = [move_right, 0.0];
+                            let new_bot_right = [old_size[0] + move_right , old_size[1]];
+
+                            window_handler.zoom([new_top_left, new_bot_right]);
+                        },
+                        Key::Left => {
+                            let move_left = old_size[0] * 0.25;
+                            let new_top_left = [-move_left, 0.0];
+                            let new_bot_right = [old_size[0] - move_left , old_size[1]];
+
+                            window_handler.zoom([new_top_left, new_bot_right]);
+                        },
                         _ => {}
                     }
                 },
