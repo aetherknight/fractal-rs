@@ -23,14 +23,28 @@
 //! a point `c` is not in the Mandelbrot set.
 
 use super::*;
+use super::super::geometry;
 
 pub struct Mandelbrot {
     max_iters: u64,
+    power: u64,
 }
 
 impl Mandelbrot {
-    pub fn new(max_iterations: u64) -> Mandelbrot {
-        Mandelbrot { max_iters: max_iterations }
+    /// Creates a specification for a member of the mandelbrot family of fractals.
+    ///
+    /// `max_iterations` specifies the cutoff iteration for deciding whether a complex number
+    /// escapes or has converged.
+    ///
+    /// `power` specifies the exponent used in the mandelbrot equation to generalize it into a
+    /// [Multibrot set](https://en.wikipedia.org/wiki/Multibrot_set). The traditional mandelbrot
+    /// fractal has an exponent of 2, but this allows for the exploration of fractals with an
+    /// exponent of 3, 4, etc.
+    pub fn new(max_iterations: u64, power: u64) -> Mandelbrot {
+        Mandelbrot {
+            max_iters: max_iterations,
+            power: power,
+        }
     }
 }
 
@@ -44,7 +58,7 @@ impl EscapeTime for Mandelbrot {
     }
 
     fn iterate(&self, c: Complex64, z: Complex64) -> Complex64 {
-        z * z + c
+        geometry::cpow(z, self.power) + c
     }
 }
 

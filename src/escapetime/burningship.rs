@@ -23,14 +23,28 @@
 //! added instead of subtracted, which makes the fractal flip upside down.
 
 use super::*;
+use super::super::geometry;
 
 pub struct BurningShip {
     max_iters: u64,
+    power: u64,
 }
 
 impl BurningShip {
-    pub fn new(max_iterations: u64) -> BurningShip {
-        BurningShip { max_iters: max_iterations }
+    /// Creates a new escape time specification for the burning ship family of fractals.
+    ///
+    /// `max_iterations` specifies the cutoff iteration for deciding whether a complex number
+    /// escapes or has converged.
+    ///
+    /// `power` specifies the exponent used in the burning ship equation. The burning ship fractal
+    /// has an exponent of 2, but this allows for an exponent of 3, 4, etc. to explore these
+    /// related fractals. See <https://theory.org/fracdyn/burningship/symmetry.html> for examples
+    /// of what these may look like.
+    pub fn new(max_iterations: u64, power: u64) -> BurningShip {
+        BurningShip {
+            max_iters: max_iterations,
+            power: power,
+        }
     }
 }
 
@@ -46,7 +60,7 @@ impl EscapeTime for BurningShip {
 
     fn iterate(&self, c: Complex64, z: Complex64) -> Complex64 {
         let absz = Complex64::new(z.re.abs(), -z.im.abs());
-        absz * absz + c
+        geometry::cpow(absz, self.power) + c
     }
 }
 

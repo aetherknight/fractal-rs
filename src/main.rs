@@ -32,11 +32,12 @@ Renders fractals in a piston window.
 
 Usage:
   fractal (-h|--help|--version)
-  fractal [options] CURVE [ITERATION]
+  fractal [options] CURVE [ITERATION] [POWER]
 
 Arguments:
   CURVE         Which curve to draw.
-  ITERATION     Parameter needed by some curves.
+  ITERATION     Parameter needed by some fractals.
+  POWER         Optional exponent used by some curves. (default: 2)
 
 Options:
   -h --help       Show this screen.
@@ -45,16 +46,16 @@ Options:
                   drawn per frame. [default: 1]
 
 Curves:
-  barnsleyfern          Barnsley Fern.
-  burningship MAX_ITER  Burning ship fractal.
-  cesaro ITERATION      Césaro square fractal.
-  cesarotri ITERATION   Césaro triangle fractal.
-  dragon ITERATION      Dragon curve fractal.
-  kochcurve ITERATION   Koch snowflake fractal.
-  levyccurve ITERATION  Levy C Curve.
-  mandelbrot MAX_ITER   Mandelbrot fractal.
-  sierpinski            Sierpinski triangle
-  terdragon ITERATION   Terdragon fractal.
+  barnsleyfern                Barnsley Fern (chaos game).
+  burningship MAX_ITER POWER  Burning ship fractal.
+  cesaro ITERATION            Césaro square curve.
+  cesarotri ITERATION         Césaro triangle curve.
+  dragon ITERATION            Dragon curve.
+  kochcurve ITERATION         Koch snowflake curve.
+  levyccurve ITERATION        Levy C Curve.
+  mandelbrot MAX_ITER POWER   Mandelbrot fractal.
+  sierpinski                  Sierpinski triangle (chaos game).
+  terdragon ITERATION         Terdragon fractal.
 ";
 
 #[derive(Debug, RustcDecodable)]
@@ -62,17 +63,20 @@ Curves:
 struct Args {
     flag_version: bool,
     flag_drawrate: u64,
-    arg_ITERATION: Option<u64>,
     arg_CURVE: String,
+    arg_ITERATION: Option<u64>,
+    arg_POWER: Option<u64>,
 }
 
 impl Into<fractaldata::Arguments> for Args {
     fn into(self) -> fractaldata::Arguments {
         let iterations = self.arg_ITERATION.unwrap_or(0);
+        let power = self.arg_POWER.unwrap_or(2);
         fractaldata::Arguments {
             curve: self.arg_CURVE,
-            iterations: iterations,
             drawrate: self.flag_drawrate,
+            iterations: iterations,
+            power: power,
         }
     }
 }

@@ -18,6 +18,8 @@
 use std::f64::consts::PI;
 use std::fmt;
 use num::complex::Complex64;
+use num::complex::Complex;
+use num::traits::Num;
 use graphics::math::Vec2d;
 
 /// Represents a point in a 2-D cartesian coordinate system.
@@ -214,6 +216,21 @@ impl ViewAreaTransformer {
     }
 }
 
+/// Implements pow for complex numbers.
+pub fn cpow(c: Complex64, exponent: u64) -> Complex64 {
+    match exponent {
+        0 => Complex64::new(1.0, 0.0),
+        1 => c,
+        2 => c * c,
+        _ => {
+            let mut accum: Complex64 = c;
+            for _ in 1..exponent {
+                accum = accum * c;
+            }
+            accum
+        }
+    }
+}
 
 #[cfg(test)]
 mod test {
@@ -560,5 +577,25 @@ mod test {
 
         assert_approx_eq!(vat.map_pixel_to_point([0.0, 0.0]).x, -2.0, 0.000000000001);
         assert_approx_eq!(vat.map_pixel_to_point([800.0, 0.0]).x, 1.0, 0.000000000001);
+    }
+
+    #[test]
+    fn test_cpow() {
+        assert_eq!(cpow(Complex64::new(5.5, 0.0), 0), Complex64::new(1.0, 0.0));
+        assert_eq!(cpow(Complex64::new(5.5, 0.0), 1), Complex64::new(5.5, 0.0));
+        assert_eq!(cpow(Complex64::new(5.5, 0.0), 2),
+                   Complex64::new(5.5f64 * 5.5f64, 0.0));
+        assert_eq!(cpow(Complex64::new(5.5, 0.0), 3),
+                   Complex64::new(5.5f64 * 5.5f64 * 5.5f64, 0.0));
+        assert_eq!(cpow(Complex64::new(5.5, 0.0), 4),
+                   Complex64::new(5.5f64 * 5.5f64 * 5.5f64 * 5.5f64, 0.0));
+
+        assert_eq!(cpow(Complex64::new(5.5, 1.0), 0), Complex64::new(1.0, 0.0));
+        assert_eq!(cpow(Complex64::new(5.5, 1.0), 1), Complex64::new(5.5, 1.0));
+        assert_eq!(cpow(Complex64::new(5.5, 1.0), 2),
+                   Complex64::new(5.5 * 5.5 - 1.0 * 1.0, 2.0 * 5.5 * 1.0));
+        assert_eq!(cpow(Complex64::new(5.5, 1.0), 3),
+                   Complex64::new(5.5 * 5.5 * 5.5 - 3.0 * 5.5 * 1.0 * 1.0,
+                                  3.0 * 5.5 * 5.5 * 1.0 - 1.0 * 1.0 * 1.0));
     }
 }

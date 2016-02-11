@@ -32,6 +32,7 @@ pub struct Arguments {
     pub curve: String,
     pub iterations: u64,
     pub drawrate: u64,
+    pub power: u64,
 }
 
 pub struct FractalData {
@@ -72,13 +73,13 @@ static BARNSLEYFERN: FractalData = FractalData {
 static BURNINGSHIP: FractalData = FractalData {
     name: "burningship",
     desc: "Draws the burning ship fractal",
-    args: &["MAX_ITERATIONS"],
+    args: &["MAX_ITERATIONS", "POWER"],
     with_window_handler: &|args, runner| {
         if args.iterations < 1 {
             abort!("Must specify a MAX_ITERATIONS of 1 or greater!");
         }
-        let mandelbrot = BurningShip::new(args.iterations);
-        let mut handler = pistonrendering::escapetime::EscapeTimeWindowHandler::new(&mandelbrot);
+        let burningship = BurningShip::new(args.iterations, args.power);
+        let mut handler = pistonrendering::escapetime::EscapeTimeWindowHandler::new(&burningship);
         runner(&mut handler);
     },
 };
@@ -146,12 +147,12 @@ static LEVYCCURVE: FractalData = FractalData {
 static MANDELBROT: FractalData = FractalData {
     name: "mandelbrot",
     desc: "Draws the traditional mandelbrot fractal",
-    args: &["MAX_ITERATIONS"],
+    args: &["MAX_ITERATIONS", "POWER"],
     with_window_handler: &|args, runner| {
         if args.iterations < 1 {
             abort!("Must specify a MAX_ITERATIONS of 1 or greater!");
         }
-        let mandelbrot = Mandelbrot::new(args.iterations);
+        let mandelbrot = Mandelbrot::new(args.iterations, args.power);
         let mut handler = pistonrendering::escapetime::EscapeTimeWindowHandler::new(&mandelbrot);
         runner(&mut handler);
     },
