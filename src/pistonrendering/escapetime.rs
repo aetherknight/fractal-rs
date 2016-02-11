@@ -18,16 +18,21 @@ use num::complex::Complex64;
 use piston_window::*;
 
 use super::super::escapetime::EscapeTime;
+use super::super::geometry::{Point, ViewAreaTransformer};
 use super::*;
 
 const WHITE_U8: [u8; 4] = [255, 255, 255, 255];
 const BLACK_U8: [u8; 4] = [0, 0, 0, 255];
+
+const INITIAL_VIEW_AREA: [Point; 2] = [Point { x: -2.0, y: 1.0 }, Point { x: 1.0, y: -1.0 }];
 
 /// Draws escape time fractals by testing the point that each pixel corresponds to on the complex
 /// plane.
 pub struct EscapeTimeWindowHandler<'a> {
     etsystem: &'a EscapeTime,
     screen_size: Vec2d,
+    view_area: [Point; 2],
+    vat: ViewAreaTransformer,
     state: WhichFrame,
     /// Must be a u8 to work with Texture::from_image?
     canvas: Box<im::ImageBuffer<im::Rgba<u8>, Vec<u8>>>,
@@ -42,42 +47,36 @@ impl<'a> EscapeTimeWindowHandler<'a> {
         EscapeTimeWindowHandler {
             etsystem: etsystem,
             screen_size: [800.0, 600.0],
+            view_area: INITIAL_VIEW_AREA,
+            vat: ViewAreaTransformer::new([800.0, 600.0],
+                                          INITIAL_VIEW_AREA[0],
+                                          INITIAL_VIEW_AREA[1]),
             state: WhichFrame::FirstFrame,
             canvas: canvas,
             texture: None,
         }
     }
 
-    /// Map a pixel coordinate to a complex coordinate.
-    fn pixel_to_complex(&self, x: u32, y: u32) -> Complex64 {
-        let max_x = self.screen_size[0];
-        let max_y = self.screen_size[1];
-        let min_dim = max_x.min(max_y);
-
-        let scale = 3.0 / min_dim;
-        let shift_x = 2.0 * max_x / min_dim;
-        let shift_y = 1.5 * max_y / min_dim;
-
-        let real = (x as f64) * scale - shift_x;
-        let imag = -((y as f64) * scale - shift_y);
-
-        Complex64::new(real, imag)
-    }
-}
-
-impl<'a> WindowHandler for EscapeTimeWindowHandler<'a> {
-    fn window_resized(&mut self, new_size: Vec2d) {
-        self.state = WhichFrame::FirstFrame;
-        self.screen_size = new_size;
-        println!("pixel 0,0 maps to {}", self.pixel_to_complex(0, 0));
+    /// Recomputes the fractal for the screen. This should usually be called after the
+    /// screen/window is resized, or after a new area is selected for viewing.
+    fn redraw(&mut self) {
+        println!("view area: {:?}", self.view_area);
+        println!("pixel 0,0 maps to {}",
+                 self.vat.map_pixel_to_point([0.0, 0.0]));
         println!("pixel {},{} maps to {}",
-                 new_size[0] as u32,
-                 new_size[1] as u32,
-                 self.pixel_to_complex(new_size[0] as u32, new_size[1] as u32));
-        self.canvas = Box::new(im::ImageBuffer::from_fn(new_size[0] as u32,
-                                                        new_size[1] as u32,
+                 self.screen_size[0] as u32,
+                 self.screen_size[1] as u32,
+                 self.vat.map_pixel_to_point(self.screen_size));
+        self.state = WhichFrame::FirstFrame;
+        self.vat = ViewAreaTransformer::new(self.screen_size, self.view_area[0], self.view_area[1]);
+        self.canvas = Box::new(im::ImageBuffer::from_fn(self.screen_size[0] as u32,
+                                                        self.screen_size[1] as u32,
                                                         |x, y| {
-                                                            let c = self.pixel_to_complex(x, y);
+                                                            let c: Complex64 =
+                                                                self.vat
+                                                                    .map_pixel_to_point([x as f64,
+                                                                                         y as f64])
+                                                                    .into();
                                                             if self.etsystem
                                                                    .test_point(c) {
                                                                 im::Rgba(BLACK_U8)
@@ -86,6 +85,13 @@ impl<'a> WindowHandler for EscapeTimeWindowHandler<'a> {
                                                             }
                                                         }));
         self.texture = None;
+    }
+}
+
+impl<'a> WindowHandler for EscapeTimeWindowHandler<'a> {
+    fn window_resized(&mut self, new_size: Vec2d) {
+        self.screen_size = new_size;
+        self.redraw();
     }
 
     fn render_frame(&mut self, render_context: &mut RenderContext, _: u32) {
@@ -113,5 +119,19 @@ impl<'a> WindowHandler for EscapeTimeWindowHandler<'a> {
             }
             WhichFrame::AllOtherFrames => {}
         }
+    }
+
+    /// Change the view area to the newly selected area, and then redraw.
+    fn zoom(&mut self, rect: [Vec2d; 2]) {
+        let tlp = self.vat.map_pixel_to_point(rect[0]);
+        let brp = self.vat.map_pixel_to_point(rect[1]);
+
+        self.view_area = [tlp, brp];
+        self.redraw();
+    }
+
+    fn reset_view(&mut self) {
+        self.view_area = INITIAL_VIEW_AREA;
+        self.redraw();
     }
 }

@@ -55,10 +55,23 @@ pub trait WindowHandler {
     fn render_frame(&mut self,
                     context: &mut RenderContext,
                     frame_num: u32);
+
+    /// Optional: used to indicate that the user selected an area of the window to zoom in on.
+    fn zoom(&mut self, rect: [ Vec2d; 2]) {
+        println!("Selected: {:?}, {:?}", rect[0], rect[1]);
+    }
+
+    /// Optional: used to indicate that the user wants to revert to the default view.
+    fn reset_view(&mut self) {
+        println!("Reset zoom");
+    }
 }
 
 /// Runs a WindowHandler in a PistonWindow.
 pub fn run(window_handler: &mut WindowHandler) {
+    println!("Use the mouse to select an area to zoom in on");
+    println!("Press backspace to reset the view back to the initial view");
+    println!("Press esc to exit");
 
     let opengl = OpenGL::V3_2;
     let window: PistonWindow = WindowSettings::new("Fractal", [800, 600])
@@ -69,6 +82,10 @@ pub fn run(window_handler: &mut WindowHandler) {
 
     let mut frame_num: u32 = 0;
     let mut old_size: Vec2d = [0.0,0.0];
+
+    let mut mouse_pos: Vec2d = [0.0,0.0];
+    let mut mouse_down_pos = None;
+
     for e in window {
         e.draw_2d(|context, gfx| {
             let size = context.get_view_size();
@@ -78,7 +95,7 @@ pub fn run(window_handler: &mut WindowHandler) {
                 window_handler.window_resized(size);
             }
             frame_num += 1;
-            println!("Render frame {}, window: {:?}", frame_num, size);
+            // println!("Render frame {}, window: {:?}", frame_num, size);
             let mut factory = e.factory.borrow_mut();
             let mut render_context = RenderContext {
                 context: context,
@@ -87,19 +104,46 @@ pub fn run(window_handler: &mut WindowHandler) {
             };
             window_handler.render_frame(&mut render_context, frame_num);
         });
-        //     // Some(Event::Input(i)) => {
-        //     //     match i {
-        //     //         Input::Press(Button::Keyboard(k)) => {
-        //     //             match k {
-        //     //                 Key::Up => {}
-        //     //                 Key::Down => {}
-        //     //                 _ => {}
-        //     //             }
-        //     //         }
-        //     //         _ => {}
-        //     //     }
-        //     // }
-        //     _ => {}
-        // }
-}
+        e.mouse_cursor(|x,y| {
+            // mouse moved
+            mouse_pos = [x,y];
+        });
+        e.press(|button| {
+            match button {
+                Button::Mouse(mbutton) => {
+                    match mbutton {
+                        MouseButton::Left => {
+                            // mouse down
+                            mouse_down_pos = Some(mouse_pos);
+                            println!("Pressed mouse left: {:?}", mouse_down_pos.as_ref().unwrap());
+                        },
+                        _ => {}
+                    }
+                },
+                Button::Keyboard(key) => {
+                    match key {
+                        Key::Backspace => {
+                            // "backspace" key down
+                            window_handler.reset_view();
+                        },
+                        _ => {}
+                    }
+                },
+                _ => {}
+            }
+        });
+        e.release(|button| {
+            // mouse up
+            if button == Button::Mouse(MouseButton::Left) {
+                let p2 = mouse_pos;
+                println!("Released mouse left: {:?}", p2);
+                if let Some(p1) = mouse_down_pos {
+                    let top_left = [p1[0].min(p2[0]), p1[1].min(p2[1])];
+                    let bot_right = [p1[0].max(p2[0]), p1[1].max(p2[1])];
+                    window_handler.zoom([top_left, bot_right]);
+                }
+                mouse_down_pos = None;
+            }
+        });
+    }
 }

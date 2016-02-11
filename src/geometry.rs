@@ -17,6 +17,8 @@
 
 use std::f64::consts::PI;
 use std::fmt;
+use num::complex::Complex64;
+use graphics::math::Vec2d;
 
 /// Represents a point in a 2-D cartesian coordinate system.
 #[derive(Copy, Clone, Debug, PartialEq)]
@@ -40,6 +42,24 @@ impl Point {
             x: self.x + vector.delta_x(),
             y: self.y + vector.delta_y(),
         }
+    }
+}
+
+impl Into<Complex64> for Point {
+    fn into(self) -> Complex64 {
+        Complex64::new(self.x, self.y)
+    }
+}
+
+impl From<Complex64> for Point {
+    fn from(c: Complex64) -> Point {
+        Point { x: c.re, y: c.im }
+    }
+}
+
+impl From<Vec2d> for Point {
+    fn from(p: Vec2d) -> Point {
+        Point { x: p[0], y: p[1] }
     }
 }
 
@@ -108,12 +128,99 @@ impl AffineTransform<Point> for CartesianAffineTransform {
     }
 }
 
+/// Ensures that the cartesian area specified by top_left and bot_right fit into the view_area of
+/// a window/viewport without distortion.
+///
+/// It essentially implements a set of affine transforms from one coordinate space to another.
+/// However, it limits these transforms in a few specialized ways:
+///
+/// * It flips the Y axis. The positive direction for the screen is down and right, but in
+///   graphing the positive direction is usually up and right.
+/// * It ensures that the view area is not stretched or squished, limiting the transforms to
+///   zooming and shifting.
+pub struct ViewAreaTransformer {
+    // view_area_size: Vec2d,
+    top_left: Point,
+    // bot_right: Point,
+    scale: f64,
+    offset_factor_x: f64,
+    offset_factor_y: f64,
+}
+
+impl ViewAreaTransformer {
+    /// Initializes a ViewAreaTranformer using the size of the view area, and two points that
+    /// define a rectangle in the cartesian plane that should be visible in the view area.
+    pub fn new(view_area_size: Vec2d, a: Point, b: Point) -> ViewAreaTransformer {
+        let window_width = view_area_size[0];
+        let window_height = view_area_size[1];
+        let cart_width = (a.x - b.x).abs();
+        let cart_height = (a.y - b.y).abs();
+
+        let scale = Self::compute_scale(window_width, window_height, cart_width, cart_height);
+        let (offset_factor_x, offset_factor_y) = Self::compute_offset_factors(window_width,
+                                                                              window_height,
+                                                                              cart_width,
+                                                                              cart_height,
+                                                                              scale);
+
+        ViewAreaTransformer {
+            // view_area_size: view_area_size,
+            top_left: Point {
+                x: a.x.min(b.x),
+                y: a.y.max(b.y),
+            },
+            // bot_right: Point {
+            //     x: a.x.max(b.x),
+            //     y: a.y.min(b.y),
+            // },
+            scale: scale,
+            offset_factor_x: offset_factor_x,
+            offset_factor_y: offset_factor_y,
+        }
+    }
+
+    fn compute_scale(window_width: f64,
+                     window_height: f64,
+                     cart_width: f64,
+                     cart_height: f64)
+                     -> f64 {
+        if (cart_height / cart_width) > (window_height / window_width) {
+            cart_height / window_height
+        } else {
+            (cart_width / window_width)
+        }
+    }
+
+    fn compute_offset_factors(window_width: f64,
+                              window_height: f64,
+                              cart_width: f64,
+                              cart_height: f64,
+                              scale: f64)
+                              -> (f64, f64) {
+        if (cart_height / cart_width) > (window_height / window_width) {
+            (((window_width * scale - cart_width) / 2.0), 0.0)
+        } else {
+            (0.0, ((window_height * scale - cart_height) / 2.0))
+        }
+    }
+
+    /// Calculates the cartesian point that exists at a given pixel-location on the
+    /// window/viewport.
+    pub fn map_pixel_to_point(&self, screen_coord: Vec2d) -> Point {
+        Point {
+            x: screen_coord[0] * self.scale + self.top_left.x - (self.offset_factor_x),
+            y: -(screen_coord[1] * self.scale) + self.top_left.y + (self.offset_factor_y),
+        }
+    }
+}
 
 
 #[cfg(test)]
 mod test {
     use std::f64::consts::PI;
     use std::f64::consts::SQRT_2;
+    use num::complex::Complex64;
+    use graphics::math::Vec2d;
 
     use super::*;
 
@@ -142,6 +249,20 @@ mod test {
         assert_approx_eq!(Point { x: 4.0, y: 5.0 }.distance_to(Point { x: 1.0, y: 1.0 }),
                           5.0,
                           0.000000001);
+    }
+
+    #[test]
+    fn test_point_from_complex() {
+        let c = Complex64::new(-23.2, 45.9);
+        assert_eq!(Point::from(c).x, -23.2);
+        assert_eq!(Point::from(c).y, 45.9);
+    }
+
+    #[test]
+    fn test_point_from_vec2d() {
+        let vec2d: Vec2d = [123.0, 456.5];
+        assert_eq!(Point::from(vec2d).x, 123.0);
+        assert_eq!(Point::from(vec2d).y, 456.5);
     }
 
     #[test]
@@ -334,5 +455,110 @@ mod test {
                              y: 0.0 + 4.9 * 0.5 - 5.0,
                          },
                          0.0000000001);
+    }
+
+    /// 800x600 -> [(-1,1),(1,-1)], flip y
+    #[test]
+    fn test_view_area_transformer_map_pixel1() {
+        // |--100--|--600--|--100--|
+        //         -1  0   1
+        let screen_size = [800.0, 600.0];
+        let top_left = Point { x: -1.0, y: 1.0 };
+        let bot_right = Point { x: 1.0, y: -1.0 };
+        let vat = ViewAreaTransformer::new(screen_size, top_left, bot_right);
+
+        assert_approx_eq!(vat.map_pixel_to_point([0.0, 0.0]).y, 1.0, 0.0000000000001);
+        assert_approx_eq!(vat.map_pixel_to_point([0.0, 300.0]).y, 0.0, 0.0000000000001);
+        assert_approx_eq!(vat.map_pixel_to_point([0.0, 600.0]).y,
+                          -1.0,
+                          0.0000000000001);
+
+        assert_approx_eq!(vat.map_pixel_to_point([100.0, 0.0]).x, -1.0, 0.000000000001);
+        assert_approx_eq!(vat.map_pixel_to_point([400.0, 0.0]).x, 0.0, 0.000000000001);
+        assert_approx_eq!(vat.map_pixel_to_point([700.0, 0.0]).x, 1.0, 0.000000000001);
+        assert_approx_eq!(vat.map_pixel_to_point([0.0, 0.0]).x,
+                          -1.0 - (1.0 / 3.0),
+                          0.0000000000001);
+        assert_approx_eq!(vat.map_pixel_to_point([800.0, 0.0]).x,
+                          1.0 + (1.0 / 3.0),
+                          0.0000000000001);
+    }
+
+    /// 600x800 -> [(-1,1),(1,-1)], flip y
+    #[test]
+    fn test_view_area_transformer_map_pixel2() {
+        let screen_size = [600.0, 800.0];
+        let top_left = Point { x: -1.0, y: 1.0 };
+        let bot_right = Point { x: 1.0, y: -1.0 };
+        let vat = ViewAreaTransformer::new(screen_size, top_left, bot_right);
+
+        assert_approx_eq!(vat.map_pixel_to_point([0.0, 0.0]).y,
+                          1.0 + (1.0 / 3.0),
+                          0.0000000000001);
+        assert_approx_eq!(vat.map_pixel_to_point([0.0, 100.0]).y, 1.0, 0.0000000000001);
+        assert_approx_eq!(vat.map_pixel_to_point([0.0, 400.0]).y, 0.0, 0.0000000000001);
+        assert_approx_eq!(vat.map_pixel_to_point([0.0, 700.0]).y,
+                          -1.0,
+                          0.0000000000001);
+        assert_approx_eq!(vat.map_pixel_to_point([0.0, 800.0]).y,
+                          -1.0 - (1.0 / 3.0),
+                          0.0000000000001);
+
+        assert_approx_eq!(vat.map_pixel_to_point([0.0, 0.0]).x, -1.0, 0.000000000001);
+        assert_approx_eq!(vat.map_pixel_to_point([300.0, 0.0]).x, 0.0, 0.000000000001);
+        assert_approx_eq!(vat.map_pixel_to_point([600.0, 0.0]).x, 1.0, 0.000000000001);
+    }
+
+    /// 3x4 window, and [(3,12),12,3)]
+    #[test]
+    fn test_view_area_transformer_map_pixel3() {
+        let screen_size = [3.0, 4.0];
+        let top_left = Point { x: 3.0, y: 12.0 };
+        let bot_right = Point { x: 12.0, y: 3.0 };
+        let vat = ViewAreaTransformer::new(screen_size, top_left, bot_right);
+
+        assert_approx_eq!(vat.map_pixel_to_point([0.0, 0.5]).y, 12.0, 0.0000000000001);
+        assert_approx_eq!(vat.map_pixel_to_point([0.0, 3.5]).y, 3.0, 0.0000000000001);
+
+        assert_approx_eq!(vat.map_pixel_to_point([0.0, 0.0]).x, 3.0, 0.000000000001);
+        assert_approx_eq!(vat.map_pixel_to_point([3.0, 0.0]).x, 12.0, 0.000000000001);
+    }
+
+    /// 3x4 window, and [(3,3),12,12)] can handle rectangle that is not top-left and bottom-right
+    #[test]
+    fn test_view_area_transformer_map_pixel4() {
+        let screen_size = [3.0, 4.0];
+        let top_left = Point { x: 3.0, y: 3.0 };
+        let bot_right = Point { x: 12.0, y: 12.0 };
+        let vat = ViewAreaTransformer::new(screen_size, top_left, bot_right);
+
+        assert_approx_eq!(vat.map_pixel_to_point([0.0, 0.5]).y, 12.0, 0.0000000000001);
+        assert_approx_eq!(vat.map_pixel_to_point([0.0, 3.5]).y, 3.0, 0.0000000000001);
+
+        assert_approx_eq!(vat.map_pixel_to_point([0.0, 0.0]).x, 3.0, 0.000000000001);
+        assert_approx_eq!(vat.map_pixel_to_point([3.0, 0.0]).x, 12.0, 0.000000000001);
+    }
+
+    /// 800x600 window, and [(-2,1),1,-1)]
+    #[test]
+    fn test_view_area_transformer_map_pixel5() {
+        // window: 4:3 -> window is narrower
+        // view area: 3:2
+        //
+        let screen_size = [800.0, 600.0];
+        let top_left = Point { x: -2.0, y: 1.0 };
+        let bot_right = Point { x: 1.0, y: -1.0 };
+        let vat = ViewAreaTransformer::new(screen_size, top_left, bot_right);
+
+        // 0,0 maps to
+        assert_approx_eq!(vat.map_pixel_to_point([0.0, 0.0]).y,
+                          1.0 + 1.0 / 8.0,
+                          0.0000000000001);
+        assert_approx_eq!(vat.map_pixel_to_point([0.0, 600.0]).y,
+                          -1.0 - 1.0 / 8.0,
+                          0.0000000000001);
+
+        assert_approx_eq!(vat.map_pixel_to_point([0.0, 0.0]).x, -2.0, 0.000000000001);
+        assert_approx_eq!(vat.map_pixel_to_point([800.0, 0.0]).x, 1.0, 0.000000000001);
     }
 }
