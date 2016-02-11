@@ -24,8 +24,6 @@ use super::*;
 const WHITE_U8: [u8; 4] = [255, 255, 255, 255];
 const BLACK_U8: [u8; 4] = [0, 0, 0, 255];
 
-const INITIAL_VIEW_AREA: [Point; 2] = [Point { x: -2.0, y: 1.0 }, Point { x: 1.0, y: -1.0 }];
-
 /// Draws escape time fractals by testing the point that each pixel corresponds to on the complex
 /// plane.
 pub struct EscapeTimeWindowHandler<'a> {
@@ -43,14 +41,14 @@ pub struct EscapeTimeWindowHandler<'a> {
 impl<'a> EscapeTimeWindowHandler<'a> {
     pub fn new(etsystem: &'a EscapeTime) -> EscapeTimeWindowHandler {
         let canvas = Box::new(im::ImageBuffer::new(800, 600));
+        let view_area_c = etsystem.default_view_area();
+        let view_area = [Point::from(view_area_c[0]), Point::from(view_area_c[1])];
 
         EscapeTimeWindowHandler {
             etsystem: etsystem,
             screen_size: [800.0, 600.0],
-            view_area: INITIAL_VIEW_AREA,
-            vat: ViewAreaTransformer::new([800.0, 600.0],
-                                          INITIAL_VIEW_AREA[0],
-                                          INITIAL_VIEW_AREA[1]),
+            view_area: view_area,
+            vat: ViewAreaTransformer::new([800.0, 600.0], view_area[0], view_area[1]),
             state: WhichFrame::FirstFrame,
             canvas: canvas,
             texture: None,
@@ -60,6 +58,8 @@ impl<'a> EscapeTimeWindowHandler<'a> {
     /// Recomputes the fractal for the screen. This should usually be called after the
     /// screen/window is resized, or after a new area is selected for viewing.
     fn redraw(&mut self) {
+        self.state = WhichFrame::FirstFrame;
+        self.vat = ViewAreaTransformer::new(self.screen_size, self.view_area[0], self.view_area[1]);
         println!("view area: {:?}", self.view_area);
         println!("pixel 0,0 maps to {}",
                  self.vat.map_pixel_to_point([0.0, 0.0]));
@@ -67,8 +67,6 @@ impl<'a> EscapeTimeWindowHandler<'a> {
                  self.screen_size[0] as u32,
                  self.screen_size[1] as u32,
                  self.vat.map_pixel_to_point(self.screen_size));
-        self.state = WhichFrame::FirstFrame;
-        self.vat = ViewAreaTransformer::new(self.screen_size, self.view_area[0], self.view_area[1]);
         self.canvas = Box::new(im::ImageBuffer::from_fn(self.screen_size[0] as u32,
                                                         self.screen_size[1] as u32,
                                                         |x, y| {
@@ -131,7 +129,8 @@ impl<'a> WindowHandler for EscapeTimeWindowHandler<'a> {
     }
 
     fn reset_view(&mut self) {
-        self.view_area = INITIAL_VIEW_AREA;
+        let view_area_c = self.etsystem.default_view_area();
+        self.view_area = [Point::from(view_area_c[0]), Point::from(view_area_c[1])];
         self.redraw();
     }
 }

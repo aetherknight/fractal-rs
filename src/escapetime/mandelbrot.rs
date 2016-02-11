@@ -39,6 +39,10 @@ impl EscapeTime for Mandelbrot {
         self.max_iters
     }
 
+    fn default_view_area(&self) -> [Complex64; 2] {
+        [Complex64::new(-2.0, 1.0), Complex64::new(1.0, -1.0)]
+    }
+
     fn iterate(&self, c: Complex64, z: Complex64) -> Complex64 {
         z * z + c
     }

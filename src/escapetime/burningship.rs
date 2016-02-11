@@ -39,6 +39,11 @@ impl EscapeTime for BurningShip {
         self.max_iters
     }
 
+    fn default_view_area(&self) -> [Complex64; 2] {
+        [Complex64::new(-2.5, 2.0), Complex64::new(1.5, -1.0)]
+    }
+
+
     fn iterate(&self, c: Complex64, z: Complex64) -> Complex64 {
         let absz = Complex64::new(z.re.abs(), -z.im.abs());
         absz * absz + c
