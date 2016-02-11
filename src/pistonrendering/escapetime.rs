@@ -16,11 +16,12 @@ use gfx_device_gl;
 use image as im;
 use num::complex::Complex64;
 use piston_window::*;
+use std::cmp;
 
+use super::*;
+use super::super::color::*;
 use super::super::escapetime::EscapeTime;
 use super::super::geometry::{Point, ViewAreaTransformer};
-use super::super::color::color_range_linear;
-use super::*;
 
 const WHITE_U8: [u8; 4] = [255, 255, 255, 255];
 const BLACK_U8: [u8; 4] = [0, 0, 0, 255];
@@ -70,9 +71,9 @@ impl<'a> EscapeTimeWindowHandler<'a> {
                  self.screen_size[1] as u32,
                  self.vat.map_pixel_to_point(self.screen_size));
 
-        let colors = color_range_linear(&BLACK_U8,
-                                        &WHITE_U8,
-                                        self.etsystem.max_iterations() as usize);
+        let colors = color_range_linear(BLACK_U8,
+                                        WHITE_U8,
+                                        cmp::min(self.etsystem.max_iterations(), 50) as usize);
         self.canvas = Box::new(im::ImageBuffer::from_fn(self.screen_size[0] as u32,
                                                         self.screen_size[1] as u32,
                                                         |x, y| {
@@ -87,7 +88,7 @@ impl<'a> EscapeTimeWindowHandler<'a> {
                                                             if attracted {
                                                                 im::Rgba(AEBLUE_U8)
                                                             } else {
-                                                                im::Rgba(colors[time as usize])
+                                                                im::Rgba(colors[cmp::min(time,50-1) as usize])
                                                             }
                                                         }));
         self.texture = None;

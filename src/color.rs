@@ -13,7 +13,7 @@
 // limitations under the License.
 
 
-/// Generates RGBA color ranges.
+/// Generates a linear range of RGBA colors from a start color to a final color.
 ///
 /// Eg, to create a spectrum from white to black:
 ///
@@ -23,13 +23,13 @@
 /// let black = [0,0,0,255];
 /// let white = [255,255,255,255];
 ///
-/// let range = color_range_linear(&black, &white, 256);
+/// let range = color_range_linear(black, white, 256);
 ///
 /// assert_eq!(range[0], black);
 /// assert_eq!(range[255], white);
 /// assert_eq!(range[10], [10,10,10,255]);
 /// ```
-pub fn color_range_linear(first: &[u8; 4], last: &[u8; 4], count: usize) -> Vec<[u8; 4]> {
+pub fn color_range_linear(first: [u8; 4], last: [u8; 4], count: usize) -> Vec<[u8; 4]> {
     if count < 2 {
         panic!("Count must be 2 or more: {}", count);
     }
@@ -54,27 +54,27 @@ mod test {
     use super::*;
     #[test]
     #[should_panic(expected = "Count must be 2 or more")]
-    fn test_zero() {
+    fn test_linear_zero() {
         let black = [0, 0, 0, 255];
         let white = [255, 255, 255, 255];
-        let range = color_range_linear(&black, &white, 0);
+        let range = color_range_linear(black, white, 0);
         assert!(range.len() == 0);
     }
 
     #[test]
     #[should_panic(expected = "Count must be 2 or more")]
-    fn test_one() {
+    fn test_linear_one() {
         let black = [0, 0, 0, 255];
         let white = [255, 255, 255, 255];
-        let range = color_range_linear(&black, &white, 1);
+        let range = color_range_linear(black, white, 1);
         assert!(range.len() == 1);
     }
 
     #[test]
-    fn test_two() {
+    fn test_linear_two() {
         let black = [0, 0, 0, 255];
         let white = [255, 255, 255, 255];
-        let range = color_range_linear(&black, &white, 2);
+        let range = color_range_linear(black, white, 2);
         assert_eq!(black, range[0]);
         assert_eq!(white, range[1]);
     }
