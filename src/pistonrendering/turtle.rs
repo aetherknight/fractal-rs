@@ -18,9 +18,9 @@ use graphics;
 use piston_window::*;
 use std::fmt;
 
-use geometry::{Point, Vector};
 use super::*;
-use turtle::{Turtle, TurtleProgram, TurtleCollectToNextForwardIterator};
+use super::super::geometry::{Point, Vector};
+use super::super::turtle::{Turtle, TurtleCollectToNextForwardIterator, TurtleProgram};
 
 pub fn construct_turtle_window_handler<'a>(program: &'a TurtleProgram,
                                            animate: u64)

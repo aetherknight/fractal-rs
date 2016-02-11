@@ -14,7 +14,7 @@
 
 //! Implementation of the Barnsley Fern.
 
-use rand::distributions::{IndependentSample, WeightedChoice, Weighted};
+use rand::distributions::{IndependentSample, Weighted, WeightedChoice};
 use rand;
 use std::sync::mpsc::SyncSender;
 

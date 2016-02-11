@@ -155,7 +155,7 @@ mod test {
 
     use super::DragonFractal;
     use super::Turn::{Left, Right};
-    use turtle::{TurtleStep, TurtleProgram};
+    use turtle::{TurtleProgram, TurtleStep};
     use geometry::Point;
 
     #[test]

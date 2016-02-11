@@ -23,7 +23,6 @@ use gfx_device_gl;
 use piston_window::*;
 
 pub use graphics::math::Vec2d;
-
 pub use super::color::*;
 
 /// State machine for WindowHandlers that want to animate across the double buffered frames.
