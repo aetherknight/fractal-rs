@@ -124,8 +124,24 @@ pub fn run(window_handler: &mut WindowHandler) {
                     match key {
                         Key::Backspace => {
                             // "backspace" key down
+                            println!("reset zoom");
                             window_handler.reset_view();
                         },
+                        Key::Minus => {
+                            println!("zoom out");
+                            let halves = [old_size[0]/2.0,old_size[1]/2.0];
+                            let top_left = [-halves[0],-halves[1]];
+                            let bot_right = [old_size[0]+halves[0], old_size[1]+halves[1]];
+
+                            window_handler.zoom([top_left, bot_right]);
+                        }
+                        Key::Equals => {
+                            println!("zoom in");
+                            let quarters = [old_size[0]/4.0,old_size[1]/4.0];
+                            let top_left = [quarters[0],quarters[1]];
+                            let bot_right = [old_size[0]- quarters[0], old_size[1]-quarters[1]];
+                            window_handler.zoom([top_left, bot_right]);
+                        }
                         _ => {}
                     }
                 },
