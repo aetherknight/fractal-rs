@@ -51,10 +51,10 @@ fn draw_dot(context: graphics::context::Context, gfx: &mut G2d, point: Point) {
     let delta = 0.5 / one_unit_to_pixels as f64;
 
     // println!("Drawing {}", point);
-    Rectangle::new(BLACK).draw([point.x - delta, point.y - delta, 2.0 * delta, 2.0 * delta],
-                               default_draw_state(),
-                               transform,
-                               gfx);
+    Rectangle::new(BLACK_F32).draw([point.x - delta, point.y - delta, 2.0 * delta, 2.0 * delta],
+                                   default_draw_state(),
+                                   transform,
+                                   gfx);
 }
 
 pub struct ChaosGameWindowHandler {
@@ -88,7 +88,7 @@ impl WindowHandler for ChaosGameWindowHandler {
         match self.which_frame {
             WhichFrame::FirstFrame => {
                 // The first frame clears its screen and starts drawing.
-                clear(WHITE, render_context.gfx);
+                clear(WHITE_F32, render_context.gfx);
                 self.iter = Some(ChaosGameMoveIterator::new(self.game.clone()));
                 // draw up to dots_per_frame dots, and store them for the next frame to also
                 // draw
@@ -103,7 +103,7 @@ impl WindowHandler for ChaosGameWindowHandler {
             WhichFrame::SecondFrame => {
                 // The second frame is on the second buffer, so it needs to clear the screen,
                 // draw the first frame's dots, and then draw some more dots.
-                clear(WHITE, render_context.gfx);
+                clear(WHITE_F32, render_context.gfx);
                 // catch up to the first frame by draining last_moves
                 for oldmove in self.last_moves.drain(..) {
                     draw_dot(render_context.context, render_context.gfx, oldmove);

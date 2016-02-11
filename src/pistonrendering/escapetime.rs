@@ -19,13 +19,8 @@ use piston_window::*;
 use std::cmp;
 
 use super::*;
-use super::super::color::*;
 use super::super::escapetime::EscapeTime;
 use super::super::geometry::{Point, ViewAreaTransformer};
-
-const WHITE_U8: [u8; 4] = [255, 255, 255, 255];
-const BLACK_U8: [u8; 4] = [0, 0, 0, 255];
-const AEBLUE_U8: [u8; 4] = [0, 0, 48, 255];
 
 /// Draws escape time fractals by testing the point that each pixel corresponds to on the complex
 /// plane.
@@ -109,7 +104,7 @@ impl<'a> WindowHandler for EscapeTimeWindowHandler<'a> {
                                                         &TextureSettings::new())
                                         .unwrap());
 
-                clear(WHITE, render_context.gfx);
+                clear(WHITE_F32, render_context.gfx);
                 image(self.texture.as_ref().unwrap(),
                       render_context.context.transform,
                       render_context.gfx);
@@ -117,7 +112,7 @@ impl<'a> WindowHandler for EscapeTimeWindowHandler<'a> {
                 self.state = WhichFrame::SecondFrame;
             }
             WhichFrame::SecondFrame => {
-                clear(WHITE, render_context.gfx);
+                clear(WHITE_F32, render_context.gfx);
                 image(self.texture.as_ref().unwrap(),
                       render_context.context.transform,
                       render_context.gfx);

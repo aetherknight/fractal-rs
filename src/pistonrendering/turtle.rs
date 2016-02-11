@@ -104,10 +104,10 @@ impl<'a, G> Turtle for PistonTurtle<'a, G> where G: Graphics + 'a
                                 .flip_v()
                                 .trans(0.0, 0.0);
 
-            Line::new(BLACK, 0.5 / linesize).draw([old_pos.x, old_pos.y, new_pos.x, new_pos.y],
-                                                  default_draw_state(),
-                                                  transform,
-                                                  self.gfx);
+            Line::new(BLACK_F32, 0.5 / linesize).draw([old_pos.x, old_pos.y, new_pos.x, new_pos.y],
+                                                      default_draw_state(),
+                                                      transform,
+                                                      self.gfx);
         }
 
         self.state.position = new_pos;
@@ -184,7 +184,7 @@ impl<'a> WindowHandler for DoubleBufferedWindowHandler<'a> {
         let redraw = self.redraw[(frame_num % 2) as usize];
         if redraw {
             println!("Redrawing frame {}", frame_num % 2);
-            clear(WHITE, render_context.gfx);
+            clear(WHITE_F32, render_context.gfx);
 
             let mut state = TurtleState::new();
             let mut turtle = PistonTurtle::new(&mut state,
@@ -268,7 +268,7 @@ impl<'a> WindowHandler for DoubleBufferedAnimatedWindowHandler<'a> {
                 // gfx can only be &mut borrowed by one thing at a time. If we loan it to the
                 // turtle and also use it elsewhere, this would trigger the static analysis.
                 // This could be worked around by placing gfx into a RefCell.
-                clear(WHITE, render_context.gfx);
+                clear(WHITE_F32, render_context.gfx);
                 let mut turtle = PistonTurtle::new(&mut self.turtles[bufnum],
                                                    render_context.context,
                                                    render_context.gfx);
@@ -279,7 +279,7 @@ impl<'a> WindowHandler for DoubleBufferedAnimatedWindowHandler<'a> {
                 self.which_frame = WhichFrame::SecondFrame;
             }
             WhichFrame::SecondFrame => {
-                clear(WHITE, render_context.gfx);
+                clear(WHITE_F32, render_context.gfx);
                 let mut turtle = PistonTurtle::new(&mut self.turtles[bufnum],
                                                    render_context.context,
                                                    render_context.gfx);

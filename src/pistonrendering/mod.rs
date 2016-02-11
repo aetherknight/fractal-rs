@@ -24,9 +24,7 @@ use piston_window::*;
 
 pub use graphics::math::Vec2d;
 
-pub const WHITE: [f32; 4] = [1.0, 1.0, 1.0, 1.0];
-pub const BLACK: [f32; 4] = [0.0, 0.0, 0.0, 1.0];
-pub const GREY:  [f32; 4] = [0.5, 0.5, 0.5, 1.0];
+pub use super::color::*;
 
 /// State machine for WindowHandlers that want to animate across the double buffered frames.
 #[derive(Debug,PartialEq)]

@@ -12,8 +12,24 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+//! Color-related constants and functions.
+
+/// Black for use with `graphics`' functions
+pub const BLACK_F32: [f32; 4] = [0.0, 0.0, 0.0, 1.0];
+/// Grey for use with `graphics`' functions
+pub const GREY_F32: [f32; 4] = [0.5, 0.5, 0.5, 1.0];
+/// White for use with `graphics`' functions
+pub const WHITE_F32: [f32; 4] = [1.0, 1.0, 1.0, 1.0];
+
+/// Dark blue for use with `image`' functions
+pub const AEBLUE_U8: [u8; 4] = [0, 0, 48, 255];
+/// Black for use with `image`' functions
+pub const BLACK_U8: [u8; 4] = [0, 0, 0, 255];
+/// White for use with `image`' functions
+pub const WHITE_U8: [u8; 4] = [255, 255, 255, 255];
 
 /// Generates a linear range of RGBA colors from a start color to a final color.
+///
 ///
 /// Eg, to create a spectrum from white to black:
 ///
@@ -28,6 +44,26 @@
 /// assert_eq!(range[0], black);
 /// assert_eq!(range[255], white);
 /// assert_eq!(range[10], [10,10,10,255]);
+/// ```
+///
+/// If you want to simulate a cutoff/saturation point where the gradients reach the peak color
+/// before some maximium index value, then you can use `std::cmp::min` to prevent an out of bounds
+/// error:
+///
+/// ```
+/// use fractal::color::color_range_linear;
+/// use std::cmp::min;
+///
+/// let black = [0,0,0,255];
+/// let white = [255,255,255,255];
+/// let gradient_count = 128;
+/// let range = color_range_linear(black, white, gradient_count);
+///
+/// assert_eq!(range[min(gradient_count-1, 0)], black);
+/// assert_eq!(range[min(gradient_count-1, gradient_count-1)], white);
+/// assert_eq!(range[min(gradient_count-1, 255)], white);
+/// assert_eq!(range[min(gradient_count-1, 127)], white);
+/// assert_eq!(range[min(gradient_count-1, 10)], [20,20,20,255]);
 /// ```
 pub fn color_range_linear(first: [u8; 4], last: [u8; 4], count: usize) -> Vec<[u8; 4]> {
     if count < 2 {
