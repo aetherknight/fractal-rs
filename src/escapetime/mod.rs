@@ -41,7 +41,7 @@ pub trait EscapeTime {
         let mut zp = Complex64::new(0.0, 0.0);
         for i in 0..self.max_iterations() {
             zp = self.iterate(point, zp);
-            if zp.norm() >= 2.0 {
+            if zp.norm() >= 3.0 {
                 return (false, i);
             }
         }
