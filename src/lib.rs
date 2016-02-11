@@ -26,6 +26,7 @@ extern crate rand;
 mod macros;
 
 pub mod chaosgame;
+pub mod color;
 pub mod curves;
 pub mod escapetime;
 pub mod fractaldata;

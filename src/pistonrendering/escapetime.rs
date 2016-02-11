@@ -19,10 +19,12 @@ use piston_window::*;
 
 use super::super::escapetime::EscapeTime;
 use super::super::geometry::{Point, ViewAreaTransformer};
+use super::super::color::color_range_linear;
 use super::*;
 
 const WHITE_U8: [u8; 4] = [255, 255, 255, 255];
 const BLACK_U8: [u8; 4] = [0, 0, 0, 255];
+const AEBLUE_U8: [u8; 4] = [0, 0, 48, 255];
 
 /// Draws escape time fractals by testing the point that each pixel corresponds to on the complex
 /// plane.
@@ -67,6 +69,10 @@ impl<'a> EscapeTimeWindowHandler<'a> {
                  self.screen_size[0] as u32,
                  self.screen_size[1] as u32,
                  self.vat.map_pixel_to_point(self.screen_size));
+
+        let colors = color_range_linear(&BLACK_U8,
+                                        &WHITE_U8,
+                                        self.etsystem.max_iterations() as usize);
         self.canvas = Box::new(im::ImageBuffer::from_fn(self.screen_size[0] as u32,
                                                         self.screen_size[1] as u32,
                                                         |x, y| {
@@ -75,11 +81,13 @@ impl<'a> EscapeTimeWindowHandler<'a> {
                                                                     .map_pixel_to_point([x as f64,
                                                                                          y as f64])
                                                                     .into();
-                                                            if self.etsystem
-                                                                   .test_point(c) {
-                                                                im::Rgba(BLACK_U8)
+                                                            let (attracted, time) =
+                                                                self.etsystem
+                                                                    .test_point(c);
+                                                            if attracted {
+                                                                im::Rgba(AEBLUE_U8)
                                                             } else {
-                                                                im::Rgba(WHITE_U8)
+                                                                im::Rgba(colors[time as usize])
                                                             }
                                                         }));
         self.texture = None;

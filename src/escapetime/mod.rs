@@ -37,14 +37,14 @@ pub trait EscapeTime {
     /// sets would have to reimplement this).
     ///
     /// The default implementation uses EscapeTime::max_iterations() and EscapeTime::iterate().
-    fn test_point(&self, point: Complex64) -> bool {
+    fn test_point(&self, point: Complex64) -> (bool, u64) {
         let mut zp = Complex64::new(0.0, 0.0);
-        for _ in 0..self.max_iterations() {
+        for i in 0..self.max_iterations() {
             zp = self.iterate(point, zp);
             if zp.norm() >= 2.0 {
-                return false;
+                return (false, i);
             }
         }
-        true
+        (true, 0)
     }
 }
