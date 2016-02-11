@@ -12,34 +12,44 @@ Features include:
 * Curves supported:
     * [Cesàro square fractal (torn
       fractal)](http://mathworld.wolfram.com/CesaroFractal.html)
-    * Cesàro triangle fractal
+    * Cesàro triangle fractal (with angles calculated to prevent overlapping
+      line segments)
     * [Dragon curve](https://en.wikipedia.org/wiki/Dragon_curve)
     * [Koch snowflake](https://en.wikipedia.org/wiki/Koch_snowflake)
     * [Lévy C curve](https://en.wikipedia.org/wiki/L%C3%A9vy_C_curve)
     * Terdragon fractal
+* Chaos game images supported:
+    * [Barnsley fern](https://en.wikipedia.org/wiki/Barnsley_fern)
+    * [Sierpinski triangle](https://en.wikipedia.org/wiki/Sierpinski_triangle)
+* Escape time fractals, with support for shading/color, and zooming in and out.
+  Supported families of escape time fractals include:
+    * [Mandelbrot set](https://en.wikipedia.org/wiki/Mandelbrot_set) with
+      generalized support for some
+      [multibrot sets](https://en.wikipedia.org/wiki/Multibrot_set)
+    * [Burning ship fractal](https://en.wikipedia.org/wiki/Burning_Ship_fractal)
+      with generalized support for some [related power
+      sets](https://theory.org/fracdyn/burningship/symmetry.html)
 
 Some future ideas (in no particular order):
 
 * Option to automatically profile and adjust how much can be animated per-frame
-  based on system performance.
+  based on system performance for curves and chaos games.
 * Display information about the current fractal.
 * Greater interactivity, maybe a UI for choosing and configuring which fractal
   to display, or arrow keys to increment/decrement the iteration number.
-* Color for various curves
+* Customizable color for some curves
 * Ability to export images or animations
-* Dynamically specify a curve's parameters through configuration instead of
-  compiling them in. Alternately, make it easy to write a rust module for a
-  curve and add it to the application loop.
-* More [Iterated Function
-  Systems](https://en.wikipedia.org/wiki/Iterated_function_system), such as
-  those drawn using the chaos game, or that can be draw with shapes
-* Other kinds of fractals like Mandelbrot sets, Julia sets, Burning ship
-  fractal, etc.
+* Dynamically specify more parameters through configuration instead of
+  compiling them in, or support some sort of configuration format for
+  specifying parameters.
+* Other kinds of fractals like Julia/Fatou sets, etc.
 * Explore using threading and channels to construct a generic iterator of turtle
   program steps (simulating coroutines). This might allow for more programming
   styles within a TurtleProgram instead of having to create custom iterators
   for each TurtleProgram implementation that have to track state/program
   counter for the program. It would also be a great exercise in multi-threading.
+* Explore using a multi-threaded approach to render escape time fractals, which
+  are highly parallelizable, and could also show the results in real time.
 
 
 ## Usage
