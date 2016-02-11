@@ -69,7 +69,7 @@ mod test {
 
     #[test]
     fn test_test_point() {
-        let mb = Mandelbrot::new(100);
+        let mb = Mandelbrot::new(100, 2);
         assert!(mb.test_point(Complex64::new(0.0, 0.0)).0);
         assert!(mb.test_point(Complex64::new(-1.0, 0.0)).0);
         assert!(!mb.test_point(Complex64::new(1.0, 0.0)).0);
