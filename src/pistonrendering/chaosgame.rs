@@ -58,7 +58,7 @@ fn draw_dot(context: graphics::context::Context, gfx: &mut G2d, point: Point) {
 }
 
 pub struct ChaosGameWindowHandler {
-    game: Arc<ChaosGame>,
+    game: Arc<ChaosGame + Send + Sync>,
     which_frame: WhichFrame,
     iter: Option<ChaosGameMoveIterator>,
     dots_per_frame: usize,
@@ -66,7 +66,9 @@ pub struct ChaosGameWindowHandler {
 }
 
 impl ChaosGameWindowHandler {
-    pub fn new(game: Arc<ChaosGame>, dots_per_frame: usize) -> ChaosGameWindowHandler {
+    pub fn new(game: Arc<ChaosGame + Send + Sync>,
+               dots_per_frame: usize)
+               -> ChaosGameWindowHandler {
         ChaosGameWindowHandler {
             game: game,
             which_frame: WhichFrame::FirstFrame,
