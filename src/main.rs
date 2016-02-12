@@ -44,8 +44,10 @@ Options:
   --version       Show version.
   --drawrate=<r>  The number of lines or dots of the fractal that should be
                   drawn per frame. [default: 1]
+  --threads=<t>   The number of worker threads, for modes that support it.
+                  [default: 1]
 
-Curves:
+Fractals:
   barnsleyfern                Barnsley Fern (chaos game).
   burningship MAX_ITER POWER  Burning ship fractal.
   cesaro ITERATION            Césaro square curve.
@@ -63,6 +65,7 @@ Curves:
 struct Args {
     flag_version: bool,
     flag_drawrate: u64,
+    flag_threads: u32,
     arg_CURVE: String,
     arg_ITERATION: Option<u64>,
     arg_POWER: Option<u64>,
@@ -77,6 +80,7 @@ impl Into<fractaldata::Arguments> for Args {
             drawrate: self.flag_drawrate,
             iterations: iterations,
             power: power,
+            threadcount: self.flag_threads,
         }
     }
 }

@@ -52,6 +52,7 @@ pub struct Arguments {
     pub iterations: u64,
     pub drawrate: u64,
     pub power: u64,
+    pub threadcount: u32,
 }
 
 pub struct FractalData {
@@ -97,8 +98,10 @@ static BURNINGSHIP: FractalData = FractalData {
         if args.iterations < 1 {
             abort!("Must specify a MAX_ITERATIONS of 1 or greater!");
         }
-        let burningship = BurningShip::new(args.iterations, args.power);
-        let mut handler = pistonrendering::escapetime::EscapeTimeWindowHandler::new(&burningship);
+        let burningship = Arc::new(BurningShip::new(args.iterations, args.power));
+        let mut handler =
+            pistonrendering::escapetime::EscapeTimeWindowHandler::new(burningship,
+                                                                      args.threadcount);
         runner(&mut handler);
     },
 };
@@ -171,8 +174,9 @@ static MANDELBROT: FractalData = FractalData {
         if args.iterations < 1 {
             abort!("Must specify a MAX_ITERATIONS of 1 or greater!");
         }
-        let mandelbrot = Mandelbrot::new(args.iterations, args.power);
-        let mut handler = pistonrendering::escapetime::EscapeTimeWindowHandler::new(&mandelbrot);
+        let mandelbrot = Arc::new(Mandelbrot::new(args.iterations, args.power));
+        let mut handler =
+            pistonrendering::escapetime::EscapeTimeWindowHandler::new(mandelbrot, args.threadcount);
         runner(&mut handler);
     },
 };

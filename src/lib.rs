@@ -20,6 +20,7 @@ extern crate piston;
 extern crate piston_window;
 extern crate image;
 extern crate rand;
+extern crate time;
 
 // must be before any local modules that use the macros
 #[macro_use]
