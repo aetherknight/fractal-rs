@@ -35,3 +35,4 @@ pub mod geometry;
 pub mod lindenmayer;
 pub mod pistonrendering;
 pub mod turtle;
+pub mod work_multiplexer;
