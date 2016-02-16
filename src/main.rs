@@ -48,16 +48,18 @@ Options:
                   [default: 1]
 
 Fractals:
-  barnsleyfern                Barnsley Fern (chaos game).
-  burningship MAX_ITER POWER  Burning ship fractal.
-  cesaro ITERATION            Césaro square curve.
-  cesarotri ITERATION         Césaro triangle curve.
-  dragon ITERATION            Dragon curve.
-  kochcurve ITERATION         Koch snowflake curve.
-  levyccurve ITERATION        Levy C Curve.
-  mandelbrot MAX_ITER POWER   Mandelbrot fractal.
-  sierpinski                  Sierpinski triangle (chaos game).
-  terdragon ITERATION         Terdragon fractal.
+  barnsleyfern                  Barnsley Fern (chaos game).
+  burningship MAX_ITER POWER    Burning ship fractal.
+  burningmandel MAX_ITER POWER  Variation of the burning ship fractal.
+  cesaro ITERATION              Césaro square curve.
+  cesarotri ITERATION           Césaro triangle curve.
+  dragon ITERATION              Dragon curve.
+  kochcurve ITERATION           Koch snowflake curve.
+  levyccurve ITERATION          Levy C Curve.
+  mandelbrot MAX_ITER POWER     Mandelbrot fractal.
+  roadrunner MAX_ITER POWER     Variation of the burning ship fractal.
+  sierpinski                    Sierpinski triangle (chaos game).
+  terdragon ITERATION           Terdragon fractal.
 ";
 
 #[derive(Debug, RustcDecodable)]

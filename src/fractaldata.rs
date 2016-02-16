@@ -29,7 +29,7 @@ use super::curves::dragon::DragonFractal;
 use super::curves::kochcurve::KochCurve;
 use super::curves::levyccurve::LevyCCurve;
 use super::curves::terdragon::TerdragonFractal;
-use super::escapetime::burningship::BurningShip;
+use super::escapetime::burningship::*;
 use super::escapetime::mandelbrot::Mandelbrot;
 use super::lindenmayer::LindenmayerSystemTurtleProgram;
 use super::pistonrendering::WindowHandler;
@@ -99,6 +99,22 @@ static BURNINGSHIP: FractalData = FractalData {
             abort!("Must specify a MAX_ITERATIONS of 1 or greater!");
         }
         let burningship = Arc::new(BurningShip::new(args.iterations, args.power));
+        let mut handler =
+            pistonrendering::escapetime::EscapeTimeWindowHandler::new(burningship,
+                                                                      args.threadcount);
+        runner(&mut handler);
+    },
+};
+
+static BURNINGMANDEL: FractalData = FractalData {
+    name: "burningmandel",
+    desc: "Draws a variation of the burning ship fractal",
+    args: &["MAX_ITERATIONS", "POWER"],
+    with_window_handler: &|args, runner| {
+        if args.iterations < 1 {
+            abort!("Must specify a MAX_ITERATIONS of 1 or greater!");
+        }
+        let burningship = Arc::new(BurningMandel::new(args.iterations, args.power));
         let mut handler =
             pistonrendering::escapetime::EscapeTimeWindowHandler::new(burningship,
                                                                       args.threadcount);
@@ -181,6 +197,22 @@ static MANDELBROT: FractalData = FractalData {
     },
 };
 
+static ROADRUNNER: FractalData = FractalData {
+    name: "roadrunner",
+    desc: "Draws a variation of the burning ship fractal",
+    args: &["MAX_ITERATIONS", "POWER"],
+    with_window_handler: &|args, runner| {
+        if args.iterations < 1 {
+            abort!("Must specify a MAX_ITERATIONS of 1 or greater!");
+        }
+        let burningship = Arc::new(RoadRunner::new(args.iterations, args.power));
+        let mut handler =
+            pistonrendering::escapetime::EscapeTimeWindowHandler::new(burningship,
+                                                                      args.threadcount);
+        runner(&mut handler);
+    },
+};
+
 static SIERPINSKI: FractalData = FractalData {
     name: "sierpinski",
     desc: "Draws a Sierpinski triangle using a chaos game. It randomly picks 3 points on the \
@@ -211,6 +243,7 @@ static TERDRAGON: FractalData = FractalData {
 pub fn get_chaos_data() -> HashMap<&'static str, &'static FractalData> {
     let mut data = HashMap::new();
     data.insert("barnsleyfern", &BARNSLEYFERN);
+    data.insert("burningmandel", &BURNINGMANDEL);
     data.insert("burningship", &BURNINGSHIP);
     data.insert("cesaro", &CESARO);
     data.insert("cesarotri", &CESAROTRI);
@@ -218,6 +251,7 @@ pub fn get_chaos_data() -> HashMap<&'static str, &'static FractalData> {
     data.insert("kochcurve", &KOCHCURVE);
     data.insert("levyccurve", &LEVYCCURVE);
     data.insert("mandelbrot", &MANDELBROT);
+    data.insert("roadrunner", &ROADRUNNER);
     data.insert("sierpinski", &SIERPINSKI);
     data.insert("terdragon", &TERDRAGON);
     data
