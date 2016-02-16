@@ -14,7 +14,7 @@
 
 //! The burning ship fractal is an iterated function system similar to
 //! Mandelbrot, but it is over the complex number function:
-//! ```
+//! ```text
 //! f(z) = (abs(Re(z)) - i*abs(Im(z)))^2 + c
 //! ```
 //! It differs from the Mandelbrot equation in that the real and imaginary
@@ -73,13 +73,13 @@ impl EscapeTime for BurningShip {
 /// I made the name up, since I could not find a name online for this
 /// variation. Where the BurningShip is defined as:
 ///
-/// ```
+/// ```text
 /// f(z) = (abs(Re(z)) - i*abs(Im(z)))^2 + c
 /// ```
 ///
 /// This fractal is defined as:
 ///
-/// ```
+/// ```text
 /// f(z) = (abs(Re(z)) - i*Im(z))^2 + c
 /// ```
 ///
@@ -128,13 +128,13 @@ impl EscapeTime for BurningMandel {
 /// I made the name up, since I could not find a name online for this
 /// variation. Where the BurningShip is defined as:
 ///
-/// ```
+/// ```text
 /// f(z) = (abs(Re(z)) - i*abs(Im(z)))^2 + c
 /// ```
 ///
 /// This fractal is defined as:
 ///
-/// ```
+/// ```text
 /// f(z) = (Re(z) - i*abs(Im(z)))^2 + c
 /// ```
 ///
