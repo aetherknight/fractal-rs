@@ -51,7 +51,7 @@ fn draw_dot(context: graphics::context::Context, gfx: &mut G2d, point: Point) {
 
     // println!("Drawing {}", point);
     Rectangle::new(BLACK_F32).draw([point.x - delta, point.y - delta, 2.0 * delta, 2.0 * delta],
-                                   default_draw_state(),
+                                   &graphics::draw_state::DrawState::default(),
                                    transform,
                                    gfx);
 }

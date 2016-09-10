@@ -13,9 +13,6 @@
 // limitations under the License.
 
 extern crate docopt;
-extern crate graphics;
-extern crate piston;
-extern crate piston_window;
 extern crate rustc_serialize;
 
 extern crate fractal;

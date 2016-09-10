@@ -19,7 +19,6 @@ pub mod escapetime;
 pub mod turtle;
 
 use graphics;
-use gfx_device_gl;
 use piston_window::*;
 
 pub use graphics::math::Vec2d;
@@ -39,19 +38,24 @@ pub struct RenderContext<'a, 'b: 'a> {
     pub context: graphics::context::Context,
     /// Graphics backend
     pub gfx: &'a mut G2d<'b>,
-    /// graphics backend factory
-    pub factory: &'a mut gfx_device_gl::Factory,
+    // We can't include the gfx Factory here because it would cause the pison window to be borrowed
+    // twice (since Piston changed draw_2d from being on the event to being on the window object,
+    // and the lambda passed to draw_2d is where the RenderContext is constructed)
 }
 
 /// An object that can render frames of a drawing/animation/program/game.
 pub trait WindowHandler {
+    /// Optional: Allows the handler to borrow the window before the main event loop starts.
+    ///
+    /// It could use the window to gain access to the GFX factory to initialize a Texture, for
+    /// example.
+    fn initialize_with_window(&mut self, _: &mut PistonWindow) {}
+
     /// When the window is resized, we may need to plan to re-render.
     fn window_resized(&mut self, new_size: Vec2d);
 
     /// Render a frame.
-    fn render_frame(&mut self,
-                    context: &mut RenderContext,
-                    frame_num: u32);
+    fn render_frame(&mut self, context: &mut RenderContext, frame_num: u32);
 
     /// Optional: used to indicate that the user selected an area of the window to zoom in on.
     fn zoom(&mut self, rect: [ Vec2d; 2]) {
@@ -71,7 +75,7 @@ pub fn run(window_handler: &mut WindowHandler) {
     println!("Press esc to exit");
 
     let opengl = OpenGL::V3_2;
-    let window: PistonWindow = WindowSettings::new("Fractal", [800, 600])
+    let mut window: PistonWindow = WindowSettings::new("Fractal", [800, 600])
         .opengl(opengl)
         .exit_on_esc(true)
         .build()
@@ -83,8 +87,10 @@ pub fn run(window_handler: &mut WindowHandler) {
     let mut mouse_pos: Vec2d = [0.0,0.0];
     let mut mouse_down_pos = None;
 
-    for e in window {
-        e.draw_2d(|context, gfx| {
+    window_handler.initialize_with_window(&mut window);
+
+    while let Some(e) = window.next() {
+        window.draw_2d(&e, |context, gfx| {
             let size = context.get_view_size();
             if size != old_size {
                 println!("resized");
@@ -93,11 +99,9 @@ pub fn run(window_handler: &mut WindowHandler) {
             }
             frame_num += 1;
             // println!("Render frame {}, window: {:?}", frame_num, size);
-            let mut factory = e.factory.borrow_mut();
             let mut render_context = RenderContext {
                 context: context,
                 gfx: gfx,
-                factory: &mut *factory,
             };
             window_handler.render_frame(&mut render_context, frame_num);
         });

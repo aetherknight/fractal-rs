@@ -33,7 +33,6 @@ pub struct EscapeTimeWindowHandler {
     screen_size: Vec2d,
     view_area: [Point; 2],
     vat: Arc<ViewAreaTransformer>,
-    state: WhichFrame,
     /// Must be a u8 to work with Texture::from_image?
     canvas: Arc<RwLock<ImageBuffer>>,
     threads: Option<ThreadedWorkMultiplexerHandles>,
@@ -55,7 +54,6 @@ impl EscapeTimeWindowHandler {
             screen_size: [800.0, 600.0],
             view_area: view_area,
             vat: Arc::new(ViewAreaTransformer::new([800.0, 600.0], view_area[0], view_area[1])),
-            state: WhichFrame::FirstFrame,
             canvas: canvas,
             threads: None,
             texture: None,
@@ -66,7 +64,6 @@ impl EscapeTimeWindowHandler {
     /// after the screen/window is resized, or after a new area is selected for
     /// viewing.
     fn redraw(&mut self) {
-        self.state = WhichFrame::FirstFrame;
         self.vat = Arc::new(ViewAreaTransformer::new(self.screen_size,
                                                      self.view_area[0],
                                                      self.view_area[1]));
@@ -97,7 +94,9 @@ impl EscapeTimeWindowHandler {
                 .base_name("escapetime_render")
                 .split_work(move |thread_id, total_threads, notifier, name| {
                     // Each thread will process x values, sharded by the number of
-                    // threads no `step_by` in stable yet.
+                    // threads.
+                    //
+                    // no `step_by` in stable yet.
                     let sequence = ((tl[0] as u32)..(br[0] as u32))
                         .into_iter()
                         .enumerate()
@@ -137,53 +136,35 @@ impl EscapeTimeWindowHandler {
                 });
             self.threads = Some(work_muxer);
         }
-
-        self.texture = None;
     }
 }
 
 impl WindowHandler for EscapeTimeWindowHandler {
+    fn initialize_with_window(&mut self, window: &mut PistonWindow) {
+        let canvas = self.canvas.read().unwrap();
+        self.texture =
+            Some(Texture::from_image(&mut window.factory, &*canvas, &TextureSettings::new())
+                .unwrap());
+    }
+
     fn window_resized(&mut self, new_size: Vec2d) {
         self.screen_size = new_size;
         self.redraw();
     }
 
     fn render_frame(&mut self, render_context: &mut RenderContext, _: u32) {
-        match self.state {
-            WhichFrame::FirstFrame => {
-                {
-                    let canvas = self.canvas.read().unwrap();
-                    self.texture = Some(Texture::from_image(render_context.factory,
-                                                            &*canvas,
-                                                            &TextureSettings::new())
-                        .unwrap());
-                }
-
-                clear(WHITE_F32, render_context.gfx);
-                image(self.texture.as_ref().unwrap(),
-                      render_context.context.transform,
-                      render_context.gfx);
-
-                self.state = WhichFrame::AllOtherFrames;
-            }
-            WhichFrame::SecondFrame => {}
-            WhichFrame::AllOtherFrames => {
-                let mut texture = self.texture.as_mut().unwrap();
-                {
-                    let canvas = self.canvas.read().unwrap();
-                    if let Err(e) = texture.update(render_context.factory, &*canvas) {
-                        println!("texture update error: {:?}", e);
-                    }
-                }
-
-                clear(WHITE_F32, render_context.gfx);
-                image(texture,
-                      render_context.context.transform,
-                      render_context.gfx);
-
-                self.state = WhichFrame::AllOtherFrames;
+        let mut texture = self.texture.as_mut().unwrap();
+        {
+            let canvas = self.canvas.read().unwrap();
+            if let Err(e) = texture.update(&mut render_context.gfx.encoder, &*canvas) {
+                println!("texture update error: {:?}", e);
             }
         }
+
+        clear(WHITE_F32, render_context.gfx);
+        image(texture,
+              render_context.context.transform,
+              render_context.gfx);
     }
 
     /// Change the view area to the newly selected area, and then redraw.

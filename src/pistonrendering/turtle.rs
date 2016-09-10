@@ -108,7 +108,7 @@ impl<'a, G> Turtle for PistonTurtle<'a, G>
                 .trans(0.0, 0.0);
 
             Line::new(BLACK_F32, 0.5 / linesize).draw([old_pos.x, old_pos.y, new_pos.x, new_pos.y],
-                                                      default_draw_state(),
+                                                      &graphics::draw_state::DrawState::default(),
                                                       transform,
                                                       self.gfx);
         }
