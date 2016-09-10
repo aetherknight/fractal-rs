@@ -61,9 +61,10 @@ fn measure_time<T, F>(block: F) -> (time::Duration, T)
     (finish_time - start_time, res)
 }
 
-/// Object that can be used by a thread to determine if it should stop processing early. the
-/// ThreadedWorkMultiplexerHandles object that is associated with the thread can signal the worker
-/// threads to stop, but the worker threads have to check for themselves.
+/// Object that can be used by a thread to determine if it should stop
+/// processing early. the ThreadedWorkMultiplexerHandles object that is
+/// associated with the thread can signal the worker threads to stop, but the
+/// worker threads have to check for themselves.
 pub struct ThreadNotifier {
     receiver: Receiver<()>,
 }
@@ -131,9 +132,10 @@ impl ThreadedWorkMultiplexerBuilder {
 
 /// Tracks the running threads and allows the owner to control those threads.
 ///
-/// If this object is dropped or goes out of scope, then it will try to stop the worker threads ---
-/// this is desired behavior if the handles are replaced by new worker threads. In order to wait
-/// for them to finish first, use ThreadedWorkMultiplexerHandles::wait().
+/// If this object is dropped or goes out of scope, then it will try to stop
+/// the worker threads --- this is desired behavior if the handles are replaced
+/// by new worker threads. In order to wait for them to finish first, use
+/// ThreadedWorkMultiplexerHandles::wait().
 pub struct ThreadedWorkMultiplexerHandles {
     thread_sync: Vec<Option<(Sender<()>, thread::JoinHandle<()>)>>,
 }
@@ -158,7 +160,8 @@ impl ThreadedWorkMultiplexerHandles {
 
     /// Signals each thread to stop, then blocks until they have stopped.
     ///
-    /// Threads have to check to see if they have been signaled using their notifier.
+    /// Threads have to check to see if they have been signaled using their
+    /// notifier.
     pub fn stop(&mut self) {
         for thread_info in &mut self.thread_sync {
             if let Some((tx, handle)) = thread_info.take() {

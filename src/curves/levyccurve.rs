@@ -14,10 +14,9 @@
 
 //! Computations and abstractions needed for rendering a Lévy C Curve.
 
-use std::f64::consts::SQRT_2;
-
 use geometry::deg2rad;
 use lindenmayer::{LindenmayerSystem, LindenmayerSystemDrawingParameters};
+use std::f64::consts::SQRT_2;
 use turtle::TurtleStep;
 
 #[derive(Copy, Clone, Debug)]

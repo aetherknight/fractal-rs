@@ -46,9 +46,9 @@ pub const WHITE_U8: [u8; 4] = [255, 255, 255, 255];
 /// assert_eq!(range[10], [10,10,10,255]);
 /// ```
 ///
-/// If you want to simulate a cutoff/saturation point where the gradients reach the peak color
-/// before some maximium index value, then you can use `std::cmp::min` to prevent an out of bounds
-/// error:
+/// If you want to simulate a cutoff/saturation point where the gradients reach
+/// the peak color before some maximium index value, then you can use
+/// `std::cmp::min` to prevent an out of bounds error:
 ///
 /// ```
 /// use fractal::color::color_range_linear;

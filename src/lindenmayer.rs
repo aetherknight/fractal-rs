@@ -22,26 +22,27 @@
 //! drawing program, can then use to draw a curve/fractal/plant (which is what
 //! this implementation provides).
 
+use geometry::Point;
 use std::cell::RefCell;
 use std::marker::PhantomData;
-
-use geometry::Point;
 use turtle::*;
 
-/// Represents a particular Lindenmayer system. It requires an alphabet (represented as an enum),
-/// an initial sequence ("string"), and one or more rules that transform the sequence with each
-/// iteration/generation.
+/// Represents a particular Lindenmayer system. It requires an alphabet
+/// (represented as an enum), an initial sequence ("string"), and one or more
+/// rules that transform the sequence with each iteration/generation.
 ///
-/// Under many circumstances, these methods will not actually use &self. However, having a &self
-/// allows for more flexibility, such as creating caching objects or creating L-systems that can be
-/// defined at runtime instead of at compile time.
+/// Under many circumstances, these methods will not actually use &self.
+/// However, having a &self allows for more flexibility, such as creating
+/// caching objects or creating L-systems that can be defined at runtime
+/// instead of at compile time.
 pub trait LindenmayerSystem<Alphabet: Clone> {
     /// Should return the initial Lindenmayer system string (iteration 0).
     fn initial(&self) -> Vec<Alphabet>;
 
     /// Apply Lindenmayer system rules to a given character.
     ///
-    /// A common implementation approach would be to use `match` with the Alphabet. For example:
+    /// A common implementation approach would be to use `match` with the
+    /// Alphabet. For example:
     ///
     /// ```
     /// use fractal::lindenmayer::LindenmayerSystem;
@@ -59,7 +60,8 @@ pub trait LindenmayerSystem<Alphabet: Clone> {
     ///
     ///     fn apply_rule(&self, l: SomeAlphabet) -> Vec<SomeAlphabet> {
     ///         match l {
-    ///             SomeAlphabet::A => vec![SomeAlphabet::A, SomeAlphabet::Foo, SomeAlphabet::B, SomeAlphabet::C],
+    /// SomeAlphabet::A => vec![SomeAlphabet::A, SomeAlphabet::Foo,
+    /// SomeAlphabet::B, SomeAlphabet::C],
     ///             SomeAlphabet::B => vec![SomeAlphabet::Foo],
     ///             SomeAlphabet::C => vec![SomeAlphabet::Foo, SomeAlphabet::B],
     ///             SomeAlphabet::Foo => vec![SomeAlphabet::Foo],
@@ -82,9 +84,9 @@ pub trait LindenmayerSystem<Alphabet: Clone> {
 
     /// Generates a Lindenmayer system string for `iteration`.
     ///
-    /// This is done by starting with the initial sequence, and repeatedly applying the rules to
-    /// the sequence `iteration` times. The result is a new vector that contains the sequence for
-    /// the specified iteration.
+    /// This is done by starting with the initial sequence, and repeatedly
+    /// applying the rules to the sequence `iteration` times. The result is a
+    /// new vector that contains the sequence for the specified iteration.
     fn generate(&self, iteration: u64) -> Vec<Alphabet> {
         let mut last: Vec<Alphabet> = self.initial();
         let mut i = 0;
@@ -96,11 +98,12 @@ pub trait LindenmayerSystem<Alphabet: Clone> {
     }
 }
 
-/// In order to draw a fractal using a Lindenmayer System, we need to translate the output from the
-/// L-System into turtle commands. To do this, we need to initial the turtle, and we need a way to
-/// convert the L-System's symbols into actions. This trait provides the methods needed to
-/// configure the LindenmayerSystemTurtleProgram, which is the glue that issues arbitrary Turtle
-/// commands.
+/// In order to draw a fractal using a Lindenmayer System, we need to translate
+/// the output from the L-System into turtle commands. To do this, we need to
+/// initial the turtle, and we need a way to convert the L-System's symbols
+/// into actions. This trait provides the methods needed to configure the
+/// LindenmayerSystemTurtleProgram, which is the glue that issues arbitrary
+/// Turtle commands.
 pub trait LindenmayerSystemDrawingParameters<Alphabet> {
     /// Returns the iteration that should be drawn.
     fn iteration(&self) -> u64;
@@ -117,16 +120,19 @@ pub trait LindenmayerSystemDrawingParameters<Alphabet> {
 
     /// Convert symbol into a turtle command.
     ///
-    /// Usually, when moving the turtle forwards, there is some formula that will ensure that the
-    /// turtle always ends at a given point, such as at (1.0, 0.0).
+    /// Usually, when moving the turtle forwards, there is some formula that
+    /// will ensure that the turtle always ends at a given point, such as at
+    /// (1.0, 0.0).
     fn interpret_symbol(&self, symbol: Alphabet) -> TurtleStep;
 }
 
-/// In order to improve the performance of using a Lindenmayer System under some circumstances, it
-/// is beneficial to cache each iteration. This allows O(1) lookups for every iteration less than
-/// or equal to the largest iteration already looked up at the cost of storing every iteration
-/// below the largest iteration computed (the amount of memory used changes depending on
-/// characteristics of the L-System, such as how rapidly the strings grow between each iteration).
+/// In order to improve the performance of using a Lindenmayer System under
+/// some circumstances, it is beneficial to cache each iteration. This allows
+/// O(1) lookups for every iteration less than or equal to the largest
+/// iteration already looked up at the cost of storing every iteration below
+/// the largest iteration computed (the amount of memory used changes depending
+/// on characteristics of the L-System, such as how rapidly the strings grow
+/// between each iteration).
 pub struct LindenmayerSystemCachingDecorator<L, A>
     where L: LindenmayerSystem<A>,
           A: Clone + 'static
@@ -140,8 +146,8 @@ impl<'a, L, A> LindenmayerSystemCachingDecorator<L, A>
     where L: LindenmayerSystem<A>,
           A: Clone + 'static
 {
-    /// Return a new LindenmayerSystemCachingDecorator that wraps the input `system` and caches its
-    /// iterations.
+    /// Return a new LindenmayerSystemCachingDecorator that wraps the input
+    /// `system` and caches its iterations.
     pub fn new(system: L) -> LindenmayerSystemCachingDecorator<L, A> {
         LindenmayerSystemCachingDecorator {
             alphabet: PhantomData,

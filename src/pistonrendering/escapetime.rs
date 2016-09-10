@@ -18,7 +18,6 @@ use num::complex::Complex64;
 use piston_window::*;
 use std::cmp;
 use std::sync::{Arc, RwLock};
-
 use super::*;
 use super::super::escapetime::EscapeTime;
 use super::super::geometry::{Point, ViewAreaTransformer};
@@ -26,8 +25,8 @@ use super::super::work_multiplexer::*;
 
 type ImageBuffer = im::ImageBuffer<im::Rgba<u8>, Vec<u8>>;
 
-/// Draws escape time fractals by testing the point that each pixel corresponds to on the complex
-/// plane.
+/// Draws escape time fractals by testing the point that each pixel corresponds
+/// to on the complex plane.
 pub struct EscapeTimeWindowHandler {
     etsystem: Arc<EscapeTime + Send + Sync>,
     threadcount: u32,
@@ -63,8 +62,9 @@ impl EscapeTimeWindowHandler {
         }
     }
 
-    /// Recomputes the fractal for the screen. This should usually be called after the
-    /// screen/window is resized, or after a new area is selected for viewing.
+    /// Recomputes the fractal for the screen. This should usually be called
+    /// after the screen/window is resized, or after a new area is selected for
+    /// viewing.
     fn redraw(&mut self) {
         self.state = WhichFrame::FirstFrame;
         self.vat = Arc::new(ViewAreaTransformer::new(self.screen_size,
@@ -94,52 +94,47 @@ impl EscapeTimeWindowHandler {
             let br = self.screen_size;
 
             let work_muxer = ThreadedWorkMultiplexerBuilder::new(self.threadcount)
-                                 .base_name("escapetime_render")
-                                 .split_work(move |thread_id, total_threads, notifier, name| {
-                                     // Each thread will process x values, sharded by the number of
-                                     // threads no `step_by` in stable yet.
-                                     let sequence = ((tl[0] as u32)..(br[0] as u32))
-                                                        .into_iter()
-                                                        .enumerate()
-                                                        .filter(|&(index, _)| {
-                                                            (index as u32 + thread_id) %
-                                                            total_threads ==
-                                                            0
-                                                        })
-                                                        .map(|(_, val)| val);
-                                     for x in sequence {
-                                         if notifier.should_i_stop() {
-                                             println!("{}: Remote side disconnected", name);
-                                             break;
-                                         }
-                                         let y_colors = ((tl[1] as u32)..(br[1] as u32))
-                                           .into_iter()
-                                           .map(|y| {
-                                               let c: Complex64 =
-                                                   vat.map_pixel_to_point([x as f64, y as f64])
-                                                      .into();
-                                               let (attracted, time) = etsystem.test_point(c);
-                                               if attracted {
-                                                   im::Rgba(AEBLUE_U8)
-                                               } else {
-                                                   im::Rgba(colors[cmp::min(time, 50 - 1) as usize])
-                                               }
-                                           })
-                                           .collect::<Vec<im::Rgba<u8>>>();
-                                         // only lock the canvas while writing to it
-                                         {
-                                             // Write a column at a time to improve performance.
-                                             // Locking for every pixel actually winds up harming
-                                             // performance, but a column at a time seems to work
-                                             // much better. Haven't tested trying to do multiple
-                                             // columns at once yet.
-                                             let mut canvas = shared_canvas.write().unwrap();
-                                             for (y, color) in y_colors.into_iter().enumerate() {
-                                                 canvas.put_pixel(x, y as u32, color);
-                                             }
-                                         }
-                                     }
-                                 });
+                .base_name("escapetime_render")
+                .split_work(move |thread_id, total_threads, notifier, name| {
+                    // Each thread will process x values, sharded by the number of
+                    // threads no `step_by` in stable yet.
+                    let sequence = ((tl[0] as u32)..(br[0] as u32))
+                        .into_iter()
+                        .enumerate()
+                        .filter(|&(index, _)| (index as u32 + thread_id) % total_threads == 0)
+                        .map(|(_, val)| val);
+                    for x in sequence {
+                        if notifier.should_i_stop() {
+                            println!("{}: Remote side disconnected", name);
+                            break;
+                        }
+                        let y_colors = ((tl[1] as u32)..(br[1] as u32))
+                            .into_iter()
+                            .map(|y| {
+                                let c: Complex64 = vat.map_pixel_to_point([x as f64, y as f64])
+                                    .into();
+                                let (attracted, time) = etsystem.test_point(c);
+                                if attracted {
+                                    im::Rgba(AEBLUE_U8)
+                                } else {
+                                    im::Rgba(colors[cmp::min(time, 50 - 1) as usize])
+                                }
+                            })
+                            .collect::<Vec<im::Rgba<u8>>>();
+                        // only lock the canvas while writing to it
+                        {
+                            // Write a column at a time to improve performance.
+                            // Locking for every pixel actually winds up harming
+                            // performance, but a column at a time seems to work
+                            // much better. Haven't tested trying to do multiple
+                            // columns at once yet.
+                            let mut canvas = shared_canvas.write().unwrap();
+                            for (y, color) in y_colors.into_iter().enumerate() {
+                                canvas.put_pixel(x, y as u32, color);
+                            }
+                        }
+                    }
+                });
             self.threads = Some(work_muxer);
         }
 
@@ -161,7 +156,7 @@ impl WindowHandler for EscapeTimeWindowHandler {
                     self.texture = Some(Texture::from_image(render_context.factory,
                                                             &*canvas,
                                                             &TextureSettings::new())
-                                            .unwrap());
+                        .unwrap());
                 }
 
                 clear(WHITE_F32, render_context.gfx);

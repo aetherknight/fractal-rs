@@ -21,10 +21,9 @@ extern crate rustc_serialize;
 extern crate fractal;
 
 use docopt::Docopt;
-use std::env;
-
-use fractal::pistonrendering;
 use fractal::fractaldata;
+use fractal::pistonrendering;
+use std::env;
 
 #[cfg_attr(rustfmt, rustfmt_skip)]
 const USAGE: &'static str = "

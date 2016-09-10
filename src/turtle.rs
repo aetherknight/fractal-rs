@@ -16,12 +16,13 @@
 
 use geometry::{Point, deg2rad};
 
-/// A Turtle is an abstraction for drawing lines in a space. It has a position and it faces a
-/// particular direction. A program usually tells a turtle to move forward based upon its facing,
-/// to change direction, and to start or stop drawing.
+/// A Turtle is an abstraction for drawing lines in a space. It has a position
+/// and it faces a particular direction. A program usually tells a turtle to
+/// move forward based upon its facing, to change direction, and to start or
+/// stop drawing.
 ///
-/// The implementation must implement `set_rad()` and `turn_rad()` itself, while it gets
-/// `set_deg()` and `turn_deg()` for free.
+/// The implementation must implement `set_rad()` and `turn_rad()` itself,
+/// while it gets `set_deg()` and `turn_deg()` for free.
 pub trait Turtle {
     /// How far the turtle should move forward.
     fn forward(&mut self, distance: f64);
@@ -38,13 +39,14 @@ pub trait Turtle {
 
     /// Rotate the turtle, in degrees.
     ///
-    /// Positive values turn the turtle "left" or counter-clockwise. Negative values turn the
-    /// turtle "right" or clockwise.
+    /// Positive values turn the turtle "left" or counter-clockwise. Negative
+    /// values turn the turtle "right" or clockwise.
     fn turn_deg(&mut self, degrees: f64) {
         self.turn_rad(deg2rad(degrees));
     }
 
-    /// Convenience method for rotating the turtle in radians instead of degrees.
+    /// Convenience method for rotating the turtle in radians instead of
+    /// degrees.
     ///
     /// 2*PI radians = 360 degrees.
     fn turn_rad(&mut self, radians: f64);
@@ -75,7 +77,8 @@ pub enum TurtleStep {
     Forward(f64),
     /// Move the turtle to the specified Point in the coordinate system.
     SetPos(Point),
-    /// Set the turtle's angle. 0 and 2π are facing towards the positive X direction.
+    /// Set the turtle's angle. 0 and 2π are facing towards the positive X
+    /// direction.
     SetRad(f64),
     /// Rotate the turtle the specified amount in radians.
     TurnRad(f64),
@@ -85,20 +88,24 @@ pub enum TurtleStep {
     Up,
 }
 
-/// An object that knows how to draw someting using a Turtle. Turtle programs are broken up into
-/// two parts: an initializer method that should place the Turtle into its initial state, and a
-/// method that returns a TurtleProgramIterator (which should wrap a Boxed internal iterator
-/// implementation) that yields the sequence of steps for the main turtle program.
+/// An object that knows how to draw someting using a Turtle. Turtle programs
+/// are broken up into two parts: an initializer method that should place the
+/// Turtle into its initial state, and a method that returns a
+/// TurtleProgramIterator (which should wrap a Boxed internal iterator
+/// implementation) that yields the sequence of steps for the main turtle
+/// program.
 ///
-/// This approach adds some extra complexity and scaffolding by requiring an iterator (Rust doesn't
-/// provide something equivalent to a generator function or coroutine yet), but it grants the
-/// renderer renderer a huge amount of flexibility about how to draw/animate the turtle program.
+/// This approach adds some extra complexity and scaffolding by requiring an
+/// iterator (Rust doesn't provide something equivalent to a generator function
+/// or coroutine yet), but it grants the renderer renderer a huge amount of
+/// flexibility about how to draw/animate the turtle program.
 pub trait TurtleProgram {
-    /// Returns a sequence of steps that initialize the turtle's starting position and angle.
+    /// Returns a sequence of steps that initialize the turtle's starting
+    /// position and angle.
     fn init_turtle(&self) -> Vec<TurtleStep>;
 
-    /// Should return an iterator object that yields TurtleSteps representing each command the
-    /// turtle will take.
+    /// Should return an iterator object that yields TurtleSteps representing
+    /// each command the turtle will take.
     fn turtle_program_iter<'a>(&'a self) -> TurtleProgramIterator;
 }
 
@@ -112,9 +119,9 @@ impl Iterator for NullTurtleProgramIterator {
     }
 }
 
-/// The return type for a TurtleProgram's `turtle_program_iter()`. Since Rust does not yet support
-/// abstract return types (eg, a trait return type), the next best thing is a wrapper around a
-/// boxed type.
+/// The return type for a TurtleProgram's `turtle_program_iter()`. Since Rust
+/// does not yet support abstract return types (eg, a trait return type), the
+/// next best thing is a wrapper around a boxed type.
 pub struct TurtleProgramIterator<'a> {
     iter: Box<Iterator<Item = TurtleStep> + 'a>,
 }
@@ -124,9 +131,10 @@ impl<'a> TurtleProgramIterator<'a> {
         TurtleProgramIterator { iter: iter }
     }
 
-    /// Turns the TurtleProgramIterator into an iterator that will return Vec<TurtleStep>s that
-    /// each contain all steps up to the next TurtleStep::Forward. This allows a renderer to
-    /// render a TurtleProgram in chunks that are broken up by moves that actually draw something.
+    /// Turns the TurtleProgramIterator into an iterator that will return
+    /// Vec<TurtleStep>s that each contain all steps up to the next
+    /// TurtleStep::Forward. This allows a renderer to render a TurtleProgram
+    /// in chunks that are broken up by moves that actually draw something.
     pub fn collect_to_next_forward(self) -> TurtleCollectToNextForwardIterator<'a> {
         TurtleCollectToNextForwardIterator { iter: self }
     }
@@ -140,9 +148,9 @@ impl<'a> Iterator for TurtleProgramIterator<'a> {
     }
 }
 
-/// Iterator that yields vectors of TurtleSteps until the next TurtleStep::Forward or until the
-/// underlying iterator starts yielding None. This allows us to do perform a finite number of
-/// drawing actions at a time.
+/// Iterator that yields vectors of TurtleSteps until the next
+/// TurtleStep::Forward or until the underlying iterator starts yielding None.
+/// This allows us to do perform a finite number of drawing actions at a time.
 pub struct TurtleCollectToNextForwardIterator<'a> {
     iter: TurtleProgramIterator<'a>,
 }
@@ -193,7 +201,7 @@ mod test {
                                                             TurtleStep::TurnRad(9.0),
                                                             TurtleStep::Forward(2.0),
         ]
-                                                                .into_iter()));
+            .into_iter()));
         let mut test_iter = TurtleCollectToNextForwardIterator { iter: base_iter };
 
         let first_vec = test_iter.next().expect("no first vector");
@@ -227,7 +235,7 @@ mod test {
                                                             TurtleStep::Forward(2.0),
                                                             TurtleStep::TurnRad(-1.0),
         ]
-                                                                .into_iter()));
+            .into_iter()));
         let mut test_iter = TurtleCollectToNextForwardIterator { iter: base_iter };
 
         test_iter.next();

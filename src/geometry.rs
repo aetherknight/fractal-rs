@@ -94,14 +94,14 @@ pub fn deg2rad(degrees: f64) -> f64 {
 }
 
 pub trait AffineTransform<T> {
-    /// Apply the affine transform to the specified type (usually a vector, point, or similar
-    /// object)
+    /// Apply the affine transform to the specified type (usually a vector,
+    /// point, or similar object)
     fn transform(&self, v: T) -> T;
 }
 
 /// Row-major matrix for applying affine transforms to Cartesian points.
-/// Affine transformations on the Cartesian plane are usually defined by 6 parameters that
-/// correspond to a 2x2 matrix and a vector:
+/// Affine transformations on the Cartesian plane are usually defined by 6
+/// parameters that correspond to a 2x2 matrix and a vector:
 ///
 /// ```text
 ///     ⎡ x' ⎤ = ⎡ a b ⎤ * ⎡ x⎤ + ⎡ e ⎤
@@ -128,16 +128,17 @@ impl AffineTransform<Point> for CartesianAffineTransform {
     }
 }
 
-/// Ensures that the cartesian area specified by top_left and bot_right fit into the view_area of
-/// a window/viewport without distortion.
+/// Ensures that the cartesian area specified by top_left and bot_right fit
+/// into the view_area of a window/viewport without distortion.
 ///
-/// It essentially implements a set of affine transforms from one coordinate space to another.
-/// However, it limits these transforms in a few specialized ways:
+/// It essentially implements a set of affine transforms from one coordinate
+/// space to another. However, it limits these transforms in a few specialized
+/// ways:
 ///
-/// * It flips the Y axis. The positive direction for the screen is down and right, but in
-///   graphing the positive direction is usually up and right.
-/// * It ensures that the view area is not stretched or squished, limiting the transforms to
-///   zooming and shifting.
+/// * It flips the Y axis. The positive direction for the screen is down and
+///   right, but in graphing the positive direction is usually up and right.
+/// * It ensures that the view area is not stretched or squished, limiting the
+///   transforms to zooming and shifting.
 pub struct ViewAreaTransformer {
     // view_area_size: Vec2d,
     top_left: Point,
@@ -148,8 +149,9 @@ pub struct ViewAreaTransformer {
 }
 
 impl ViewAreaTransformer {
-    /// Initializes a ViewAreaTranformer using the size of the view area, and two points that
-    /// define a rectangle in the cartesian plane that should be visible in the view area.
+    /// Initializes a ViewAreaTranformer using the size of the view area, and
+    /// two points that define a rectangle in the cartesian plane that should
+    /// be visible in the view area.
     pub fn new(view_area_size: Vec2d, a: Point, b: Point) -> ViewAreaTransformer {
         let window_width = view_area_size[0];
         let window_height = view_area_size[1];
@@ -204,8 +206,8 @@ impl ViewAreaTransformer {
         }
     }
 
-    /// Calculates the cartesian point that exists at a given pixel-location on the
-    /// window/viewport.
+    /// Calculates the cartesian point that exists at a given pixel-location on
+    /// the window/viewport.
     pub fn map_pixel_to_point(&self, screen_coord: Vec2d) -> Point {
         Point {
             x: screen_coord[0] * self.scale + self.top_left.x - (self.offset_factor_x),
@@ -232,10 +234,10 @@ pub fn cpow(c: Complex64, exponent: u64) -> Complex64 {
 
 #[cfg(test)]
 mod test {
+    use graphics::math::Vec2d;
+    use num::complex::Complex64;
     use std::f64::consts::PI;
     use std::f64::consts::SQRT_2;
-    use num::complex::Complex64;
-    use graphics::math::Vec2d;
 
     use super::*;
 
@@ -283,69 +285,69 @@ mod test {
     #[test]
     fn test_vector_delta_x() {
         assert_approx_eq!(Vector {
-                              direction: 0.0,
-                              magnitude: 1.0,
-                          }
-                          .delta_x(),
+                                  direction: 0.0,
+                                  magnitude: 1.0,
+                              }
+                              .delta_x(),
                           1.0,
                           0.0000001);
         assert_approx_eq!(Vector {
-                              direction: PI / 2.0,
-                              magnitude: 1.0,
-                          }
-                          .delta_x(),
+                                  direction: PI / 2.0,
+                                  magnitude: 1.0,
+                              }
+                              .delta_x(),
                           0.0,
                           0.0000001);
         assert_approx_eq!(Vector {
-                              direction: PI / 4.0,
-                              magnitude: 1.0,
-                          }
-                          .delta_x(),
+                                  direction: PI / 4.0,
+                                  magnitude: 1.0,
+                              }
+                              .delta_x(),
                           (PI / 4.0).cos(),
                           0.0000001);
 
         assert_approx_eq!(Vector {
-                              direction: PI / 4.0,
-                              magnitude: 5.0,
-                          }
-                          .delta_x(),
+                                  direction: PI / 4.0,
+                                  magnitude: 5.0,
+                              }
+                              .delta_x(),
                           (PI / 4.0).cos() * 5.0,
                           0.0000001);
         assert_approx_eq!(Vector {
-                              direction: 3.0 * PI / 4.0,
-                              magnitude: 5.0,
-                          }
-                          .delta_x(),
+                                  direction: 3.0 * PI / 4.0,
+                                  magnitude: 5.0,
+                              }
+                              .delta_x(),
                           (PI / 4.0).cos() * -5.0,
                           0.0000001);
 
         assert_approx_eq!(Vector {
-                              direction: PI,
-                              magnitude: 1.0,
-                          }
-                          .delta_x(),
+                                  direction: PI,
+                                  magnitude: 1.0,
+                              }
+                              .delta_x(),
                           -1.0,
                           0.0000001);
         assert_approx_eq!(Vector {
-                              direction: PI,
-                              magnitude: 5.0,
-                          }
-                          .delta_x(),
+                                  direction: PI,
+                                  magnitude: 5.0,
+                              }
+                              .delta_x(),
                           -5.0,
                           0.0000001);
 
         assert_approx_eq!(Vector {
-                              direction: 3.0 * PI / 2.0,
-                              magnitude: 1.0,
-                          }
-                          .delta_x(),
+                                  direction: 3.0 * PI / 2.0,
+                                  magnitude: 1.0,
+                              }
+                              .delta_x(),
                           0.0,
                           0.0000001);
         assert_approx_eq!(Vector {
-                              direction: 3.0 * PI / 2.0,
-                              magnitude: 5.0,
-                          }
-                          .delta_x(),
+                                  direction: 3.0 * PI / 2.0,
+                                  magnitude: 5.0,
+                              }
+                              .delta_x(),
                           0.0,
                           0.0000001);
     }
@@ -353,54 +355,54 @@ mod test {
     #[test]
     fn test_vector_delta_y() {
         assert_approx_eq!(Vector {
-                              direction: 0.0,
-                              magnitude: 1.0,
-                          }
-                          .delta_y(),
+                                  direction: 0.0,
+                                  magnitude: 1.0,
+                              }
+                              .delta_y(),
                           0.0,
                           0.0000001);
         assert_approx_eq!(Vector {
-                              direction: PI / 2.0,
-                              magnitude: 1.0,
-                          }
-                          .delta_y(),
+                                  direction: PI / 2.0,
+                                  magnitude: 1.0,
+                              }
+                              .delta_y(),
                           1.0,
                           0.0000001);
         assert_approx_eq!(Vector {
-                              direction: PI / 4.0,
-                              magnitude: 1.0,
-                          }
-                          .delta_y(),
+                                  direction: PI / 4.0,
+                                  magnitude: 1.0,
+                              }
+                              .delta_y(),
                           (PI / 4.0).sin(),
                           0.0000001);
 
         assert_approx_eq!(Vector {
-                              direction: PI / 4.0,
-                              magnitude: 5.0,
-                          }
-                          .delta_y(),
+                                  direction: PI / 4.0,
+                                  magnitude: 5.0,
+                              }
+                              .delta_y(),
                           (PI / 4.0).sin() * 5.0,
                           0.0000001);
         assert_approx_eq!(Vector {
-                              direction: 5.0 * PI / 4.0,
-                              magnitude: 5.0,
-                          }
-                          .delta_y(),
+                                  direction: 5.0 * PI / 4.0,
+                                  magnitude: 5.0,
+                              }
+                              .delta_y(),
                           (5.0 * PI / 4.0).sin() * 5.0,
                           0.0000001);
 
         assert_approx_eq!(Vector {
-                              direction: PI,
-                              magnitude: 1.0,
-                          }
-                          .delta_y(),
+                                  direction: PI,
+                                  magnitude: 1.0,
+                              }
+                              .delta_y(),
                           0.0,
                           0.0000001);
         assert_approx_eq!(Vector {
-                              direction: PI,
-                              magnitude: 5.0,
-                          }
-                          .delta_y(),
+                                  direction: PI,
+                                  magnitude: 5.0,
+                              }
+                              .delta_y(),
                           0.0,
                           0.0000001);
     }
@@ -539,7 +541,8 @@ mod test {
         assert_approx_eq!(vat.map_pixel_to_point([3.0, 0.0]).x, 12.0, 0.000000000001);
     }
 
-    /// 3x4 window, and [(3,3),12,12)] can handle rectangle that is not top-left and bottom-right
+    /// 3x4 window, and [(3,3),12,12)] can handle rectangle that is not
+    /// top-left and bottom-right
     #[test]
     fn test_view_area_transformer_map_pixel4() {
         let screen_size = [3.0, 4.0];

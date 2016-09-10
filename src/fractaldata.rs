@@ -32,8 +32,8 @@ use super::curves::terdragon::TerdragonFractal;
 use super::escapetime::burningship::*;
 use super::escapetime::mandelbrot::Mandelbrot;
 use super::lindenmayer::LindenmayerSystemTurtleProgram;
-use super::pistonrendering::WindowHandler;
 use super::pistonrendering;
+use super::pistonrendering::WindowHandler;
 
 /// Print a message to stderr and exit with a non-zero exit code
 macro_rules! abort {
@@ -59,9 +59,9 @@ pub struct FractalData {
     pub name: &'static str,
     pub desc: &'static str,
     pub args: &'static [&'static str],
-    /// Function or closure that takes in a list of arguments and constructs a WindowHandler for
-    /// the curve. It should then call the passed in function pointer and give it the
-    /// WindowHandler.
+    /// Function or closure that takes in a list of arguments and constructs a
+    /// WindowHandler for the curve. It should then call the passed in function
+    /// pointer and give it the WindowHandler.
     pub with_window_handler: &'static (Fn(&Arguments, &Fn(&mut WindowHandler)) + Sync),
 }
 

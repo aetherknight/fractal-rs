@@ -25,12 +25,12 @@ pub struct TerdragonFractal {
     iterations: u64,
 }
 
-/// Represents the computations needed to render a terdragon fractal of a particular iteration. It
-/// uses a Lindenmeyer system under the hood
+/// Represents the computations needed to render a terdragon fractal of a
+/// particular iteration. It uses a Lindenmeyer system under the hood
 impl TerdragonFractal {
-    /// Create a new TerdragonFractal. `iterations` is the number of generations to apply to the
-    /// Lindenmeyer system used to generate the fractal's turns.
-    /// ```
+    /// Create a new TerdragonFractal. `iterations` is the number of
+    /// generations to apply to the Lindenmeyer system used to generate the
+    /// fractal's turns.
     pub fn new(iterations: u64) -> TerdragonFractal {
         TerdragonFractal { iterations: iterations }
     }
@@ -43,11 +43,12 @@ impl TerdragonFractal {
     }
 
     /// How many line segments are between the starting and end points.
-    /// 
-    /// This can be used to calculate how long each line segment should be to ensure that the
-    /// drawing of the fractal ends at the desired endpoints. For example, if the starting point is
-    /// (0, 0) and the endpoint should be (1, 0), then the size of each line segment would be:
-    /// 
+    ///
+    /// This can be used to calculate how long each line segment should be to
+    /// ensure that the drawing of the fractal ends at the desired endpoints.
+    /// For example, if the starting point is (0, 0) and the endpoint should be
+    /// (1, 0), then the size of each line segment would be:
+    ///
     /// ```text
     /// (x_start - x_end).abs() / df.lines_between_endpoints()
     /// ```
@@ -102,9 +103,9 @@ impl LindenmayerSystemDrawingParameters<LSA> for TerdragonFractal {
 mod test {
     use geometry::Point;
     use lindenmayer::LindenmayerSystemDrawingParameters;
-    use super::SQRT_3;
-    use super::{LSA, TerdragonFractal};
     use std::f64::consts::PI;
+    use super::{LSA, TerdragonFractal};
+    use super::SQRT_3;
 
     #[test]
     fn test_step_count() {

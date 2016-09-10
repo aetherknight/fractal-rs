@@ -77,7 +77,7 @@ impl LindenmayerSystemDrawingParameters<LSA> for CesaroTriFractal {
         // and so forth.
         let hyp_unit = hyp /
                        ((2.0_f64 * (1.0_f64 + ((PI - (2.0_f64 * base_angle_rads))).sin()))
-                            .powf(self.iterations as f64));
+            .powf(self.iterations as f64));
 
         // cos(a) = A/H. A = hyp/2. H = A/cos(a)
         // let side_len = (hyp / 2.0_f64) / (base_angle_rads / 2.0_f64).cos();

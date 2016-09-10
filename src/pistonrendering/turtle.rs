@@ -32,7 +32,8 @@ pub fn construct_turtle_window_handler<'a>(program: &'a TurtleProgram,
 }
 
 
-/// Internal state of a turtle. Can be used by turtle implementations to store/pause their drawing.
+/// Internal state of a turtle. Can be used by turtle implementations to
+/// store/pause their drawing.
 #[derive(Clone, Debug)]
 pub struct TurtleState {
     position: Point,
@@ -41,8 +42,8 @@ pub struct TurtleState {
 }
 
 impl TurtleState {
-    /// Initializes a new TurtleState. A new turtle starts at (0,0) and faces towards the positive
-    /// X axis.
+    /// Initializes a new TurtleState. A new turtle starts at (0,0) and faces
+    /// towards the positive X axis.
     pub fn new() -> TurtleState {
         TurtleState {
             position: Point { x: 0.0, y: 0.0 },
@@ -62,7 +63,8 @@ pub struct PistonTurtle<'a, G>
     state: &'a mut TurtleState,
 }
 
-impl<'a, G> PistonTurtle<'a, G> where G: Graphics + 'a
+impl<'a, G> PistonTurtle<'a, G>
+    where G: Graphics + 'a
 {
     pub fn new(state: &'a mut TurtleState,
                context: graphics::context::Context,
@@ -76,7 +78,8 @@ impl<'a, G> PistonTurtle<'a, G> where G: Graphics + 'a
     }
 }
 
-impl<'a, G> Turtle for PistonTurtle<'a, G> where G: Graphics + 'a
+impl<'a, G> Turtle for PistonTurtle<'a, G>
+    where G: Graphics + 'a
 {
     fn forward(&mut self, distance: f64) {
         let old_pos = self.state.position;
@@ -98,11 +101,11 @@ impl<'a, G> Turtle for PistonTurtle<'a, G> where G: Graphics + 'a
             let linesize = (startx - endx).abs() as f64;
 
             let transform = self.context
-                                .transform
-                                .trans(startx, starty)
-                                .zoom(linesize)
-                                .flip_v()
-                                .trans(0.0, 0.0);
+                .transform
+                .trans(startx, starty)
+                .zoom(linesize)
+                .flip_v()
+                .trans(0.0, 0.0);
 
             Line::new(BLACK_F32, 0.5 / linesize).draw([old_pos.x, old_pos.y, new_pos.x, new_pos.y],
                                                       default_draw_state(),
@@ -136,8 +139,8 @@ impl<'a, G> Turtle for PistonTurtle<'a, G> where G: Graphics + 'a
 }
 
 
-/// WindowHandler that renders an entire turtle program per-frame, and optimizes re-renders
-/// by only rendering twice (once for each buffer).
+/// WindowHandler that renders an entire turtle program per-frame, and
+/// optimizes re-renders by only rendering twice (once for each buffer).
 pub struct DoubleBufferedWindowHandler<'a> {
     program: &'a TurtleProgram,
     /// Whether we need to re-render for double-buffered frames.
@@ -187,9 +190,8 @@ impl<'a> WindowHandler for DoubleBufferedWindowHandler<'a> {
             clear(WHITE_F32, render_context.gfx);
 
             let mut state = TurtleState::new();
-            let mut turtle = PistonTurtle::new(&mut state,
-                                               render_context.context,
-                                               render_context.gfx);
+            let mut turtle =
+                PistonTurtle::new(&mut state, render_context.context, render_context.gfx);
             DoubleBufferedWindowHandler::turtledraw(self.program, &mut turtle);
 
             println!("Done redrawing frame");
@@ -198,19 +200,21 @@ impl<'a> WindowHandler for DoubleBufferedWindowHandler<'a> {
     }
 }
 
-/// WindowHandler that animates the drawing of the curve by only adding a few line segments per
-/// frame.
+/// WindowHandler that animates the drawing of the curve by only adding a few
+/// line segments per frame.
 pub struct DoubleBufferedAnimatedWindowHandler<'a> {
     program: &'a TurtleProgram,
-    /// stored turtle state for each turtle. double-buffered means we need to animate the curve
+    /// stored turtle state for each turtle. double-buffered means we need to
+    /// animate the curve
     /// "twice".
     turtles: [TurtleState; 2],
     /// Two iterators.
     iters: [TurtleCollectToNextForwardIterator<'a>; 2],
     lines_per_frame: u64,
-    /// Which frame we are rendering. We need to perform the initial steps for the first frame, and
-    /// we need perform the initial steps and do one extra move forward for the second frame (to
-    /// stagger the double buffer). The rest of the frames then just move forward.
+    /// Which frame we are rendering. We need to perform the initial steps for
+    /// the first frame, and we need perform the initial steps and do one extra
+    /// move forward for the second frame (to stagger the double buffer). The
+    /// rest of the frames then just move forward.
     which_frame: WhichFrame,
 }
 
@@ -226,7 +230,8 @@ impl<'a> fmt::Debug for DoubleBufferedAnimatedWindowHandler<'a> {
 impl<'a> DoubleBufferedAnimatedWindowHandler<'a> {
     /// Initialize a new DoubleBufferedAnimatedWindowHandler.
     ///
-    /// `lines_per_frame` specifies how many line segments the turtle should draw per frame.
+    /// `lines_per_frame` specifies how many line segments the turtle should
+    /// draw per frame.
     pub fn new(program: &'a TurtleProgram,
                lines_per_frame: u64)
                -> DoubleBufferedAnimatedWindowHandler<'a> {

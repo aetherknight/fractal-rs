@@ -17,13 +17,12 @@
 use graphics;
 use piston_window::*;
 use std::sync::Arc;
-
-use super::super::chaosgame::{ChaosGame, ChaosGameMoveIterator};
 use super::*;
+use super::super::chaosgame::{ChaosGame, ChaosGameMoveIterator};
 use super::super::geometry::Point;
 
-/// Draw a dot at the given point. (0.0,0.0) is the center of the screen, (1.0,1.0) is near the top
-/// right, and (-1.0,-1.0) is near the bottom left.
+/// Draw a dot at the given point. (0.0,0.0) is the center of the screen,
+/// (1.0,1.0) is near the top right, and (-1.0,-1.0) is near the bottom left.
 fn draw_dot(context: graphics::context::Context, gfx: &mut G2d, point: Point) {
     let view_size = context.get_view_size();
     let screen_width = view_size[0];
@@ -43,10 +42,10 @@ fn draw_dot(context: graphics::context::Context, gfx: &mut G2d, point: Point) {
     };
 
     let transform = context.transform
-                           .trans(originx, originy)
-                           .zoom(one_unit_to_pixels)
-                           .flip_v()
-                           .trans(0.0, 0.0);
+        .trans(originx, originy)
+        .zoom(one_unit_to_pixels)
+        .flip_v()
+        .trans(0.0, 0.0);
 
     let delta = 0.5 / one_unit_to_pixels as f64;
 
@@ -137,5 +136,4 @@ impl WindowHandler for ChaosGameWindowHandler {
 }
 
 #[cfg(test)]
-mod test {
-}
+mod test {}

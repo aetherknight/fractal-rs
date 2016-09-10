@@ -14,10 +14,9 @@
 
 //! Computations and abstractions needed for rendering a dragon fractal.
 
+use geometry::Point;
 use std::f64::consts::PI;
 use std::f64::consts::SQRT_2;
-
-use geometry::Point;
 use turtle::*;
 
 #[derive(Copy, Clone, Debug, Eq, PartialEq)]
@@ -31,21 +30,22 @@ pub struct DragonFractal {
     iterations: u64,
 }
 
-/// Represents the computations needed to render a dragon fractal of a particular iteration.
+/// Represents the computations needed to render a dragon fractal of a
+/// particular iteration.
 impl DragonFractal {
-    /// Create a new DragonFractal. `iterations` is the number of times you would "fold" the curve
-    /// in half. Eg:
+    /// Create a new DragonFractal. `iterations` is the number of times you
+    /// would "fold" the curve in half. Eg:
     ///
     /// ```text
-    /// 0: 
+    /// 0:
     ///     --------
-    /// 
+    ///
     /// 1:
     ///     \      /
     ///      \    /
     ///       \  /
     ///        \/
-    /// 
+    ///
     /// 2:
     ///         ___
     ///     |  |
@@ -82,9 +82,10 @@ impl DragonFractal {
 
     /// How many line segments are between the starting and end points.
     ///
-    /// This can be used to calculate how long each line segment should be to ensure that the
-    /// drawing of the fractal ends at the desired endpoints. For example, if the starting point is
-    /// (0, 0) and the endpoint should be (1, 0), then the size of each line segment would be:
+    /// This can be used to calculate how long each line segment should be to
+    /// ensure that the drawing of the fractal ends at the desired endpoints.
+    /// For example, if the starting point is (0, 0) and the endpoint should be
+    /// (1, 0), then the size of each line segment would be:
     ///
     /// ```text
     /// (x_start - x_end).abs() / df.lines_between_endpoints()
@@ -98,7 +99,8 @@ impl DragonFractal {
 }
 
 impl TurtleProgram for DragonFractal {
-    /// Starts at (0.0, 0.0) and facing 0 degrees along the X axis. Tries to end at (1.0, 0.0).
+    /// Starts at (0.0, 0.0) and facing 0 degrees along the X axis. Tries to
+    /// end at (1.0, 0.0).
     fn init_turtle(&self) -> Vec<TurtleStep> {
         vec![
             TurtleStep::SetPos(Point { x: 0.0, y: 0.0 }),
@@ -150,13 +152,13 @@ impl Iterator for DragonFractalTurtleProgramIterator {
 
 #[cfg(test)]
 mod test {
+    use geometry::Point;
     use std::f64::consts::PI;
     use std::f64::consts::SQRT_2;
 
     use super::DragonFractal;
     use super::Turn::{Left, Right};
     use turtle::{TurtleProgram, TurtleStep};
-    use geometry::Point;
 
     #[test]
     fn test_step_count() {

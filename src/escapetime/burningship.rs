@@ -35,15 +35,17 @@ pub struct BurningShip {
 }
 
 impl BurningShip {
-    /// Creates a new escape time specification for the burning ship family of fractals.
+    /// Creates a new escape time specification for the burning ship family of
+    /// fractals.
     ///
-    /// `max_iterations` specifies the cutoff iteration for deciding whether a complex number
-    /// escapes or has converged.
+    /// `max_iterations` specifies the cutoff iteration for deciding whether a
+    /// complex number escapes or has converged.
     ///
-    /// `power` specifies the exponent used in the burning ship equation. The burning ship fractal
-    /// has an exponent of 2, but this allows for an exponent of 3, 4, etc. to explore these
-    /// related fractals. See <https://theory.org/fracdyn/burningship/symmetry.html> for examples
-    /// of what these may look like.
+    /// `power` specifies the exponent used in the burning ship equation. The
+    /// burning ship fractal has an exponent of 2, but this allows for an
+    /// exponent of 3, 4, etc. to explore these related fractals. See
+    /// <https://theory.org/fracdyn/burningship/symmetry.html> for examples of
+    /// what these may look like.
     pub fn new(max_iterations: u64, power: u64) -> BurningShip {
         BurningShip {
             max_iters: max_iterations,
@@ -90,15 +92,17 @@ pub struct BurningMandel {
 }
 
 impl BurningMandel {
-    /// Creates a new escape time specification for the burning ship family of fractals.
+    /// Creates a new escape time specification for the burning ship family of
+    /// fractals.
     ///
-    /// `max_iterations` specifies the cutoff iteration for deciding whether a complex number
-    /// escapes or has converged.
+    /// `max_iterations` specifies the cutoff iteration for deciding whether a
+    /// complex number escapes or has converged.
     ///
-    /// `power` specifies the exponent used in the burning ship equation. The burning ship fractal
-    /// has an exponent of 2, but this allows for an exponent of 3, 4, etc. to explore these
-    /// related fractals. See <https://theory.org/fracdyn/burningship/symmetry.html> for examples
-    /// of what these may look like.
+    /// `power` specifies the exponent used in the burning ship equation. The
+    /// burning ship fractal has an exponent of 2, but this allows for an
+    /// exponent of 3, 4, etc. to explore these related fractals. See
+    /// <https://theory.org/fracdyn/burningship/symmetry.html> for examples of
+    /// what these may look like.
     pub fn new(max_iterations: u64, power: u64) -> BurningMandel {
         BurningMandel {
             max_iters: max_iterations,
@@ -145,14 +149,16 @@ pub struct RoadRunner {
 }
 
 impl RoadRunner {
-    /// Creates a new escape time specification for the burning ship family of fractals.
+    /// Creates a new escape time specification for the burning ship family of
+    /// fractals.
     ///
-    /// `max_iterations` specifies the cutoff iteration for deciding whether a complex number
-    /// escapes or has converged.
+    /// `max_iterations` specifies the cutoff iteration for deciding whether a
+    /// complex number escapes or has converged.
     ///
-    /// `power` specifies the exponent used in the burning ship equation. The burning ship fractal
-    /// has an exponent of 2, but this allows for an exponent of 3, 4, etc. to explore these
-    /// related fractals. See <https://theory.org/fracdyn/burningship/symmetry.html> for examples
+    /// `power` specifies the exponent used in the burning ship equation. The
+    /// burning ship fractal has an exponent of 2, but this allows for an
+    /// exponent of 3, 4, etc. to explore these related fractals. See
+    /// <https://theory.org/fracdyn/burningship/symmetry.html> for examples
     /// of what these may look like.
     pub fn new(max_iterations: u64, power: u64) -> RoadRunner {
         RoadRunner {

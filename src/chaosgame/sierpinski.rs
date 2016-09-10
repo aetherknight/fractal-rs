@@ -14,8 +14,8 @@
 
 //! Implementation of a 2-D Sierpinski triangle as a ChaosGame.
 
-use rand::distributions::{IndependentSample, Range};
 use rand;
+use rand::distributions::{IndependentSample, Range};
 use std::sync::mpsc::SyncSender;
 
 use super::ChaosGame;
