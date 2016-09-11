@@ -97,7 +97,7 @@ fn main() {
         std::process::exit(0);
     }
 
-    if let Some(command_data) = fractaldata::get_chaos_data().get(args.arg_CURVE.as_ref() as &str) {
+    if let Ok(command_data) = fractaldata::get_fractal_data(args.arg_CURVE.as_ref()) {
         let callback = command_data.with_window_handler;
         callback(&args.into(),
                  &|handler| {

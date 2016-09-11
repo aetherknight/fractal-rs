@@ -18,7 +18,6 @@
 //! each curve and configure a WindowHandler to handle callbacks from the event
 //! loop.
 
-use std::collections::HashMap;
 use std::sync::Arc;
 
 use super::chaosgame::barnsleyfern;
@@ -56,203 +55,158 @@ pub struct Arguments {
 }
 
 pub struct FractalData {
-    pub name: &'static str,
-    pub desc: &'static str,
-    pub args: &'static [&'static str],
-    /// Function or closure that takes in a list of arguments and constructs a
-    /// WindowHandler for the curve. It should then call the passed in function
-    /// pointer and give it the WindowHandler.
-    pub with_window_handler: &'static (Fn(&Arguments, &Fn(&mut WindowHandler)) + Sync),
+    pub name: Box<AsRef<str>>,
+    pub desc: Box<AsRef<str>>,
+    pub args: Box<AsRef<[&'static str]>>,
+    /// Function or closure that takes in a list of arguments and constructs a WindowHandler for
+    /// the curve. It should then call the passed in function pointer and give it the
+    /// WindowHandler.
+    pub with_window_handler: Box<(Fn(&Arguments, &Fn(&mut WindowHandler)) + Sync)>,
 }
 
 impl FractalData {
     pub fn print_info(&self, dollar_zero: &str) {
-        println!("{}", self.name);
-        println!("{}", self.desc);
-        print!("Usage: {} {}", dollar_zero, self.name);
-        for arg in self.args {
+        println!("{}", self.name.as_ref().as_ref());
+        println!("{}", self.desc.as_ref().as_ref());
+        print!("usage: {} {}", dollar_zero, self.name.as_ref().as_ref());
+        for arg in self.args.as_ref().as_ref() {
             print!(" {}", arg);
         }
         println!("");
     }
 }
 
-static BARNSLEYFERN: FractalData = FractalData {
-    name: "barnsleyfern",
-    desc: "Draws the Barnsley Fern fractal using a chaos game with affine transforms.",
-    args: &[],
-    with_window_handler: &|args, runner| {
+/// Build the list of support fractals.
+macro_rules! fractal_data {
+    ( $($name:ident: $args:expr, $desc:expr, $with_window_handler:expr);+ $(;)*) => (
+        pub fn get_fractal_data(name: &str) -> Result<FractalData, &str> {
+            match name {
+                $(
+                    stringify!($name) => {
+                        Ok(FractalData {
+                            name: Box::new(stringify!($name)),
+                            desc: Box::new($desc),
+                            args: Box::new($args),
+                            with_window_handler: Box::new($with_window_handler)
+                        })
+                    }
+                 )+
+                    _ => { Err("Unknown or unsupported fractal type")}
+            }
+        }
+        )
+}
+
+fractal_data!(
+    barnsleyfern: [], "Draws the Barnsley Fern fractal using a chaos game with affine transforms.",
+    |args, runner| {
         let game = Arc::new(barnsleyfern::BarnsleyFern::new(&barnsleyfern::REFERENCE_TRANSFORMS,
                                                             &barnsleyfern::REFERENCE_WEIGHTS));
         let mut handler =
             pistonrendering::chaosgame::ChaosGameWindowHandler::new(game, args.drawrate as usize);
         runner(&mut handler);
-    },
-};
+    };
 
-static BURNINGSHIP: FractalData = FractalData {
-    name: "burningship",
-    desc: "Draws the burning ship fractal",
-    args: &["MAX_ITERATIONS", "POWER"],
-    with_window_handler: &|args, runner| {
+    burningship: ["MAX_ITERATIONS", "POWER"], "Draws the burning ship fractal",
+    |args, runner| {
         if args.iterations < 1 {
             abort!("Must specify a MAX_ITERATIONS of 1 or greater!");
         }
         let burningship = Arc::new(BurningShip::new(args.iterations, args.power));
         let mut handler =
-            pistonrendering::escapetime::EscapeTimeWindowHandler::new(burningship,
-                                                                      args.threadcount);
+            pistonrendering::escapetime::EscapeTimeWindowHandler::new(burningship, args.threadcount);
         runner(&mut handler);
-    },
+    };
+
+burningmandel: ["MAX_ITERATIONS", "POWER"], "Draws a variation of the burning ship fractal",
+|args, runner| {
+    if args.iterations < 1 {
+        abort!("Must specify a MAX_ITERATIONS of 1 or greater!");
+    }
+    let burningship = Arc::new(BurningMandel::new(args.iterations, args.power));
+    let mut handler =
+        pistonrendering::escapetime::EscapeTimeWindowHandler::new(burningship,
+                                                                  args.threadcount);
+    runner(&mut handler);
 };
 
-static BURNINGMANDEL: FractalData = FractalData {
-    name: "burningmandel",
-    desc: "Draws a variation of the burning ship fractal",
-    args: &["MAX_ITERATIONS", "POWER"],
-    with_window_handler: &|args, runner| {
-        if args.iterations < 1 {
-            abort!("Must specify a MAX_ITERATIONS of 1 or greater!");
-        }
-        let burningship = Arc::new(BurningMandel::new(args.iterations, args.power));
-        let mut handler =
-            pistonrendering::escapetime::EscapeTimeWindowHandler::new(burningship,
-                                                                      args.threadcount);
-        runner(&mut handler);
-    },
+cesaro: ["ITERATION"], "Draws a square Césaro fractal. Needs an ITERATION.",
+|args, runner| {
+    let program = LindenmayerSystemTurtleProgram::new(CesaroFractal::new(args.iterations));
+    let mut handler = pistonrendering::turtle::construct_turtle_window_handler(&program,
+                                                                               args.drawrate);
+    runner(&mut *handler);
 };
 
-static CESARO: FractalData = FractalData {
-    name: "cesaro",
-    desc: "Draws a square Césaro fractal. Needs an ITERATION.",
-    args: &["ITERATION"],
-    with_window_handler: &|args, runner| {
-        let program = LindenmayerSystemTurtleProgram::new(CesaroFractal::new(args.iterations));
-        let mut handler = pistonrendering::turtle::construct_turtle_window_handler(&program,
-                                                                                   args.drawrate);
-        runner(&mut *handler);
-    },
+cesarotri: ["ITERATION"], "Draws a triangle Césaro fractal. Needs an ITERATION.",
+|args, runner| {
+    let program = LindenmayerSystemTurtleProgram::new(CesaroTriFractal::new(args.iterations));
+    let mut handler = pistonrendering::turtle::construct_turtle_window_handler(&program,
+                                                                               args.drawrate);
+    runner(&mut *handler);
 };
 
-static CESAROTRI: FractalData = FractalData {
-    name: "cesarotri",
-    desc: "Draws a triangle Césaro fractal. Needs an ITERATION.",
-    args: &["ITERATION"],
-    with_window_handler: &|args, runner| {
-        let program = LindenmayerSystemTurtleProgram::new(CesaroTriFractal::new(args.iterations));
-        let mut handler = pistonrendering::turtle::construct_turtle_window_handler(&program,
-                                                                                   args.drawrate);
-        runner(&mut *handler);
-    },
+dragon: ["ITERATION"], "Draws dragon curve fractal. Needs an ITERATION.",
+|args, runner| {
+    let program = DragonFractal::new(args.iterations);
+    let mut handler = pistonrendering::turtle::construct_turtle_window_handler(&program,
+                                                                               args.drawrate);
+    runner(&mut *handler);
 };
 
-static DRAGON: FractalData = FractalData {
-    name: "dragon",
-    desc: "Draws dragon curve fractal. Needs an ITERATION.",
-    args: &["ITERATION"],
-    with_window_handler: &|args, runner| {
-        let program = DragonFractal::new(args.iterations);
-        let mut handler = pistonrendering::turtle::construct_turtle_window_handler(&program,
-                                                                                   args.drawrate);
-        runner(&mut *handler);
-    },
+kochcurve: ["ITERATION"], "Draws a Koch snowflake. Needs an ITERATION.",
+|args, runner| {
+    let program = LindenmayerSystemTurtleProgram::new(KochCurve::new(args.iterations));
+    let mut handler = pistonrendering::turtle::construct_turtle_window_handler(&program,
+                                                                               args.drawrate);
+    runner(&mut *handler);
 };
 
-static KOCHCURVE: FractalData = FractalData {
-    name: "kochcurve",
-    desc: "Draws a Koch snowflake. Needs an ITERATION.",
-    args: &["ITERATION"],
-    with_window_handler: &|args, runner| {
-        let program = LindenmayerSystemTurtleProgram::new(KochCurve::new(args.iterations));
-        let mut handler = pistonrendering::turtle::construct_turtle_window_handler(&program,
-                                                                                   args.drawrate);
-        runner(&mut *handler);
-    },
+levyccurve: ["ITERATION"], "Draws a Levy C Curve. Needs an ITERATION.",
+|args, runner| {
+    let program = LindenmayerSystemTurtleProgram::new(LevyCCurve::new(args.iterations));
+    let mut handler = pistonrendering::turtle::construct_turtle_window_handler(&program,
+                                                                               args.drawrate);
+    runner(&mut *handler);
 };
 
-static LEVYCCURVE: FractalData = FractalData {
-    name: "levyccurve",
-    desc: "Draws a Levy C Curve. Needs an ITERATION.",
-    args: &["ITERATION"],
-    with_window_handler: &|args, runner| {
-        let program = LindenmayerSystemTurtleProgram::new(LevyCCurve::new(args.iterations));
-        let mut handler = pistonrendering::turtle::construct_turtle_window_handler(&program,
-                                                                                   args.drawrate);
-        runner(&mut *handler);
-    },
+mandelbrot: ["MAX_ITERATIONS", "POWER"], "Draws the traditional mandelbrot fractal",
+|args, runner| {
+    if args.iterations < 1 {
+        abort!("Must specify a MAX_ITERATIONS of 1 or greater!");
+    }
+    let mandelbrot = Arc::new(Mandelbrot::new(args.iterations, args.power));
+    let mut handler =
+        pistonrendering::escapetime::EscapeTimeWindowHandler::new(mandelbrot, args.threadcount);
+    runner(&mut handler);
 };
 
-static MANDELBROT: FractalData = FractalData {
-    name: "mandelbrot",
-    desc: "Draws the traditional mandelbrot fractal",
-    args: &["MAX_ITERATIONS", "POWER"],
-    with_window_handler: &|args, runner| {
-        if args.iterations < 1 {
-            abort!("Must specify a MAX_ITERATIONS of 1 or greater!");
-        }
-        let mandelbrot = Arc::new(Mandelbrot::new(args.iterations, args.power));
-        let mut handler =
-            pistonrendering::escapetime::EscapeTimeWindowHandler::new(mandelbrot, args.threadcount);
-        runner(&mut handler);
-    },
+roadrunner: ["MAX_ITERATIONS", "POWER"], "Draws a variation of the burning ship fractal",
+|args, runner| {
+    if args.iterations < 1 {
+        abort!("Must specify a MAX_ITERATIONS of 1 or greater!");
+    }
+    let burningship = Arc::new(RoadRunner::new(args.iterations, args.power));
+    let mut handler =
+        pistonrendering::escapetime::EscapeTimeWindowHandler::new(burningship,
+                                                                  args.threadcount);
+    runner(&mut handler);
 };
 
-static ROADRUNNER: FractalData = FractalData {
-    name: "roadrunner",
-    desc: "Draws a variation of the burning ship fractal",
-    args: &["MAX_ITERATIONS", "POWER"],
-    with_window_handler: &|args, runner| {
-        if args.iterations < 1 {
-            abort!("Must specify a MAX_ITERATIONS of 1 or greater!");
-        }
-        let burningship = Arc::new(RoadRunner::new(args.iterations, args.power));
-        let mut handler =
-            pistonrendering::escapetime::EscapeTimeWindowHandler::new(burningship,
-                                                                      args.threadcount);
-        runner(&mut handler);
-    },
+sierpinski: [], "Draws a Sierpinski triangle using a chaos game. It randomly picks 3 points on the screen as the vertices of the triangle, finds the center of the triangle, and then moves halfway to a random vertex. Repeat ad nauseum.",
+|args, runner| {
+    let game = Arc::new(SierpinskiChaosGame::new());
+    let mut handler =
+        pistonrendering::chaosgame::ChaosGameWindowHandler::new(game, args.drawrate as usize);
+    runner(&mut handler);
 };
 
-static SIERPINSKI: FractalData = FractalData {
-    name: "sierpinski",
-    desc: "Draws a Sierpinski triangle using a chaos game. It randomly picks 3 points on the \
-           screen as the vertices of the triangle, finds the center of the triangle, and then \
-           moves halfway to a random vertex. Repeat ad nauseum.",
-    args: &["foo"],
-    with_window_handler: &|args, runner| {
-        let game = Arc::new(SierpinskiChaosGame::new());
-        let mut handler =
-            pistonrendering::chaosgame::ChaosGameWindowHandler::new(game, args.drawrate as usize);
-        runner(&mut handler);
-    },
+terdragon: ["ITERATION"], "Draws a terdragon curve. Needs an ITERATION.",
+|args, runner| {
+    let program = LindenmayerSystemTurtleProgram::new(TerdragonFractal::new(args.iterations));
+    let mut handler = pistonrendering::turtle::construct_turtle_window_handler(&program,
+                                                                               args.drawrate);
+    runner(&mut *handler);
 };
 
-static TERDRAGON: FractalData = FractalData {
-    name: "terdragon",
-    desc: "Draws a terdragon curve. Needs an ITERATION.",
-    args: &["ITERATION"],
-    with_window_handler: &|args, runner| {
-        let program = LindenmayerSystemTurtleProgram::new(TerdragonFractal::new(args.iterations));
-        let mut handler = pistonrendering::turtle::construct_turtle_window_handler(&program,
-                                                                                   args.drawrate);
-        runner(&mut *handler);
-    },
-};
-
-
-pub fn get_chaos_data() -> HashMap<&'static str, &'static FractalData> {
-    let mut data = HashMap::new();
-    data.insert("barnsleyfern", &BARNSLEYFERN);
-    data.insert("burningmandel", &BURNINGMANDEL);
-    data.insert("burningship", &BURNINGSHIP);
-    data.insert("cesaro", &CESARO);
-    data.insert("cesarotri", &CESAROTRI);
-    data.insert("dragon", &DRAGON);
-    data.insert("kochcurve", &KOCHCURVE);
-    data.insert("levyccurve", &LEVYCCURVE);
-    data.insert("mandelbrot", &MANDELBROT);
-    data.insert("roadrunner", &ROADRUNNER);
-    data.insert("sierpinski", &SIERPINSKI);
-    data.insert("terdragon", &TERDRAGON);
-    data
-}
+);
