@@ -32,7 +32,7 @@ Usage:
 
 Arguments:
   CURVE         Which curve to draw.
-  ITERATION     Parameter needed by some fractals.
+  ITERATION     Parameter needed by some fractals. (sometimes called MAX_ITERATIONS)
   POWER         Optional exponent used by some curves. (default: 2)
 
 Options:
@@ -44,18 +44,6 @@ Options:
                   [default: 1]
 
 Fractals:
-  barnsleyfern                  Barnsley Fern (chaos game).
-  burningship MAX_ITER POWER    Burning ship fractal.
-  burningmandel MAX_ITER POWER  Variation of the burning ship fractal.
-  cesaro ITERATION              Césaro square curve.
-  cesarotri ITERATION           Césaro triangle curve.
-  dragon ITERATION              Dragon curve.
-  kochcurve ITERATION           Koch snowflake curve.
-  levyccurve ITERATION          Levy C Curve.
-  mandelbrot MAX_ITER POWER     Mandelbrot fractal.
-  roadrunner MAX_ITER POWER     Variation of the burning ship fractal.
-  sierpinski                    Sierpinski triangle (chaos game).
-  terdragon ITERATION           Terdragon fractal.
 ";
 
 #[derive(Debug, RustcDecodable)]
@@ -84,7 +72,29 @@ impl Into<fractaldata::Arguments> for Args {
 }
 
 fn parse_args() -> Args {
-    Docopt::new(USAGE)
+    // Construct a summary of all the supported fractals to append to the basic
+    // program usage.
+    let all_fds = fractaldata::get_all_fractal_data();
+    let longest_usage: usize = all_fds.iter().map(|fd| fd.usage().len()).max().unwrap();
+    let help_summaries: Vec<String> = all_fds.iter()
+        .map(|fd| {
+            // construct a single line of the help summary. It involves the fractal
+            // command, its args, some whitespace to pad, and then a short description. The
+            // padding ensures that the short descriptions all line up.
+            let fd_usage = fd.usage();
+            let mut components = vec!["  ", &fd_usage];
+            let spaces = longest_usage - fd_usage.len();
+            for _ in 0..spaces {
+                components.push(" ");
+            }
+            components.push("  ");
+            components.push(&fd.summary);
+            components.concat()
+        })
+        .collect();
+    let help_summary = help_summaries.join("\n");
+
+    Docopt::new([USAGE, &help_summary].concat())
         .and_then(|d| d.argv(env::args()).decode())
         .unwrap_or_else(|e| e.exit())
 }

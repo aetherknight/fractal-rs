@@ -55,9 +55,10 @@ pub struct Arguments {
 }
 
 pub struct FractalData {
-    pub name: Box<AsRef<str>>,
-    pub desc: Box<AsRef<str>>,
-    pub args: Box<AsRef<[&'static str]>>,
+    pub name: String,
+    pub summary: String,
+    pub desc: String,
+    pub args: Box<[&'static str]>,
     /// Function or closure that takes in a list of arguments and constructs a WindowHandler for
     /// the curve. It should then call the passed in function pointer and give it the
     /// WindowHandler.
@@ -65,40 +66,62 @@ pub struct FractalData {
 }
 
 impl FractalData {
+    pub fn usage(&self) -> String{
+        let mut output = String::new();
+        output.push_str(&self.name);
+        for arg in self.args.iter() {
+            output.push_str(" ");
+            output.push_str(arg);
+        }
+        output
+    }
+
     pub fn print_info(&self, dollar_zero: &str) {
-        println!("{}", self.name.as_ref().as_ref());
-        println!("{}", self.desc.as_ref().as_ref());
-        print!("usage: {} {}", dollar_zero, self.name.as_ref().as_ref());
-        for arg in self.args.as_ref().as_ref() {
+        println!("{}", self.name);
+        println!("{}", self.desc);
+        print!("usage: {} {}", dollar_zero, self.name);
+        for arg in self.args.iter() {
             print!(" {}", arg);
         }
         println!("");
     }
 }
 
-/// Build the list of support fractals.
+/// Build functions to access the fractal data using a list of
 macro_rules! fractal_data {
-    ( $($name:ident: $args:expr, $desc:expr, $with_window_handler:expr);+ $(;)*) => (
+    ( $($name:ident: $args:expr, $summary:expr, $desc:expr, $with_window_handler:expr);+ $(;)*) => (
+        /// Returns a FractalData describing the requested fractal, or it returns an Err(&str)
+        /// indicating the fractal name is not known.
         pub fn get_fractal_data(name: &str) -> Result<FractalData, &str> {
             match name {
-                $(
-                    stringify!($name) => {
-                        Ok(FractalData {
-                            name: Box::new(stringify!($name)),
-                            desc: Box::new($desc),
-                            args: Box::new($args),
-                            with_window_handler: Box::new($with_window_handler)
-                        })
-                    }
-                 )+
-                    _ => { Err("Unknown or unsupported fractal type")}
+                $(stringify!($name) => {
+                    Ok(FractalData {
+                        name: stringify!($name).to_string(),
+                        summary: $summary.to_string(),
+                        desc: $desc.to_string(),
+                        args: Box::new($args),
+                        with_window_handler: Box::new($with_window_handler)
+                    })
+                })+
+                _ => { Err("Unknown or unsupported fractal type")}
             }
+        }
+
+        /// Returns a Vec of FractalDatas describing all of the supported fractals.
+        pub fn get_all_fractal_data() -> Vec<FractalData> {
+            let mut fd_list = Vec::new();
+            // the following _shouldn't_ ever return an Err
+            $(if let Ok(fd) = get_fractal_data(stringify!($name)) {
+                fd_list.push(fd);
+            })+
+            fd_list
         }
         )
 }
 
 fractal_data!(
-    barnsleyfern: [], "Draws the Barnsley Fern fractal using a chaos game with affine transforms.",
+    barnsleyfern: [], "Barnsley Fern (chaos game)",
+    "Draws the Barnsley Fern fractal using a chaos game with affine transforms.",
     |args, runner| {
         let game = Arc::new(barnsleyfern::BarnsleyFern::new(&barnsleyfern::REFERENCE_TRANSFORMS,
                                                             &barnsleyfern::REFERENCE_WEIGHTS));
@@ -107,30 +130,34 @@ fractal_data!(
         runner(&mut handler);
     };
 
-    burningship: ["MAX_ITERATIONS", "POWER"], "Draws the burning ship fractal",
+    burningship: ["MAX_ITERATIONS", "POWER"], "Burning Ship fractal",
+    "Draws the burning ship fractal",
     |args, runner| {
         if args.iterations < 1 {
             abort!("Must specify a MAX_ITERATIONS of 1 or greater!");
         }
         let burningship = Arc::new(BurningShip::new(args.iterations, args.power));
         let mut handler =
-            pistonrendering::escapetime::EscapeTimeWindowHandler::new(burningship, args.threadcount);
+            pistonrendering::escapetime::EscapeTimeWindowHandler::new(burningship,
+                                                                      args.threadcount);
         runner(&mut handler);
     };
 
-burningmandel: ["MAX_ITERATIONS", "POWER"], "Draws a variation of the burning ship fractal",
+burningmandel: ["MAX_ITERATIONS", "POWER"], "Burning Ship fractal fariation",
+"Draws a variation of the burning ship fractal",
 |args, runner| {
     if args.iterations < 1 {
         abort!("Must specify a MAX_ITERATIONS of 1 or greater!");
     }
-    let burningship = Arc::new(BurningMandel::new(args.iterations, args.power));
+    let burningmandel = Arc::new(BurningMandel::new(args.iterations, args.power));
     let mut handler =
-        pistonrendering::escapetime::EscapeTimeWindowHandler::new(burningship,
+        pistonrendering::escapetime::EscapeTimeWindowHandler::new(burningmandel,
                                                                   args.threadcount);
     runner(&mut handler);
 };
 
-cesaro: ["ITERATION"], "Draws a square Césaro fractal. Needs an ITERATION.",
+cesaro: ["ITERATION"], "Césaro square curve",
+"Draws a square Césaro fractal. Needs an ITERATION.",
 |args, runner| {
     let program = LindenmayerSystemTurtleProgram::new(CesaroFractal::new(args.iterations));
     let mut handler = pistonrendering::turtle::construct_turtle_window_handler(&program,
@@ -138,7 +165,8 @@ cesaro: ["ITERATION"], "Draws a square Césaro fractal. Needs an ITERATION.",
     runner(&mut *handler);
 };
 
-cesarotri: ["ITERATION"], "Draws a triangle Césaro fractal. Needs an ITERATION.",
+cesarotri: ["ITERATION"], "Césaro triangle curve",
+"Draws a triangle Césaro fractal. Needs an ITERATION.",
 |args, runner| {
     let program = LindenmayerSystemTurtleProgram::new(CesaroTriFractal::new(args.iterations));
     let mut handler = pistonrendering::turtle::construct_turtle_window_handler(&program,
@@ -146,7 +174,8 @@ cesarotri: ["ITERATION"], "Draws a triangle Césaro fractal. Needs an ITERATION.
     runner(&mut *handler);
 };
 
-dragon: ["ITERATION"], "Draws dragon curve fractal. Needs an ITERATION.",
+dragon: ["ITERATION"], "Dragon curve",
+"Draws dragon curve fractal. Needs an ITERATION.",
 |args, runner| {
     let program = DragonFractal::new(args.iterations);
     let mut handler = pistonrendering::turtle::construct_turtle_window_handler(&program,
@@ -154,7 +183,8 @@ dragon: ["ITERATION"], "Draws dragon curve fractal. Needs an ITERATION.",
     runner(&mut *handler);
 };
 
-kochcurve: ["ITERATION"], "Draws a Koch snowflake. Needs an ITERATION.",
+kochcurve: ["ITERATION"], "Koch snowflake curve",
+"Draws a Koch snowflake. Needs an ITERATION.",
 |args, runner| {
     let program = LindenmayerSystemTurtleProgram::new(KochCurve::new(args.iterations));
     let mut handler = pistonrendering::turtle::construct_turtle_window_handler(&program,
@@ -162,7 +192,8 @@ kochcurve: ["ITERATION"], "Draws a Koch snowflake. Needs an ITERATION.",
     runner(&mut *handler);
 };
 
-levyccurve: ["ITERATION"], "Draws a Levy C Curve. Needs an ITERATION.",
+levyccurve: ["ITERATION"], "Levy C Curve",
+"Draws a Levy C Curve. Needs an ITERATION.",
 |args, runner| {
     let program = LindenmayerSystemTurtleProgram::new(LevyCCurve::new(args.iterations));
     let mut handler = pistonrendering::turtle::construct_turtle_window_handler(&program,
@@ -170,7 +201,8 @@ levyccurve: ["ITERATION"], "Draws a Levy C Curve. Needs an ITERATION.",
     runner(&mut *handler);
 };
 
-mandelbrot: ["MAX_ITERATIONS", "POWER"], "Draws the traditional mandelbrot fractal",
+mandelbrot: ["MAX_ITERATIONS", "POWER"], "Mandelbrot fractal",
+"Draws the traditional mandelbrot fractal",
 |args, runner| {
     if args.iterations < 1 {
         abort!("Must specify a MAX_ITERATIONS of 1 or greater!");
@@ -181,7 +213,8 @@ mandelbrot: ["MAX_ITERATIONS", "POWER"], "Draws the traditional mandelbrot fract
     runner(&mut handler);
 };
 
-roadrunner: ["MAX_ITERATIONS", "POWER"], "Draws a variation of the burning ship fractal",
+roadrunner: ["MAX_ITERATIONS", "POWER"], "Roadrunner fractal (burning ship variation)",
+"Draws a variation of the burning ship fractal",
 |args, runner| {
     if args.iterations < 1 {
         abort!("Must specify a MAX_ITERATIONS of 1 or greater!");
@@ -193,7 +226,8 @@ roadrunner: ["MAX_ITERATIONS", "POWER"], "Draws a variation of the burning ship 
     runner(&mut handler);
 };
 
-sierpinski: [], "Draws a Sierpinski triangle using a chaos game. It randomly picks 3 points on the screen as the vertices of the triangle, finds the center of the triangle, and then moves halfway to a random vertex. Repeat ad nauseum.",
+sierpinski: [], "Sierpinski triangle (chaos game)",
+"Draws a Sierpinski triangle using a chaos game. It randomly picks 3 points on the screen as the vertices of the triangle, finds the center of the triangle, and then moves halfway to a random vertex. Repeat ad nauseum.",
 |args, runner| {
     let game = Arc::new(SierpinskiChaosGame::new());
     let mut handler =
@@ -201,7 +235,8 @@ sierpinski: [], "Draws a Sierpinski triangle using a chaos game. It randomly pic
     runner(&mut handler);
 };
 
-terdragon: ["ITERATION"], "Draws a terdragon curve. Needs an ITERATION.",
+terdragon: ["ITERATION"], "Terdragon curve",
+"Draws a terdragon curve. Needs an ITERATION.",
 |args, runner| {
     let program = LindenmayerSystemTurtleProgram::new(TerdragonFractal::new(args.iterations));
     let mut handler = pistonrendering::turtle::construct_turtle_window_handler(&program,
