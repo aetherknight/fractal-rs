@@ -12,109 +12,115 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-extern crate docopt;
+extern crate clap;
+// extern crate docopt;
 extern crate rustc_serialize;
 
 extern crate fractal;
 
-use docopt::Docopt;
+use clap::App;
+use clap::Arg;
+use clap::SubCommand;
 use fractal::fractaldata;
 use fractal::pistonrendering;
-use std::env;
+use std::process;
 
-#[cfg_attr(rustfmt, rustfmt_skip)]
-const USAGE: &'static str = "
-Renders fractals in a piston window.
 
-Usage:
-  fractal (-h|--help|--version)
-  fractal [options] CURVE [ITERATION] [POWER]
-
-Arguments:
-  CURVE         Which curve to draw.
-  ITERATION     Parameter needed by some fractals. (sometimes called MAX_ITERATIONS)
-  POWER         Optional exponent used by some curves. (default: 2)
-
-Options:
-  -h --help       Show this screen.
-  --version       Show version.
-  --drawrate=<r>  The number of lines or dots of the fractal that should be
-                  drawn per frame. [default: 1]
-  --threads=<t>   The number of worker threads, for modes that support it.
-                  [default: 1]
-
-Fractals:
-";
-
-#[derive(Debug, RustcDecodable)]
-#[allow(non_snake_case)]
-struct Args {
-    flag_version: bool,
-    flag_drawrate: u64,
-    flag_threads: u32,
-    arg_CURVE: String,
-    arg_ITERATION: Option<u64>,
-    arg_POWER: Option<u64>,
-}
-
-impl Into<fractaldata::Arguments> for Args {
-    fn into(self) -> fractaldata::Arguments {
-        let iterations = self.arg_ITERATION.unwrap_or(0);
-        let power = self.arg_POWER.unwrap_or(2);
-        fractaldata::Arguments {
-            curve: self.arg_CURVE,
-            drawrate: self.flag_drawrate,
-            iterations: iterations,
-            power: power,
-            threadcount: self.flag_threads,
-        }
+fn parse_arg<T>(opt_name: &str, opt_val: &str) -> T
+    where T: std::str::FromStr,
+          <T as std::str::FromStr>::Err: std::fmt::Display
+{
+    match opt_val.parse::<T>() {
+        Err(e) => panic!("Error parsing {}: {}", opt_name, e),
+        Ok(v) => v,
     }
-}
-
-fn parse_args() -> Args {
-    // Construct a summary of all the supported fractals to append to the basic
-    // program usage.
-    let all_fds = fractaldata::get_all_fractal_data();
-    let longest_usage: usize = all_fds.iter().map(|fd| fd.usage().len()).max().unwrap();
-    let help_summaries: Vec<String> = all_fds.iter()
-        .map(|fd| {
-            // construct a single line of the help summary. It involves the fractal
-            // command, its args, some whitespace to pad, and then a short description. The
-            // padding ensures that the short descriptions all line up.
-            let fd_usage = fd.usage();
-            let mut components = vec!["  ", &fd_usage];
-            let spaces = longest_usage - fd_usage.len();
-            for _ in 0..spaces {
-                components.push(" ");
-            }
-            components.push("  ");
-            components.push(&fd.summary);
-            components.concat()
-        })
-        .collect();
-    let help_summary = help_summaries.join("\n");
-
-    Docopt::new([USAGE, &help_summary].concat())
-        .and_then(|d| d.argv(env::args()).decode())
-        .unwrap_or_else(|e| e.exit())
 }
 
 fn main() {
-    let args: Args = parse_args();
+    let fds = fractaldata::get_all_fractal_data();
+    // Command line arguments specification
+    //
+    // TODO: should drawrate and threads be moved into their respective
+    // sub-commands? They aren't
+    // really global options, but each one is used by several subcommands.
+    let mut app = App::new("fractal")
+        .version(env!("CARGO_PKG_VERSION"))
+        .author(env!("CARGO_PKG_AUTHORS"))
+        .about("Renders fractals in another window.")
+        .arg(Arg::with_name("drawrate")
+            .long("drawrate")
+            .value_name("RATE")
+            .help("The number of lines or dots of the fractal that should be drawn per frame. \
+                   (Default: 1)")
+            .takes_value(true))
+        .arg(Arg::with_name("threads")
+            .long("threads")
+            .value_name("NUM")
+            .help("The number of of worker threads, for fractals that support it. (Default: 1)")
+            .takes_value(true));
 
-    if args.flag_version {
-        println!("{}", env!("CARGO_PKG_VERSION").to_string());
-        std::process::exit(0);
-    }
+    // Add the fractals as sub-commands
+    app = fds.iter()
+        .map(|fd| {
+            let mut sc = SubCommand::with_name(fd.name.as_str()).about(fd.summary.as_str());
+            // Add any sub-command specific command line arguments
+            for (index, arg) in fd.args.iter().enumerate() {
+                sc = sc.arg(Arg::with_name(arg).required(true).index(index as u64 + 1));
+            }
+            sc
+        })
+        .fold(app, |app, sc| app.subcommand(sc));
 
-    if let Ok(command_data) = fractaldata::get_fractal_data(args.arg_CURVE.as_ref()) {
+    // Parse the command line
+    let matches = app.get_matches();
+
+    // Which fractal renderer to run (or print the usage)
+    let curve = matches.subcommand_name()
+        .unwrap_or_else(|| {
+            println!("{}", matches.usage());
+            process::exit(1);
+        });
+
+    let drawrate = matches.value_of("drawrate")
+        .and_then(|d| Some(parse_arg::<u64>("drawrate", d)))
+        .unwrap_or(1);
+
+    let threadcount =
+        matches.value_of("threads").and_then(|d| Some(parse_arg::<u32>("threads", d))).unwrap_or(1);
+
+    // TODO: move these arguments into the subcommand handlers
+    let iterations: u64 = matches.subcommand_matches(curve)
+        .and_then(|m| {
+            m.value_of("ITERATION")
+                .and_then(|d| Some(parse_arg::<u64>("ITERATION", d)))
+                .or_else(|| {
+                    m.value_of("MAX_ITERATIONS")
+                        .and_then(|d| Some(parse_arg::<u64>("MAX_ITERATIONS", d)))
+                })
+        })
+        .unwrap_or(0);
+    let power = matches.subcommand_matches(curve)
+        .and_then(|m| m.value_of("POWER").and_then(|d| Some(parse_arg::<u64>("POWER", d))))
+        .unwrap_or(0);
+
+    if let Ok(command_data) = fractaldata::get_fractal_data(curve) {
         let callback = command_data.with_window_handler;
-        callback(&args.into(),
+
+        let args = fractaldata::Arguments {
+            curve: curve.to_string(),
+            drawrate: drawrate,
+            threadcount: threadcount as u32,
+
+            iterations: iterations,
+            power: power,
+        };
+
+        callback(&args,
                  &|handler| {
                      pistonrendering::run(handler);
                  });
     } else {
         panic!("Unknown fractal: {}. Run `fractal --help` for more information.",
-               args.arg_CURVE);
+               curve);
     }
 }

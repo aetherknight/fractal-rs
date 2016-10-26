@@ -63,6 +63,8 @@ pub struct FractalData {
     /// the curve. It should then call the passed in function pointer and give it the
     /// WindowHandler.
     pub with_window_handler: Box<(Fn(&Arguments, &Fn(&mut WindowHandler)) + Sync)>,
+    // pub uses_drawrate: bool,
+    // pub uses_threads: bool,
 }
 
 impl FractalData {
@@ -143,7 +145,7 @@ fractal_data!(
         runner(&mut handler);
     };
 
-burningmandel: ["MAX_ITERATIONS", "POWER"], "Burning Ship fractal fariation",
+burningmandel: ["MAX_ITERATIONS", "POWER"], "Burning Ship fractal variation",
 "Draws a variation of the burning ship fractal",
 |args, runner| {
     if args.iterations < 1 {
