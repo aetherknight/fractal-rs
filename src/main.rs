@@ -13,14 +13,12 @@
 // limitations under the License.
 
 extern crate clap;
-// extern crate docopt;
 extern crate rustc_serialize;
 
 extern crate fractal;
 
 use clap::App;
 use clap::Arg;
-use clap::SubCommand;
 use fractal::fractaldata;
 use fractal::pistonrendering;
 use std::process;
@@ -61,14 +59,7 @@ fn main() {
 
     // Add the fractals as sub-commands
     app = fds.iter()
-        .map(|fd| {
-            let mut sc = SubCommand::with_name(fd.name.as_str()).about(fd.summary.as_str());
-            // Add any sub-command specific command line arguments
-            for (index, arg) in fd.args.iter().enumerate() {
-                sc = sc.arg(Arg::with_name(arg).required(true).index(index as u64 + 1));
-            }
-            sc
-        })
+        .map(|fd| (fd.clap_subcommand)())
         .fold(app, |app, sc| app.subcommand(sc));
 
     // Parse the command line
@@ -88,34 +79,18 @@ fn main() {
     let threadcount =
         matches.value_of("threads").and_then(|d| Some(parse_arg::<u32>("threads", d))).unwrap_or(1);
 
-    // TODO: move these arguments into the subcommand handlers
-    let iterations: u64 = matches.subcommand_matches(curve)
-        .and_then(|m| {
-            m.value_of("ITERATION")
-                .and_then(|d| Some(parse_arg::<u64>("ITERATION", d)))
-                .or_else(|| {
-                    m.value_of("MAX_ITERATIONS")
-                        .and_then(|d| Some(parse_arg::<u64>("MAX_ITERATIONS", d)))
-                })
-        })
-        .unwrap_or(0);
-    let power = matches.subcommand_matches(curve)
-        .and_then(|m| m.value_of("POWER").and_then(|d| Some(parse_arg::<u64>("POWER", d))))
-        .unwrap_or(0);
+    if let Ok(fractal_data) = fractaldata::get_fractal_data(curve) {
+        let subcommand_matches = matches.subcommand_matches(curve).unwrap();
 
-    if let Ok(command_data) = fractaldata::get_fractal_data(curve) {
-        let callback = command_data.with_window_handler;
+        let callback = fractal_data.parse_and_run;
 
-        let args = fractaldata::Arguments {
-            curve: curve.to_string(),
+        let global_args = fractaldata::GlobalArguments {
             drawrate: drawrate,
-            threadcount: threadcount as u32,
-
-            iterations: iterations,
-            power: power,
+            threadcount: threadcount,
         };
 
-        callback(&args,
+        callback(subcommand_matches,
+                 &global_args,
                  &|handler| {
                      pistonrendering::run(handler);
                  });

@@ -13,6 +13,7 @@
 // limitations under the License.
 
 //! Library of things to explore and draw various fractal curves.
+extern crate clap;
 extern crate graphics;
 extern crate gfx_device_gl;
 extern crate num;

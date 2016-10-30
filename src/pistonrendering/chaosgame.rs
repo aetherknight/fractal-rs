@@ -60,20 +60,18 @@ pub struct ChaosGameWindowHandler {
     game: Arc<ChaosGame + Send + Sync>,
     which_frame: WhichFrame,
     iter: Option<ChaosGameMoveIterator>,
-    dots_per_frame: usize,
+    dots_per_frame: u64,
     last_moves: Vec<Point>,
 }
 
 impl ChaosGameWindowHandler {
-    pub fn new(game: Arc<ChaosGame + Send + Sync>,
-               dots_per_frame: usize)
-               -> ChaosGameWindowHandler {
+    pub fn new(game: Arc<ChaosGame + Send + Sync>, dots_per_frame: u64) -> ChaosGameWindowHandler {
         ChaosGameWindowHandler {
             game: game,
             which_frame: WhichFrame::FirstFrame,
             iter: None,
             dots_per_frame: dots_per_frame,
-            last_moves: Vec::with_capacity(dots_per_frame),
+            last_moves: Vec::with_capacity(dots_per_frame as usize),
         }
     }
 }
@@ -82,7 +80,7 @@ impl WindowHandler for ChaosGameWindowHandler {
     fn window_resized(&mut self, _: Vec2d) {
         self.which_frame = WhichFrame::FirstFrame;
         self.iter = None;
-        self.last_moves = Vec::with_capacity(self.dots_per_frame);
+        self.last_moves = Vec::with_capacity(self.dots_per_frame as usize);
     }
 
     fn render_frame(&mut self, render_context: &mut RenderContext, _: u32) {
