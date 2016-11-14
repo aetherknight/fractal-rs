@@ -17,85 +17,42 @@ extern crate rustc_serialize;
 
 extern crate fractal;
 
-use clap::App;
-use clap::Arg;
 use fractal::fractaldata;
-use fractal::pistonrendering;
-use std::process;
 
-
-fn parse_arg<T>(opt_name: &str, opt_val: &str) -> T
-    where T: std::str::FromStr,
-          <T as std::str::FromStr>::Err: std::fmt::Display
-{
-    match opt_val.parse::<T>() {
-        Err(e) => panic!("Error parsing {}: {}", opt_name, e),
-        Ok(v) => v,
-    }
-}
 
 fn main() {
-    let fds = fractaldata::get_all_fractal_data();
     // Command line arguments specification
-    //
-    // TODO: should drawrate and threads be moved into their respective
-    // sub-commands? They aren't
-    // really global options, but each one is used by several subcommands.
-    let mut app = App::new("fractal")
+    let app = clap::App::new("fractal")
         .version(env!("CARGO_PKG_VERSION"))
         .author(env!("CARGO_PKG_AUTHORS"))
         .about("Renders fractals in another window.")
-        .arg(Arg::with_name("drawrate")
-            .long("drawrate")
-            .value_name("RATE")
-            .help("The number of lines or dots of the fractal that should be drawn per frame. \
-                   (Default: 1)")
-            .takes_value(true))
-        .arg(Arg::with_name("threads")
-            .long("threads")
-            .value_name("NUM")
-            .help("The number of of worker threads, for fractals that support it. (Default: 1)")
-            .takes_value(true));
+        .subcommand(fractaldata::barnsleyfern_command())
+        .subcommand(fractaldata::burningship_command())
+        .subcommand(fractaldata::burningmandel_command())
+        .subcommand(fractaldata::cesaro_command())
+        .subcommand(fractaldata::cesarotri_command())
+        .subcommand(fractaldata::dragon_command())
+        .subcommand(fractaldata::kochcurve_command())
+        .subcommand(fractaldata::levyccurve_command())
+        .subcommand(fractaldata::mandelbrot_command())
+        .subcommand(fractaldata::roadrunner_command())
+        .subcommand(fractaldata::sierpinski_command())
+        .subcommand(fractaldata::terdragon_command());
 
-    // Add the fractals as sub-commands
-    app = fds.iter()
-        .map(|fd| (fd.clap_subcommand)())
-        .fold(app, |app, sc| app.subcommand(sc));
-
-    // Parse the command line
     let matches = app.get_matches();
-
-    // Which fractal renderer to run (or print the usage)
-    let curve = matches.subcommand_name()
-        .unwrap_or_else(|| {
-            println!("{}", matches.usage());
-            process::exit(1);
-        });
-
-    let drawrate = matches.value_of("drawrate")
-        .and_then(|d| Some(parse_arg::<u64>("drawrate", d)))
-        .unwrap_or(1);
-
-    let threadcount =
-        matches.value_of("threads").and_then(|d| Some(parse_arg::<u32>("threads", d))).unwrap_or(1);
-
-    if let Ok(fractal_data) = fractaldata::get_fractal_data(curve) {
-        let subcommand_matches = matches.subcommand_matches(curve).unwrap();
-
-        let callback = fractal_data.parse_and_run;
-
-        let global_args = fractaldata::GlobalArguments {
-            drawrate: drawrate,
-            threadcount: threadcount,
-        };
-
-        callback(subcommand_matches,
-                 &global_args,
-                 &|handler| {
-                     pistonrendering::run(handler);
-                 });
-    } else {
-        panic!("Unknown fractal: {}. Run `fractal --help` for more information.",
-               curve);
+    match matches.subcommand() {
+        ("barnsleyfern", Some(args)) => fractaldata::barnsleyfern_run(args),
+        ("burningship", Some(args)) => fractaldata::burningship_run(args),
+        ("burningmandel", Some(args)) => fractaldata::burningmandel_run(args),
+        ("cesaro", Some(args)) => fractaldata::cesaro_run(args),
+        ("cesarotri", Some(args)) => fractaldata::cesarotri_run(args),
+        ("dragon", Some(args)) => fractaldata::dragon_run(args),
+        ("kochcurve", Some(args)) => fractaldata::kochcurve_run(args),
+        ("levyccurve", Some(args)) => fractaldata::levyccurve_run(args),
+        ("mandelbrot", Some(args)) => fractaldata::mandelbrot_run(args),
+        ("roadrunner", Some(args)) => fractaldata::roadrunner_run(args),
+        ("sierpinski", Some(args)) => fractaldata::sierpinski_run(args),
+        ("terdragon", Some(args)) => fractaldata::terdragon_run(args),
+        _ => panic!("Unknown subcommand. Run `fractal --help` for more information."),
     }
 }

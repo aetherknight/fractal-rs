@@ -18,11 +18,11 @@
 //! each curve and configure a WindowHandler to handle callbacks from the event
 //! loop.
 
+use clap;
 use std;
 use std::sync::Arc;
 
-use clap;
-
+use super::chaosgame::ChaosGame;
 use super::chaosgame::barnsleyfern;
 use super::chaosgame::sierpinski::SierpinskiChaosGame;
 use super::curves::cesaro::CesaroFractal;
@@ -31,11 +31,12 @@ use super::curves::dragon::DragonFractal;
 use super::curves::kochcurve::KochCurve;
 use super::curves::levyccurve::LevyCCurve;
 use super::curves::terdragon::TerdragonFractal;
+use super::escapetime::EscapeTime;
 use super::escapetime::burningship::*;
 use super::escapetime::mandelbrot::Mandelbrot;
 use super::lindenmayer::LindenmayerSystemTurtleProgram;
 use super::pistonrendering;
-use super::pistonrendering::WindowHandler;
+use super::turtle::TurtleProgram;
 
 /// Print a message to stderr and exit with a non-zero exit code
 macro_rules! abort {
@@ -56,47 +57,14 @@ macro_rules! count_exprs {
     ($head:expr, $($tail:expr),*) => (1 + count_exprs!($($tail),*));
 }
 
-
-
-pub struct GlobalArguments {
-    pub drawrate: u64,
-    pub threadcount: u32,
+/// Helper to extract and parse a value from a command line argument.
+macro_rules! extract {
+    ($matches:expr, $name:expr) => {
+        $matches.value_of($name).map(|s| parse_arg($name, s) )
+    }
 }
 
-// #[derive(Debug)]
-pub struct FractalData {
-    /// The name of the fractal that will be used on the command line as the sub-command to
-    /// actually render this fractal.
-    pub name: String,
-
-    /// A short description of the fractal.
-    pub summary: String,
-
-    /// A longer description of the fractal.
-    pub desc: String,
-
-    /// The names of command line arguments required by this fractal.
-    pub args: Box<[&'static str]>,
-
-    // pub clap_subcommand: Box<for<'a, 'b> Fn() -> clap::App<'a, 'b>>,
-    // We only use static strs when constructing app.
-    pub clap_subcommand: Box<Fn() -> clap::App<'static, 'static>>,
-
-    /// Closure that extracts and parses command line arguments for the fractal, constructs a
-    /// WindowHandler for the fractal, and then runs the provided callback to start the event loop
-    /// for rendering.
-    ///
-    /// The arguments are:
-    ///
-    /// * A clap::ArgMatches for the fractal's clap subcommand.
-    /// * Some optional arguments that are set globally.
-    /// * A callback that should be called with the constructed WindowHandler for the fractal that
-    ///   launches the actual event loop.
-    ///
-    /// Use the `fractal_data!` macro to construct this.
-    pub parse_and_run: Box<(Fn(&clap::ArgMatches, &GlobalArguments, &Fn(&mut WindowHandler)) + Sync)>,
-}
-
+/// Method to help with parsing a command line argument into some other type.
 fn parse_arg<T>(opt_name: &str, opt_val: &str) -> T
 where T: std::str::FromStr,
       <T as std::str::FromStr>::Err: std::fmt::Display
@@ -107,245 +75,349 @@ where T: std::str::FromStr,
     }
 }
 
+/// A subcommand that can configure and run a particular fractal renderer.
+pub trait FractalSubcommand {
+    /// Returns a clap::App definition of this subcommand. The command line
+    /// arguments it specifies
+    /// should then be handled by the `run()` method.
+    fn command(&self) -> clap::App<'static, 'static>;
 
-/// Build functions to access the fractal data using a list of descriptive data structures.
-///
-/// The macro constructs a standard data structure for all of the fractals that includes
-/// automatically generated closures for defining and parsing command line arguments and actually
-/// running the fractal/curve's renderer.
-///
-/// This might eventually become one or more traits that are then implemented for each fractal (eg
-/// to separate out command line parsing), but my current approach reasons that the only real
-/// differentiator between each fractal's data is how to call it, which should be straightforward
-/// to handle with closures (and a macro to keep the descriptive definition of each fractal clean
-/// of boilerplate).
-///
-/// It is also an exercise in what macros can do.
-macro_rules! fractal_data {
-    ( $($name:ident: { args: [$($argname:ident => $argtype:ty),*], summary: $summary:expr, desc: $desc:expr, run_runner: $run_runner:expr }),+ $(;)*) => (
-
-        /// Returns a FractalData describing the requested fractal, or it returns an Err(&str)
-        /// indicating the fractal name is not known.
-        // disabling unused_variables just for the closure. If a fractal has no arguments, then
-        // `matches` is never used.
-        #[allow(unused_variables)]
-        pub fn get_fractal_data(name: &str) -> Result<FractalData, &str> {
-            match name {
-                $(stringify!($name) => {
-                    Ok(FractalData {
-                        name: stringify!($name).to_string(),
-                        summary: $summary.to_string(),
-                        desc: $desc.to_string(),
-                        args: Box::new([$(stringify!($argname)),*]),
-                        clap_subcommand: Box::new(|| {
-                            let mut sc = clap::SubCommand::with_name(stringify!($name)).about($summary);
-
-                            let args:&[&str] = &[$(stringify!($argname)),*];
-
-                            sc = args.into_iter()
-                                .enumerate()
-                                .fold(sc, |sc, (index, arg)| {
-                                    sc.arg(clap::Arg::with_name(arg).required(true).index(index as u64 +1))
-                                });
-                            sc
-                        }),
-                        parse_and_run: Box::new(|matches, opts, runner| {
-                            #[allow(dead_code)]
-                            struct SubArgs {
-                                drawrate: u64,
-                                threadcount: u32,
-                                $($argname: $argtype),*
-                            }
-
-                            // let runner : &Fn(&mut WindowHandler) = handler;
-                            let rr: &Fn(SubArgs, &Fn(&mut WindowHandler)) = &$run_runner;
-                            rr(
-                                SubArgs {
-                                    drawrate: opts.drawrate,
-                                    threadcount: opts.threadcount,
-                                    $( $argname:
-                                       matches.value_of(stringify!($argname)).and_then(|d| Some(parse_arg::<$argtype>(stringify!($argname), d))).unwrap()
-                                     ),*
-                                }, runner);
-                        }),
-                    })
-                })+
-                _ => { Err("Unknown or unsupported fractal type")}
-            }
-        }
-
-    /// Returns a Vec of FractalDatas describing all of the supported fractals.
-    pub fn get_all_fractal_data() -> Vec<FractalData> {
-        let mut fd_list = Vec::new();
-        // the following _shouldn't_ ever return an Err
-        $(if let Ok(fd) = get_fractal_data(stringify!($name)) {
-            fd_list.push(fd);
-        })+
-        fd_list
-    }
-    )
+    /// Runs the command with the given command line arguments and the provided
+    /// callback.
+    fn run(&self, matches: &clap::ArgMatches);
 }
 
-fractal_data!(
-    barnsleyfern: {
-        args: [],
-        summary: "Barnsley Fern (chaos game)",
-        desc: "Draws the Barnsley Fern fractal using a chaos game with affine transforms.",
-        run_runner: |args, runner| {
-            let game = Arc::new(barnsleyfern::BarnsleyFern::new(&barnsleyfern::REFERENCE_TRANSFORMS,
-                                                                &barnsleyfern::REFERENCE_WEIGHTS));
-            let mut handler =
-                pistonrendering::chaosgame::ChaosGameWindowHandler::new(game, args.drawrate);
-            runner(&mut handler);
-        }
-    },
+pub struct ChaosGameCommand<E> where E: ChaosGame + Send + Sync {
+    name: &'static str,
+    description: &'static str,
+    ctor: Box<Fn() -> E>,
+}
 
-    burningship: {
-        args: [max_iterations => u64, power => u64],
-        summary: "Burning Ship fractal",
-        desc: "Draws the burning ship fractal",
-        run_runner: |args, runner| {
-            if args.max_iterations < 1 {
-                abort!("Must specify a MAX_ITERATIONS of 1 or greater!");
+impl<E> ChaosGameCommand<E> where E: ChaosGame + Send + Sync {
+    pub fn new(name: &'static str,
+               description: &'static str,
+               ctor: Box<Fn() -> E>)
+        -> ChaosGameCommand<E> {
+            ChaosGameCommand {
+                name: name,
+                description: description,
+                ctor: ctor,
             }
-            let burningship = Arc::new(BurningShip::new(args.max_iterations, args.power));
-            let mut handler =
-                pistonrendering::escapetime::EscapeTimeWindowHandler::new(burningship,
-                                                                          args.threadcount);
-            runner(&mut handler);
         }
-    },
+}
 
-    burningmandel: {
-        args: [max_iterations => u64, power => u64],
-        summary: "Burning Ship fractal variation",
-        desc: "Draws a variation of the burning ship fractal",
-        run_runner: |args, runner| {
-            if args.max_iterations < 1 {
-                abort!("Must specify a MAX_ITERATIONS of 1 or greater!");
-            }
-            let burningmandel = Arc::new(BurningMandel::new(args.max_iterations, args.power));
-            let mut handler =
-                pistonrendering::escapetime::EscapeTimeWindowHandler::new(burningmandel,
-                                                                          args.threadcount);
-            runner(&mut handler);
-        }
-    },
-
-
-    cesaro: {
-        args: [iteration => u64],
-        summary: "Césaro square curve",
-        desc: "Draws a square Césaro fractal. Needs an ITERATION.",
-        run_runner: |args, runner| {
-            let program = LindenmayerSystemTurtleProgram::new(CesaroFractal::new(args.iteration));
-            let mut handler = pistonrendering::turtle::construct_turtle_window_handler(&program,
-                                                                                       args.drawrate);
-            runner(&mut *handler);
-        }
-    },
-
-    cesarotri: {
-        args: [iteration => u64],
-        summary: "Césaro triangle curve",
-        desc: "Draws a triangle Césaro fractal. Needs an ITERATION.",
-        run_runner: |args, runner| {
-            let program = LindenmayerSystemTurtleProgram::new(CesaroTriFractal::new(args.iteration));
-            let mut handler = pistonrendering::turtle::construct_turtle_window_handler(&program,
-                                                                                       args.drawrate);
-            runner(&mut *handler);
-        }
-    },
-
-    dragon: {
-        args: [iteration => u64],
-        summary: "Dragon curve",
-        desc: "Draws dragon curve fractal. Needs an ITERATION.",
-        run_runner: |args, runner| {
-            let program = DragonFractal::new(args.iteration);
-            let mut handler = pistonrendering::turtle::construct_turtle_window_handler(&program,
-                                                                                       args.drawrate);
-            runner(&mut *handler);
-        }
-    },
-
-    kochcurve: {
-        args: [iteration => u64],
-        summary: "Koch snowflake curve",
-        desc: "Draws a Koch snowflake. Needs an ITERATION.",
-        run_runner: |args, runner| {
-            let program = LindenmayerSystemTurtleProgram::new(KochCurve::new(args.iteration));
-            let mut handler = pistonrendering::turtle::construct_turtle_window_handler(&program,
-                                                                                       args.drawrate);
-            runner(&mut *handler);
-        }
-    },
-
-    levyccurve: {
-        args: [iteration => u64],
-        summary: "Levy C Curve",
-        desc: "Draws a Levy C Curve. Needs an ITERATION.",
-        run_runner: |args, runner| {
-            let program = LindenmayerSystemTurtleProgram::new(LevyCCurve::new(args.iteration));
-            let mut handler = pistonrendering::turtle::construct_turtle_window_handler(&program,
-                                                                                       args.drawrate);
-            runner(&mut *handler);
-        }
-    },
-
-    mandelbrot: {
-        args: [max_iterations => u64, power => u64],
-        summary: "Mandelbrot fractal",
-        desc: "Draws the traditional mandelbrot fractal",
-        run_runner: |args, runner| {
-            if args.max_iterations < 1 {
-                abort!("Must specify a MAX_ITERATIONS of 1 or greater!");
-            }
-            let mandelbrot = Arc::new(Mandelbrot::new(args.max_iterations, args.power));
-            let mut handler =
-                pistonrendering::escapetime::EscapeTimeWindowHandler::new(mandelbrot, args.threadcount);
-            runner(&mut handler);
-        }
-    },
-
-    roadrunner:  {
-        args: [max_iterations => u64, power => u64],
-        summary:"Roadrunner fractal (burning ship variation)",
-        desc: "Draws a variation of the burning ship fractal",
-        run_runner:|args, runner| {
-            if args.max_iterations < 1 {
-                abort!("Must specify a MAX_ITERATIONS of 1 or greater!");
-            }
-            let burningship = Arc::new(RoadRunner::new(args.max_iterations, args.power));
-            let mut handler =
-                pistonrendering::escapetime::EscapeTimeWindowHandler::new(burningship,
-                                                                          args.threadcount);
-            runner(&mut handler);
-        }
-    },
-
-    sierpinski: {
-        args: [],
-        summary: "Sierpinski triangle (chaos game)",
-        desc: "Draws a Sierpinski triangle using a chaos game. It randomly picks 3 points on the screen as the vertices of the triangle, finds the center of the triangle, and then moves halfway to a random vertex. Repeat ad nauseum.",
-        run_runner: |args, runner| {
-            let game = Arc::new(SierpinskiChaosGame::new());
-            let mut handler =
-                pistonrendering::chaosgame::ChaosGameWindowHandler::new(game, args.drawrate);
-            runner(&mut handler);
-        }
-    },
-
-    terdragon: {
-        args: [iteration => u64],
-        summary:"Terdragon curve",
-        desc:"Draws a terdragon curve. Needs an ITERATION.",
-        run_runner:|args, runner| {
-            let program = LindenmayerSystemTurtleProgram::new(TerdragonFractal::new(args.iteration));
-            let mut handler = pistonrendering::turtle::construct_turtle_window_handler(&program,
-                                                                                       args.drawrate);
-            runner(&mut *handler);
-        }
+impl<E> FractalSubcommand for ChaosGameCommand<E> where E: ChaosGame + Send + Sync + 'static {
+    fn command(&self) -> clap::App<'static, 'static> {
+        clap::SubCommand::with_name(self.name)
+            .about(self.description)
+            .arg(clap::Arg::with_name("drawrate")
+                 .takes_value(true)
+                 .help("The number of points to draw per frame")
+                 .long("drawrate")
+                 .value_name("MPF")
+                 .default_value("1"))
     }
 
-);
+    fn run(&self, matches: &clap::ArgMatches) {
+        let drawrate = extract!(matches, "drawrate").unwrap_or(1);
+
+        let game = Arc::new((self.ctor)());
+        let mut handler = pistonrendering::chaosgame::ChaosGameWindowHandler::new(game, drawrate);
+        pistonrendering::run(&mut handler);
+    }
+}
+
+pub struct EscapeTimeCommand<E>
+where E: EscapeTime + Send + Sync
+{
+    name: &'static str,
+    description: &'static str,
+    ctor: Box<Fn(u64, u64) -> E>,
+}
+
+impl<E> EscapeTimeCommand<E>
+where E: EscapeTime + Send + Sync
+{
+    pub fn new(name: &'static str,
+               description: &'static str,
+               ctor: Box<Fn(u64, u64) -> E>)
+        -> EscapeTimeCommand<E> {
+            EscapeTimeCommand {
+                name: name,
+                description: description,
+                ctor: ctor,
+            }
+        }
+}
+
+impl<E> FractalSubcommand for EscapeTimeCommand<E>
+where E: EscapeTime + Send + Sync + 'static
+{
+    fn command(&self) -> clap::App<'static, 'static> {
+        clap::SubCommand::with_name(self.name)
+            .about(self.description)
+            .arg(clap::Arg::with_name("threadcount")
+                 .long("threadcount")
+                 .takes_value(true)
+                 .value_name("N")
+                 .help("The number of worker threads to use for rendering")
+                 .default_value("1"))
+            .arg(clap::Arg::with_name("MAX_ITERATIONS")
+                 .required(true)
+                 .index(1)
+                 .help("The maximum number of iterations of the escape time function before \
+                       deciding the fracal has escaped"))
+            .arg(clap::Arg::with_name("POWER")
+                 .required(true)
+                 .index(2)
+                 .help("The exponent used in the escape time function (positive integer)"))
+    }
+
+    fn run(&self, matches: &clap::ArgMatches) {
+        let threadcount = extract!(matches, "threadcount").unwrap_or(1);
+        let max_iterations = extract!(matches, "MAX_ITERATIONS")
+            .unwrap_or_else(|| abort!("Must specify a MAX_ITERATIONS of 1 or greater!"));
+        let power = extract!(matches, "POWER")
+            .unwrap_or_else(|| abort!("Must specify a POWER of 1 or greater!"));
+
+        // The ctor callback can return a raw object that implements EscapeTime because
+        // this method
+        // is templated to E instead of handling a boxed object that implements
+        // EscapeTime.
+        //
+        // We could alternately avoid using templating, in which case the callback
+        // would have to
+        // return an Arc<EscapeTime> in order to abstract away the implementation of
+        // the trait.
+        let et = Arc::new((self.ctor)(max_iterations, power));
+        // TODO: `et` when passed in here wants E to be constraint by `'static`. Why?
+        let mut handler = pistonrendering::escapetime::EscapeTimeWindowHandler::new(et,
+                                                                                    threadcount);
+        pistonrendering::run(&mut handler);
+    }
+}
+
+pub struct TurtleCommand<E> where E: TurtleProgram {
+    name: &'static str,
+    description: &'static str,
+    ctor: Box<Fn(u64) -> E>,
+}
+
+impl<E> TurtleCommand<E> where E: TurtleProgram {
+    pub fn new(name: &'static str,
+               description: &'static str,
+               ctor: Box<Fn(u64) -> E>)
+        -> TurtleCommand<E> {
+            TurtleCommand {
+                name: name,
+                description: description,
+                ctor: ctor,
+            }
+        }
+}
+
+impl<E> FractalSubcommand for TurtleCommand<E> where E: TurtleProgram + 'static {
+    fn command(&self) -> clap::App<'static, 'static> {
+        clap::SubCommand::with_name(self.name)
+            .about(self.description)
+            .arg(clap::Arg::with_name("drawrate")
+                 .takes_value(true)
+                 .help("The number of points to draw per frame")
+                 .long("drawrate")
+                 .value_name("MPF")
+                 .default_value("1"))
+            .arg(clap::Arg::with_name("ITERATION")
+                 .required(true)
+                 .index(1))
+    }
+
+    fn run(&self, matches: &clap::ArgMatches) {
+        let drawrate = extract!(matches, "drawrate").unwrap_or(1);
+        let iteration = extract!(matches, "ITERATION")
+            .unwrap_or_else(|| abort!("Must specify an ITERATION of 1 or greater!"));
+
+        let program = (self.ctor)(iteration);
+        let mut handler = pistonrendering::turtle::construct_turtle_window_handler(&program,
+                                                                                   drawrate);
+        pistonrendering::run(&mut *handler);
+    }
+}
+
+pub fn barnsleyfern_command() -> clap::App<'static, 'static> {
+    let ctor = Box::new(|| barnsleyfern::BarnsleyFern::new(&barnsleyfern::REFERENCE_TRANSFORMS,
+                                                           &barnsleyfern::REFERENCE_WEIGHTS));
+    let cgc = ChaosGameCommand::new("barnsleyfern", "Draws the Barnsley Fern fractal using a chaos game with affine transforms.", ctor);
+    cgc.command()
+}
+
+pub fn barnsleyfern_run(matches: &clap::ArgMatches) {
+    let ctor = Box::new(|| barnsleyfern::BarnsleyFern::new(&barnsleyfern::REFERENCE_TRANSFORMS,
+                                                           &barnsleyfern::REFERENCE_WEIGHTS));
+    let cgc = ChaosGameCommand::new("barnsleyfern", "Draws the Barnsley Fern fractal using a chaos game with affine transforms.", ctor);
+    cgc.run(matches);
+}
+
+
+pub fn burningship_command() -> clap::App<'static, 'static> {
+    let ctor = Box::new(|max_iterations, power| BurningShip::new(max_iterations, power));
+    let etc = EscapeTimeCommand::new("burningship", "Draws the burning ship fractal", ctor);
+    etc.command()
+}
+
+pub fn burningship_run(matches: &clap::ArgMatches) {
+    let ctor = Box::new(|max_iterations, power| BurningShip::new(max_iterations, power));
+    let etc = EscapeTimeCommand::new("burningship", "Draws the burning ship fractal", ctor);
+    etc.run(matches);
+}
+
+pub fn burningmandel_command() -> clap::App<'static, 'static> {
+    let ctor = Box::new(|max_iterations, power| BurningMandel::new(max_iterations, power));
+    let etc = EscapeTimeCommand::new("burningmandel",
+                                     "Draws a variation of the burning ship fractal",
+                                     ctor);
+    etc.command()
+}
+
+pub fn burningmandel_run(matches: &clap::ArgMatches) {
+    let ctor = Box::new(|max_iterations, power| BurningMandel::new(max_iterations, power));
+    let etc = EscapeTimeCommand::new("burningmandel",
+                                     "Draws a variation of the burning ship fractal",
+                                     ctor);
+    etc.run(matches);
+}
+
+pub fn cesaro_command() -> clap::App<'static, 'static> {
+    let tc = TurtleCommand::new("cesaro",
+                                "Draws a square Césaro fractal",
+                                Box::new(|iteration| LindenmayerSystemTurtleProgram::new(CesaroFractal::new(iteration))));
+    tc.command()
+}
+
+pub fn cesaro_run(matches: &clap::ArgMatches) {
+    let tc = TurtleCommand::new("cesaro",
+                                "Draws a square Césaro fractal",
+                                Box::new(|iteration| LindenmayerSystemTurtleProgram::new(CesaroFractal::new(iteration))));
+    tc.run(matches);
+}
+
+pub fn cesarotri_command() -> clap::App<'static, 'static> {
+    let tc = TurtleCommand::new("cestarotri",
+                                "Draws a triangle Césaro fractal",
+                                Box::new(|iteration| LindenmayerSystemTurtleProgram::new(CesaroTriFractal::new(iteration))));
+    tc.command()
+}
+
+pub fn cesarotri_run(matches: &clap::ArgMatches) {
+    let tc = TurtleCommand::new("cestarotri",
+                                "Draws a triangle Césaro fractal",
+                                Box::new(|iteration| LindenmayerSystemTurtleProgram::new(CesaroTriFractal::new(iteration))));
+    tc.run(matches);
+}
+
+pub fn dragon_command() -> clap::App<'static, 'static> {
+    let tc = TurtleCommand::new("dragon",
+                                "Draws a dragon curve fractal",
+                                Box::new(|iteration| DragonFractal::new(iteration)));
+    tc.command()
+}
+
+pub fn dragon_run(matches: &clap::ArgMatches) {
+    let tc = TurtleCommand::new("dragon",
+                                "Draws a dragon curve fractal",
+                                Box::new(|iteration| DragonFractal::new(iteration)));
+    tc.run(matches);
+}
+
+pub fn kochcurve_command() -> clap::App<'static, 'static> {
+    let tc = TurtleCommand::new("kochcurve",
+                                "Draws a Koch snowflake curve",
+                                Box::new(|iteration| {
+                                    LindenmayerSystemTurtleProgram::new(KochCurve::new(iteration))
+                                }));
+    tc.command()
+}
+
+pub fn kochcurve_run(matches: &clap::ArgMatches) {
+    let tc = TurtleCommand::new("kochcurve",
+                                "Draws a Koch snowflake curve",
+                                Box::new(|iteration| {
+                                    LindenmayerSystemTurtleProgram::new(KochCurve::new(iteration))
+                                }));
+    tc.run(matches);
+}
+
+pub fn levyccurve_command() -> clap::App<'static, 'static> {
+    let tc = TurtleCommand::new("levyccurve",
+                                "Draws a Levy C Curve",
+                                Box::new(|iteration| {
+                                    LindenmayerSystemTurtleProgram::new(LevyCCurve::new(iteration))
+                                }));
+    tc.command()
+}
+
+pub fn levyccurve_run(matches: &clap::ArgMatches) {
+    let tc = TurtleCommand::new("levyccurve",
+                                "Draws a Levy C Curve",
+                                Box::new(|iteration| {
+                                    LindenmayerSystemTurtleProgram::new(LevyCCurve::new(iteration))
+                                }));
+    tc.run(matches);
+}
+
+pub fn mandelbrot_command() -> clap::App<'static, 'static> {
+    let ctor = Box::new(|max_iterations, power| Mandelbrot::new(max_iterations, power));
+    let etc = EscapeTimeCommand::new("mandelbrot", "Draws the mandelbrot fractal", ctor);
+    etc.command()
+}
+
+pub fn mandelbrot_run(matches: &clap::ArgMatches) {
+    let ctor = Box::new(|max_iterations, power| Mandelbrot::new(max_iterations, power));
+    let etc = EscapeTimeCommand::new("mandelbrot", "Draws the mandelbrot fractal", ctor);
+    etc.run(matches);
+}
+
+pub fn roadrunner_command() -> clap::App<'static, 'static> {
+    let ctor = Box::new(|max_iterations, power| RoadRunner::new(max_iterations, power));
+    let etc = EscapeTimeCommand::new("roadrunner",
+                                     "Draws a variation of the burning ship fractal",
+                                     ctor);
+    etc.command()
+}
+
+pub fn roadrunner_run(matches: &clap::ArgMatches) {
+    let ctor = Box::new(|max_iterations, power| RoadRunner::new(max_iterations, power));
+    let etc = EscapeTimeCommand::new("roadrunner",
+                                     "Draws a variation of the burning ship fractal",
+                                     ctor);
+    etc.run(matches);
+}
+
+pub fn sierpinski_command() -> clap::App<'static, 'static> {
+    let ctor = Box::new(||SierpinskiChaosGame::new());
+    let cgc = ChaosGameCommand::new("sierpinski", "Draws a Sierpinski triangle using a chaos game and 3 randomly chosen points on the screen", ctor);
+    cgc.command()
+}
+
+pub fn sierpinski_run(matches: &clap::ArgMatches) {
+    let ctor = Box::new(||SierpinskiChaosGame::new());
+    let cgc = ChaosGameCommand::new("sierpinski", "Draws a Sierpinski triangle using a chaos game and 3 randomly chosen points on the screen", ctor);
+    cgc.run(matches);
+}
+
+pub fn terdragon_command() -> clap::App<'static, 'static> {
+    let tc = TurtleCommand::new("terdragon",
+                                "Draws a terdragon curve",
+                                Box::new(|iteration| {
+                                    LindenmayerSystemTurtleProgram::new(TerdragonFractal::new(iteration))
+                                }));
+    tc.command()
+}
+
+pub fn terdragon_run(matches: &clap::ArgMatches) {
+    let tc = TurtleCommand::new("terdragon",
+                                "Draws a terdragon curve",
+                                Box::new(|iteration| {
+                                    LindenmayerSystemTurtleProgram::new(TerdragonFractal::new(iteration))
+                                }));
+    tc.run(matches);
+}
