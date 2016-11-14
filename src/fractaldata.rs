@@ -243,181 +243,114 @@ impl<E> FractalSubcommand for TurtleCommand<E> where E: TurtleProgram + 'static 
     }
 }
 
-pub fn barnsleyfern_command() -> clap::App<'static, 'static> {
-    let ctor = Box::new(|| barnsleyfern::BarnsleyFern::new(&barnsleyfern::REFERENCE_TRANSFORMS,
-                                                           &barnsleyfern::REFERENCE_WEIGHTS));
-    let cgc = ChaosGameCommand::new("barnsleyfern", "Draws the Barnsley Fern fractal using a chaos game with affine transforms.", ctor);
-    cgc.command()
+macro_rules! define_subcommands {
+    ( $($name:ident: $expr:expr),+ ) => {
+
+        pub fn add_subcommands<'a, 'b>(app: clap::App<'a, 'b>) -> clap::App<'a, 'b> {
+            app $(.subcommand(($expr).command()))+
+        }
+
+        pub fn run_subcommand(app_argmatches: &clap::ArgMatches) {
+            match app_argmatches.subcommand() {
+                $(
+                    (stringify!($name), Some(args)) => {
+                        ($expr).run(&args)
+                    }
+                 )+
+                    _ => panic!("Unknown subcommand. Run `fractal --help` for more information."),
+            }
+        }
+    }
 }
 
-pub fn barnsleyfern_run(matches: &clap::ArgMatches) {
-    let ctor = Box::new(|| barnsleyfern::BarnsleyFern::new(&barnsleyfern::REFERENCE_TRANSFORMS,
-                                                           &barnsleyfern::REFERENCE_WEIGHTS));
-    let cgc = ChaosGameCommand::new("barnsleyfern", "Draws the Barnsley Fern fractal using a chaos game with affine transforms.", ctor);
-    cgc.run(matches);
-}
 
+define_subcommands! {
+    barnsleyfern: {
+        ChaosGameCommand::new("barnsleyfern",
+                              "Draws the Barnsley Fern fractal using a chaos game with affine transforms.",
+                              Box::new(|| {
+                                  barnsleyfern::BarnsleyFern::new(&barnsleyfern::REFERENCE_TRANSFORMS,
+                                                                  &barnsleyfern::REFERENCE_WEIGHTS)
+                              }))
+    },
 
-pub fn burningship_command() -> clap::App<'static, 'static> {
-    let ctor = Box::new(|max_iterations, power| BurningShip::new(max_iterations, power));
-    let etc = EscapeTimeCommand::new("burningship", "Draws the burning ship fractal", ctor);
-    etc.command()
-}
+    burningship: {
+        EscapeTimeCommand::new("burningship",
+                               "Draws the burning ship fractal",
+                               Box::new(|max_iterations, power| {
+                                   BurningShip::new(max_iterations, power)
+                               }))
+    },
 
-pub fn burningship_run(matches: &clap::ArgMatches) {
-    let ctor = Box::new(|max_iterations, power| BurningShip::new(max_iterations, power));
-    let etc = EscapeTimeCommand::new("burningship", "Draws the burning ship fractal", ctor);
-    etc.run(matches);
-}
+    burningmandel: {
+        EscapeTimeCommand::new("burningmandel",
+                               "Draws a variation of the burning ship fractal",
+                               Box::new(|max_iterations, power| {
+                                   BurningMandel::new(max_iterations, power)
+                               }))
+    },
 
-pub fn burningmandel_command() -> clap::App<'static, 'static> {
-    let ctor = Box::new(|max_iterations, power| BurningMandel::new(max_iterations, power));
-    let etc = EscapeTimeCommand::new("burningmandel",
-                                     "Draws a variation of the burning ship fractal",
-                                     ctor);
-    etc.command()
-}
+    cesaro: {
+        TurtleCommand::new("cesaro",
+                           "Draws a square Césaro fractal",
+                           Box::new(|iteration| LindenmayerSystemTurtleProgram::new(CesaroFractal::new(iteration))))
+    },
 
-pub fn burningmandel_run(matches: &clap::ArgMatches) {
-    let ctor = Box::new(|max_iterations, power| BurningMandel::new(max_iterations, power));
-    let etc = EscapeTimeCommand::new("burningmandel",
-                                     "Draws a variation of the burning ship fractal",
-                                     ctor);
-    etc.run(matches);
-}
+    cesarotri: {
+        TurtleCommand::new("cestarotri",
+                           "Draws a triangle Césaro fractal",
+                           Box::new(|iteration| LindenmayerSystemTurtleProgram::new(CesaroTriFractal::new(iteration))))
+    },
 
-pub fn cesaro_command() -> clap::App<'static, 'static> {
-    let tc = TurtleCommand::new("cesaro",
-                                "Draws a square Césaro fractal",
-                                Box::new(|iteration| LindenmayerSystemTurtleProgram::new(CesaroFractal::new(iteration))));
-    tc.command()
-}
+    dragon: {
+        TurtleCommand::new("dragon",
+                           "Draws a dragon curve fractal",
+                           Box::new(|iteration| DragonFractal::new(iteration)))
+    },
 
-pub fn cesaro_run(matches: &clap::ArgMatches) {
-    let tc = TurtleCommand::new("cesaro",
-                                "Draws a square Césaro fractal",
-                                Box::new(|iteration| LindenmayerSystemTurtleProgram::new(CesaroFractal::new(iteration))));
-    tc.run(matches);
-}
+    kochcurve: {
+        TurtleCommand::new("kochcurve",
+                           "Draws a Koch snowflake curve",
+                           Box::new(|iteration| {
+                               LindenmayerSystemTurtleProgram::new(KochCurve::new(iteration))
+                           }))
+    },
 
-pub fn cesarotri_command() -> clap::App<'static, 'static> {
-    let tc = TurtleCommand::new("cestarotri",
-                                "Draws a triangle Césaro fractal",
-                                Box::new(|iteration| LindenmayerSystemTurtleProgram::new(CesaroTriFractal::new(iteration))));
-    tc.command()
-}
+    levyccurve: {
+        TurtleCommand::new("levyccurve",
+                           "Draws a Levy C Curve",
+                           Box::new(|iteration| {
+                               LindenmayerSystemTurtleProgram::new(LevyCCurve::new(iteration))
+                           }))
+    },
 
-pub fn cesarotri_run(matches: &clap::ArgMatches) {
-    let tc = TurtleCommand::new("cestarotri",
-                                "Draws a triangle Césaro fractal",
-                                Box::new(|iteration| LindenmayerSystemTurtleProgram::new(CesaroTriFractal::new(iteration))));
-    tc.run(matches);
-}
+    mandelbrot: {
+        EscapeTimeCommand::new("mandelbrot",
+                               "Draws the mandelbrot fractal",
+                               Box::new(|max_iterations, power| {
+                                   Mandelbrot::new(max_iterations, power)
+                               }))
+    },
 
-pub fn dragon_command() -> clap::App<'static, 'static> {
-    let tc = TurtleCommand::new("dragon",
-                                "Draws a dragon curve fractal",
-                                Box::new(|iteration| DragonFractal::new(iteration)));
-    tc.command()
-}
+    roadrunner: {
+        EscapeTimeCommand::new("roadrunner",
+                               "Draws a variation of the burning ship fractal",
+                               Box::new(|max_iterations, power| {
+                                   RoadRunner::new(max_iterations, power)
+                               }))
+    },
 
-pub fn dragon_run(matches: &clap::ArgMatches) {
-    let tc = TurtleCommand::new("dragon",
-                                "Draws a dragon curve fractal",
-                                Box::new(|iteration| DragonFractal::new(iteration)));
-    tc.run(matches);
-}
+    sierpinski: {
+        let ctor = Box::new(||SierpinskiChaosGame::new());
+        ChaosGameCommand::new("sierpinski", "Draws a Sierpinski triangle using a chaos game and 3 randomly chosen points on the screen", ctor)
+    },
 
-pub fn kochcurve_command() -> clap::App<'static, 'static> {
-    let tc = TurtleCommand::new("kochcurve",
-                                "Draws a Koch snowflake curve",
-                                Box::new(|iteration| {
-                                    LindenmayerSystemTurtleProgram::new(KochCurve::new(iteration))
-                                }));
-    tc.command()
-}
+    terdragon: {
+        TurtleCommand::new("terdragon",
+                           "Draws a terdragon curve",
+                           Box::new(|iteration| {
+                               LindenmayerSystemTurtleProgram::new(TerdragonFractal::new(iteration))
+                           }))
+    }
 
-pub fn kochcurve_run(matches: &clap::ArgMatches) {
-    let tc = TurtleCommand::new("kochcurve",
-                                "Draws a Koch snowflake curve",
-                                Box::new(|iteration| {
-                                    LindenmayerSystemTurtleProgram::new(KochCurve::new(iteration))
-                                }));
-    tc.run(matches);
-}
-
-pub fn levyccurve_command() -> clap::App<'static, 'static> {
-    let tc = TurtleCommand::new("levyccurve",
-                                "Draws a Levy C Curve",
-                                Box::new(|iteration| {
-                                    LindenmayerSystemTurtleProgram::new(LevyCCurve::new(iteration))
-                                }));
-    tc.command()
-}
-
-pub fn levyccurve_run(matches: &clap::ArgMatches) {
-    let tc = TurtleCommand::new("levyccurve",
-                                "Draws a Levy C Curve",
-                                Box::new(|iteration| {
-                                    LindenmayerSystemTurtleProgram::new(LevyCCurve::new(iteration))
-                                }));
-    tc.run(matches);
-}
-
-pub fn mandelbrot_command() -> clap::App<'static, 'static> {
-    let ctor = Box::new(|max_iterations, power| Mandelbrot::new(max_iterations, power));
-    let etc = EscapeTimeCommand::new("mandelbrot", "Draws the mandelbrot fractal", ctor);
-    etc.command()
-}
-
-pub fn mandelbrot_run(matches: &clap::ArgMatches) {
-    let ctor = Box::new(|max_iterations, power| Mandelbrot::new(max_iterations, power));
-    let etc = EscapeTimeCommand::new("mandelbrot", "Draws the mandelbrot fractal", ctor);
-    etc.run(matches);
-}
-
-pub fn roadrunner_command() -> clap::App<'static, 'static> {
-    let ctor = Box::new(|max_iterations, power| RoadRunner::new(max_iterations, power));
-    let etc = EscapeTimeCommand::new("roadrunner",
-                                     "Draws a variation of the burning ship fractal",
-                                     ctor);
-    etc.command()
-}
-
-pub fn roadrunner_run(matches: &clap::ArgMatches) {
-    let ctor = Box::new(|max_iterations, power| RoadRunner::new(max_iterations, power));
-    let etc = EscapeTimeCommand::new("roadrunner",
-                                     "Draws a variation of the burning ship fractal",
-                                     ctor);
-    etc.run(matches);
-}
-
-pub fn sierpinski_command() -> clap::App<'static, 'static> {
-    let ctor = Box::new(||SierpinskiChaosGame::new());
-    let cgc = ChaosGameCommand::new("sierpinski", "Draws a Sierpinski triangle using a chaos game and 3 randomly chosen points on the screen", ctor);
-    cgc.command()
-}
-
-pub fn sierpinski_run(matches: &clap::ArgMatches) {
-    let ctor = Box::new(||SierpinskiChaosGame::new());
-    let cgc = ChaosGameCommand::new("sierpinski", "Draws a Sierpinski triangle using a chaos game and 3 randomly chosen points on the screen", ctor);
-    cgc.run(matches);
-}
-
-pub fn terdragon_command() -> clap::App<'static, 'static> {
-    let tc = TurtleCommand::new("terdragon",
-                                "Draws a terdragon curve",
-                                Box::new(|iteration| {
-                                    LindenmayerSystemTurtleProgram::new(TerdragonFractal::new(iteration))
-                                }));
-    tc.command()
-}
-
-pub fn terdragon_run(matches: &clap::ArgMatches) {
-    let tc = TurtleCommand::new("terdragon",
-                                "Draws a terdragon curve",
-                                Box::new(|iteration| {
-                                    LindenmayerSystemTurtleProgram::new(TerdragonFractal::new(iteration))
-                                }));
-    tc.run(matches);
 }
