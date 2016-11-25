@@ -38,17 +38,6 @@ use super::lindenmayer::LindenmayerSystemTurtleProgram;
 use super::pistonrendering;
 use super::turtle::TurtleProgram;
 
-/// Print a message to stderr and exit with a non-zero exit code
-macro_rules! abort {
-    ( $($arg:tt)* ) => {
-        {
-            use std::io::{stderr, Write};
-            use std;
-            writeln!(&mut stderr(), $($arg)*).unwrap();
-            std::process::exit(1);
-        }
-    }
-}
 
 /// Helper to get the size of a list of expressions
 macro_rules! count_exprs {
@@ -60,18 +49,20 @@ macro_rules! count_exprs {
 /// Helper to extract and parse a value from a command line argument.
 macro_rules! extract {
     ($matches:expr, $name:expr) => {
-        $matches.value_of($name).map(|s| parse_arg($name, s) )
+        $matches.value_of($name)
+            .map(|s| parse_arg($name, s) )
+            .unwrap_or_else(|| Err(format!("Missing {}", $name)))
     }
 }
 
 /// Method to help with parsing a command line argument into some other type.
-fn parse_arg<T>(opt_name: &str, opt_val: &str) -> T
+fn parse_arg<T>(opt_name: &str, opt_val: &str) -> Result<T, String>
 where T: std::str::FromStr,
       <T as std::str::FromStr>::Err: std::fmt::Display
 {
     match opt_val.parse::<T>() {
-        Err(e) => panic!("Error parsing {}: {}", opt_name, e),
-        Ok(v) => v,
+        Err(e) => Err(format!("Error parsing {}: {}", opt_name, e)),
+        Ok(v) => Ok(v),
     }
 }
 
@@ -84,7 +75,7 @@ pub trait FractalSubcommand {
 
     /// Runs the command with the given command line arguments and the provided
     /// callback.
-    fn run(&self, matches: &clap::ArgMatches);
+    fn run(&self, matches: &clap::ArgMatches) -> Result<(), String>;
 }
 
 pub struct ChaosGameCommand<E> where E: ChaosGame + Send + Sync {
@@ -118,12 +109,14 @@ impl<E> FractalSubcommand for ChaosGameCommand<E> where E: ChaosGame + Send + Sy
                  .default_value("1"))
     }
 
-    fn run(&self, matches: &clap::ArgMatches) {
-        let drawrate = extract!(matches, "drawrate").unwrap_or(1);
+    fn run(&self, matches: &clap::ArgMatches) -> Result<(), String> {
+        let drawrate = try!(extract!(matches, "drawrate"));
 
         let game = Arc::new((self.ctor)());
         let mut handler = pistonrendering::chaosgame::ChaosGameWindowHandler::new(game, drawrate);
         pistonrendering::run(&mut handler);
+
+        Ok(())
     }
 }
 
@@ -173,12 +166,12 @@ where E: EscapeTime + Send + Sync + 'static
                  .help("The exponent used in the escape time function (positive integer)"))
     }
 
-    fn run(&self, matches: &clap::ArgMatches) {
-        let threadcount = extract!(matches, "threadcount").unwrap_or(1);
-        let max_iterations = extract!(matches, "MAX_ITERATIONS")
-            .unwrap_or_else(|| abort!("Must specify a MAX_ITERATIONS of 1 or greater!"));
-        let power = extract!(matches, "POWER")
-            .unwrap_or_else(|| abort!("Must specify a POWER of 1 or greater!"));
+    fn run(&self, matches: &clap::ArgMatches) -> Result<(), String> {
+        let threadcount = try!(extract!(matches, "threadcount"));
+        let max_iterations = try!(extract!(matches, "MAX_ITERATIONS"));
+        // .unwrap_or_else(|| return Err("Must specify a MAX_ITERATIONS of 1 or greater!"));
+        let power = try!(extract!(matches, "POWER"));
+        // .unwrap_or_else(|| return Err("Must specify a POWER of 1 or greater!"));
 
         // The ctor callback can return a raw object that implements EscapeTime because
         // this method
@@ -194,6 +187,8 @@ where E: EscapeTime + Send + Sync + 'static
         let mut handler = pistonrendering::escapetime::EscapeTimeWindowHandler::new(et,
                                                                                     threadcount);
         pistonrendering::run(&mut handler);
+
+        Ok(())
     }
 }
 
@@ -231,15 +226,17 @@ impl<E> FractalSubcommand for TurtleCommand<E> where E: TurtleProgram + 'static 
                  .index(1))
     }
 
-    fn run(&self, matches: &clap::ArgMatches) {
-        let drawrate = extract!(matches, "drawrate").unwrap_or(1);
-        let iteration = extract!(matches, "ITERATION")
-            .unwrap_or_else(|| abort!("Must specify an ITERATION of 1 or greater!"));
+    fn run(&self, matches: &clap::ArgMatches) -> Result<(), String> {
+        let drawrate = try!(extract!(matches, "drawrate"));
+        let iteration = try!(extract!(matches, "ITERATION"));
+        // .unwrap_or_else(|| Err("Must specify an ITERATION of 1 or greater!"));
 
         let program = (self.ctor)(iteration);
         let mut handler = pistonrendering::turtle::construct_turtle_window_handler(&program,
                                                                                    drawrate);
         pistonrendering::run(&mut *handler);
+
+        Ok(())
     }
 }
 
@@ -250,14 +247,14 @@ macro_rules! define_subcommands {
             app $(.subcommand(($expr).command()))+
         }
 
-        pub fn run_subcommand(app_argmatches: &clap::ArgMatches) {
+        pub fn run_subcommand(app_argmatches: &clap::ArgMatches) -> Result<(), String> {
             match app_argmatches.subcommand() {
                 $(
                     (stringify!($name), Some(args)) => {
                         ($expr).run(&args)
                     }
                  )+
-                    _ => panic!("Unknown subcommand. Run `fractal --help` for more information."),
+                    _ => Err("Unknown subcommand".to_string()),
             }
         }
     }

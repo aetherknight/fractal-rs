@@ -29,5 +29,15 @@ fn main() {
     app = fractaldata::add_subcommands(app);
 
     let matches = app.get_matches();
-    fractaldata::run_subcommand(&matches);
+    let result = fractaldata::run_subcommand(&matches);
+
+    match result {
+        Ok(_) => {}
+        Err(e) => {
+            use std::io::{stderr, Write};
+            use std;
+            writeln!(&mut stderr(), "{}", e).unwrap();
+            std::process::exit(1);
+        }
+    }
 }
