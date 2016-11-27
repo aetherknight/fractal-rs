@@ -13,11 +13,13 @@
 // limitations under the License.
 
 use gfx_device_gl;
+use gfx_device_gl::Factory;
 use image as im;
 use num::complex::Complex64;
 use piston_window::*;
 use std::cmp;
 use std::sync::{Arc, RwLock};
+
 use super::*;
 use super::super::escapetime::EscapeTime;
 use super::super::geometry::{Point, ViewAreaTransformer};
@@ -147,9 +149,18 @@ impl WindowHandler for EscapeTimeWindowHandler {
                 .unwrap());
     }
 
-    fn window_resized(&mut self, new_size: Vec2d) {
+    fn window_resized(&mut self, new_size: Vec2d, factory: &mut Factory) {
+        // Set the new size
         self.screen_size = new_size;
+        // Create a new canvas and start rendering it
         self.redraw();
+        // Recreate the Texture for rendering (it will also be updated with the canvas
+        // on each tick)
+        {
+            let canvas = self.canvas.read().unwrap();
+            self.texture = Some(Texture::from_image(factory, &*canvas, &TextureSettings::new())
+                .unwrap());
+        }
     }
 
     fn render_frame(&mut self, render_context: &mut RenderContext, _: u32) {

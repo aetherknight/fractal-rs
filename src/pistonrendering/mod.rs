@@ -18,6 +18,7 @@ pub mod chaosgame;
 pub mod escapetime;
 pub mod turtle;
 
+use gfx_device_gl::Factory;
 use graphics;
 use piston_window::*;
 
@@ -52,7 +53,7 @@ pub trait WindowHandler {
     fn initialize_with_window(&mut self, _: &mut PistonWindow) {}
 
     /// When the window is resized, we may need to plan to re-render.
-    fn window_resized(&mut self, new_size: Vec2d);
+    fn window_resized(&mut self, new_size: Vec2d, factory: &mut Factory);
 
     /// Render a frame.
     fn render_frame(&mut self, context: &mut RenderContext, frame_num: u32);
@@ -90,13 +91,16 @@ pub fn run(window_handler: &mut WindowHandler) {
     window_handler.initialize_with_window(&mut window);
 
     while let Some(e) = window.next() {
-        window.draw_2d(&e, |context, gfx| {
-            let size = context.get_view_size();
+        if let Some(args) = e.render_args() {
+            let uvec = args.viewport().window_size;
+            let size: Vec2d = [uvec[0] as f64, uvec[1] as f64];
             if size != old_size {
                 println!("resized");
                 old_size = size;
-                window_handler.window_resized(size);
+                window_handler.window_resized(size, &mut window.factory);
             }
+        }
+        window.draw_2d(&e, |context, gfx| {
             frame_num += 1;
             // println!("Render frame {}, window: {:?}", frame_num, size);
             let mut render_context = RenderContext {

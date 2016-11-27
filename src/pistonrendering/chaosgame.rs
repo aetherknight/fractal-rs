@@ -14,6 +14,7 @@
 
 //! Window handlers for drawing points as part of playing a ChaosGame.
 
+use gfx_device_gl::Factory;
 use graphics;
 use piston_window::*;
 use std::sync::Arc;
@@ -77,7 +78,7 @@ impl ChaosGameWindowHandler {
 }
 
 impl WindowHandler for ChaosGameWindowHandler {
-    fn window_resized(&mut self, _: Vec2d) {
+    fn window_resized(&mut self, _: Vec2d, _: &mut Factory) {
         self.which_frame = WhichFrame::FirstFrame;
         self.iter = None;
         self.last_moves = Vec::with_capacity(self.dots_per_frame as usize);

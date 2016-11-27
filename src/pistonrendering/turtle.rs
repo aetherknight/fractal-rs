@@ -14,6 +14,7 @@
 
 //! Window handlers for drawing TurtlePrograms.
 
+use gfx_device_gl::Factory;
 use graphics;
 use piston_window::*;
 use std::fmt;
@@ -178,7 +179,7 @@ impl<'a> fmt::Debug for DoubleBufferedWindowHandler<'a> {
 }
 
 impl<'a> WindowHandler for DoubleBufferedWindowHandler<'a> {
-    fn window_resized(&mut self, _: Vec2d) {
+    fn window_resized(&mut self, _: Vec2d, _: &mut Factory) {
         self.redraw[0] = true;
         self.redraw[1] = true;
     }
@@ -259,7 +260,7 @@ impl<'a> DoubleBufferedAnimatedWindowHandler<'a> {
 }
 
 impl<'a> WindowHandler for DoubleBufferedAnimatedWindowHandler<'a> {
-    fn window_resized(&mut self, _: Vec2d) {
+    fn window_resized(&mut self, _: Vec2d, _: &mut Factory) {
         self.which_frame = WhichFrame::FirstFrame;
         self.turtles[0] = TurtleState::new();
         self.turtles[1] = TurtleState::new();
