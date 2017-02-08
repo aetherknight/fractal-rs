@@ -76,10 +76,10 @@ impl EscapeTimeWindowHandler {
                  self.screen_size[0] as u32,
                  self.screen_size[1] as u32,
                  self.vat.map_pixel_to_point(self.screen_size));
-        let colors =
-            Arc::new(color_range_linear(BLACK_U8,
-                                        WHITE_U8,
-                                        cmp::min(self.etsystem.max_iterations(), 50) as usize));
+        let colors = Arc::new(color_range_linear(BLACK_U8,
+                                                 WHITE_U8,
+                                                 cmp::min(self.etsystem.max_iterations(), 50) as
+                                                 usize));
 
         self.canvas = Arc::new(RwLock::new(im::ImageBuffer::new(self.screen_size[0] as u32,
                                                                 self.screen_size[1] as u32)));
@@ -116,9 +116,9 @@ impl EscapeTimeWindowHandler {
                                     .into();
                                 let (attracted, time) = etsystem.test_point(c);
                                 if attracted {
-                                    im::Rgba(AEBLUE_U8)
+                                    im::Rgba(AEBLUE_U8.0)
                                 } else {
-                                    im::Rgba(colors[cmp::min(time, 50 - 1) as usize])
+                                    im::Rgba(colors[cmp::min(time, 50 - 1) as usize].0)
                                 }
                             })
                             .collect::<Vec<im::Rgba<u8>>>();
@@ -172,7 +172,7 @@ impl WindowHandler for EscapeTimeWindowHandler {
             }
         }
 
-        clear(WHITE_F32, render_context.gfx);
+        clear(WHITE_F32.0, render_context.gfx);
         image(texture,
               render_context.context.transform,
               render_context.gfx);

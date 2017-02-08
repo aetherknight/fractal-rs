@@ -14,19 +14,28 @@
 
 //! Color-related constants and functions.
 
+/// Colors that work with `graphics` functions, which want color as vectors of
+/// f32.
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct ColorF32(pub [f32; 4]);
+
+/// Colors that work with `image` functions, which want color as vectors of u8.
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct ColorU8(pub [u8; 4]);
+
 /// Black for use with `graphics`' functions
-pub const BLACK_F32: [f32; 4] = [0.0, 0.0, 0.0, 1.0];
+pub const BLACK_F32: ColorF32 = ColorF32([0.0, 0.0, 0.0, 1.0]);
 /// Grey for use with `graphics`' functions
-pub const GREY_F32: [f32; 4] = [0.5, 0.5, 0.5, 1.0];
+pub const GREY_F32: ColorF32 = ColorF32([0.5, 0.5, 0.5, 1.0]);
 /// White for use with `graphics`' functions
-pub const WHITE_F32: [f32; 4] = [1.0, 1.0, 1.0, 1.0];
+pub const WHITE_F32: ColorF32 = ColorF32([1.0, 1.0, 1.0, 1.0]);
 
 /// Dark blue for use with `image`' functions
-pub const AEBLUE_U8: [u8; 4] = [0, 0, 48, 255];
+pub const AEBLUE_U8: ColorU8 = ColorU8([0, 0, 48, 255]);
 /// Black for use with `image`' functions
-pub const BLACK_U8: [u8; 4] = [0, 0, 0, 255];
+pub const BLACK_U8: ColorU8 = ColorU8([0, 0, 0, 255]);
 /// White for use with `image`' functions
-pub const WHITE_U8: [u8; 4] = [255, 255, 255, 255];
+pub const WHITE_U8: ColorU8 = ColorU8([255, 255, 255, 255]);
 
 /// Generates a linear range of RGBA colors from a start color to a final color.
 ///
@@ -34,16 +43,16 @@ pub const WHITE_U8: [u8; 4] = [255, 255, 255, 255];
 /// Eg, to create a spectrum from white to black:
 ///
 /// ```
-/// use fractal::color::color_range_linear;
+/// use fractal::color::{ColorU8, color_range_linear};
 ///
-/// let black = [0,0,0,255];
-/// let white = [255,255,255,255];
+/// let black = ColorU8([0,0,0,255]);
+/// let white = ColorU8([255,255,255,255]);
 ///
 /// let range = color_range_linear(black, white, 256);
 ///
 /// assert_eq!(range[0], black);
 /// assert_eq!(range[255], white);
-/// assert_eq!(range[10], [10,10,10,255]);
+/// assert_eq!(range[10], ColorU8([10,10,10,255]));
 /// ```
 ///
 /// If you want to simulate a cutoff/saturation point where the gradients reach
@@ -51,11 +60,11 @@ pub const WHITE_U8: [u8; 4] = [255, 255, 255, 255];
 /// `std::cmp::min` to prevent an out of bounds error:
 ///
 /// ```
-/// use fractal::color::color_range_linear;
+/// use fractal::color::{ColorU8, color_range_linear};
 /// use std::cmp::min;
 ///
-/// let black = [0,0,0,255];
-/// let white = [255,255,255,255];
+/// let black = ColorU8([0,0,0,255]);
+/// let white = ColorU8([255,255,255,255]);
 /// let gradient_count = 128;
 /// let range = color_range_linear(black, white, gradient_count);
 ///
@@ -63,24 +72,24 @@ pub const WHITE_U8: [u8; 4] = [255, 255, 255, 255];
 /// assert_eq!(range[min(gradient_count-1, gradient_count-1)], white);
 /// assert_eq!(range[min(gradient_count-1, 255)], white);
 /// assert_eq!(range[min(gradient_count-1, 127)], white);
-/// assert_eq!(range[min(gradient_count-1, 10)], [20,20,20,255]);
+/// assert_eq!(range[min(gradient_count-1, 10)], ColorU8([20,20,20,255]));
 /// ```
-pub fn color_range_linear(first: [u8; 4], last: [u8; 4], count: usize) -> Vec<[u8; 4]> {
+pub fn color_range_linear(first: ColorU8, last: ColorU8, count: usize) -> Vec<ColorU8> {
     if count < 2 {
         panic!("Count must be 2 or more: {}", count);
     }
-    let deltas = [((last[0] as f32) - (first[0] as f32)) / ((count - 1) as f32),
-                  ((last[1] as f32) - (first[1] as f32)) / ((count - 1) as f32),
-                  ((last[2] as f32) - (first[2] as f32)) / ((count - 1) as f32),
-                  ((last[3] as f32) - (first[3] as f32)) / ((count - 1) as f32)];
+    let deltas = [((last.0[0] as f32) - (first.0[0] as f32)) / ((count - 1) as f32),
+                  ((last.0[1] as f32) - (first.0[1] as f32)) / ((count - 1) as f32),
+                  ((last.0[2] as f32) - (first.0[2] as f32)) / ((count - 1) as f32),
+                  ((last.0[3] as f32) - (first.0[3] as f32)) / ((count - 1) as f32)];
 
     (0..count)
         .into_iter()
         .map(|i| {
-            [((first[0] as f32) + (i as f32) * deltas[0]) as u8,
-             ((first[1] as f32) + (i as f32) * deltas[1]) as u8,
-             ((first[2] as f32) + (i as f32) * deltas[2]) as u8,
-             ((first[3] as f32) + (i as f32) * deltas[3]) as u8]
+            ColorU8([((first.0[0] as f32) + (i as f32) * deltas[0]) as u8,
+                     ((first.0[1] as f32) + (i as f32) * deltas[1]) as u8,
+                     ((first.0[2] as f32) + (i as f32) * deltas[2]) as u8,
+                     ((first.0[3] as f32) + (i as f32) * deltas[3]) as u8])
         })
         .collect()
 }
@@ -91,8 +100,8 @@ mod test {
     #[test]
     #[should_panic(expected = "Count must be 2 or more")]
     fn test_linear_zero() {
-        let black = [0, 0, 0, 255];
-        let white = [255, 255, 255, 255];
+        let black = ColorU8([0, 0, 0, 255]);
+        let white = ColorU8([255, 255, 255, 255]);
         let range = color_range_linear(black, white, 0);
         assert!(range.len() == 0);
     }
@@ -100,16 +109,16 @@ mod test {
     #[test]
     #[should_panic(expected = "Count must be 2 or more")]
     fn test_linear_one() {
-        let black = [0, 0, 0, 255];
-        let white = [255, 255, 255, 255];
+        let black = ColorU8([0, 0, 0, 255]);
+        let white = ColorU8([255, 255, 255, 255]);
         let range = color_range_linear(black, white, 1);
         assert!(range.len() == 1);
     }
 
     #[test]
     fn test_linear_two() {
-        let black = [0, 0, 0, 255];
-        let white = [255, 255, 255, 255];
+        let black = ColorU8([0, 0, 0, 255]);
+        let white = ColorU8([255, 255, 255, 255]);
         let range = color_range_linear(black, white, 2);
         assert_eq!(black, range[0]);
         assert_eq!(white, range[1]);

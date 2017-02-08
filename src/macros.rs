@@ -83,8 +83,8 @@ macro_rules! assert_complex_approx_in {
 macro_rules! assert_point_eq {
     ( $lhs:expr, $rhs:expr, $epsilon:expr ) => {
         {
-            let lhs = $lhs as Point;
-            let rhs = $rhs as Point;
+            let lhs: Point = $lhs;
+            let rhs: Point = $rhs;
             let epsilon = $epsilon as f64;
 
             if ! ((lhs.x - rhs.x).abs() < epsilon) {

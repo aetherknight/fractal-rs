@@ -67,7 +67,6 @@ impl EscapeTime for Mandelbrot {
 #[cfg(test)]
 mod test {
     use super::*;
-    use super::super::*;
 
     #[test]
     fn test_test_point() {
