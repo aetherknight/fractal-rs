@@ -12,15 +12,15 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-//! Window handlers for drawing points as part of playing a ChaosGame.
+//! Window handlers for drawing points as part of playing a `ChaosGame`.
 
+use super::*;
+use super::super::chaosgame::{ChaosGame, ChaosGameMoveIterator};
+use super::super::geometry::Point;
 use gfx_device_gl::Factory;
 use graphics;
 use piston_window::*;
 use std::sync::Arc;
-use super::*;
-use super::super::chaosgame::{ChaosGame, ChaosGameMoveIterator};
-use super::super::geometry::Point;
 
 /// Draw a dot at the given point. (0.0,0.0) is the center of the screen,
 /// (1.0,1.0) is near the top right, and (-1.0,-1.0) is near the bottom left.

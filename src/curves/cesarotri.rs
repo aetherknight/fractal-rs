@@ -61,6 +61,9 @@ impl LindenmayerSystemDrawingParameters<LSA> for CesaroTriFractal {
         self.iterations
     }
 
+    // It is cleaner to read the Lyndenmayer System Alphabet matcher arms
+    // separately.
+    #[cfg_attr(feature = "cargo-clippy", allow(match_same_arms))]
     fn interpret_symbol(&self, symbol: LSA) -> TurtleStep {
         // use std::f64::consts::SQRT_2;
         use std::f64::consts::PI;
@@ -76,7 +79,7 @@ impl LindenmayerSystemDrawingParameters<LSA> for CesaroTriFractal {
         // For iteration 2,         H / (2*(1 + sin(base_angle/2)))^2
         // and so forth.
         let hyp_unit = hyp /
-                       ((2.0_f64 * (1.0_f64 + ((PI - (2.0_f64 * base_angle_rads))).sin()))
+                       ((2.0_f64 * (1.0_f64 + (PI - (2.0_f64 * base_angle_rads)).sin()))
             .powf(self.iterations as f64));
 
         // cos(a) = A/H. A = hyp/2. H = A/cos(a)
@@ -101,9 +104,9 @@ impl LindenmayerSystemDrawingParameters<LSA> for CesaroTriFractal {
 
 #[cfg(test)]
 mod test {
+    use super::CesaroTriFractal;
     use geometry::Point;
     use lindenmayer::LindenmayerSystemDrawingParameters;
-    use super::CesaroTriFractal;
 
     #[test]
     fn test_initial_pos() {

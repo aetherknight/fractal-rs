@@ -73,7 +73,7 @@ impl EscapeTime for BurningShip {
 /// Variation of the burning ship and mandelbrot fractals.
 ///
 /// I made the name up, since I could not find a name online for this
-/// variation. Where the BurningShip is defined as:
+/// variation. Where the `BurningShip` is defined as:
 ///
 /// ```text
 /// f(z) = (abs(Re(z)) - i*abs(Im(z)))^2 + c
@@ -130,7 +130,7 @@ impl EscapeTime for BurningMandel {
 /// Variation of the burning ship and mandelbrot fractals.
 ///
 /// I made the name up, since I could not find a name online for this
-/// variation. Where the BurningShip is defined as:
+/// variation. Where the `BurningShip` is defined as:
 ///
 /// ```text
 /// f(z) = (abs(Re(z)) - i*abs(Im(z)))^2 + c

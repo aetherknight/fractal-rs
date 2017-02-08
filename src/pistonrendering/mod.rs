@@ -25,7 +25,7 @@ use piston_window::*;
 pub use graphics::math::Vec2d;
 pub use super::color::*;
 
-/// State machine for WindowHandlers that want to animate across the double buffered frames.
+/// State machine for `WindowHandlers` that want to animate across the double buffered frames.
 #[derive(Debug,PartialEq)]
 pub enum WhichFrame {
     FirstFrame,
@@ -33,7 +33,7 @@ pub enum WhichFrame {
     AllOtherFrames,
 }
 
-/// Information about the viewport and graphical backend needed by WindowHandler::render_frame.
+/// Information about the viewport and graphical backend needed by `WindowHandler::render_frame`.
 pub struct RenderContext<'a, 'b: 'a> {
     /// Graphics context, describing the viewport, base transform, etc.
     pub context: graphics::context::Context,
@@ -69,7 +69,7 @@ pub trait WindowHandler {
     }
 }
 
-/// Runs a WindowHandler in a PistonWindow.
+/// Runs a `WindowHandler` in a `PistonWindow`.
 pub fn run(window_handler: &mut WindowHandler) {
     println!("Use the mouse to select an area to zoom in on");
     println!("Press backspace to reset the view back to the initial view");
@@ -116,13 +116,10 @@ pub fn run(window_handler: &mut WindowHandler) {
         e.press(|button| {
             match button {
                 Button::Mouse(mbutton) => {
-                    match mbutton {
-                        MouseButton::Left => {
-                            // mouse down
-                            mouse_down_pos = Some(mouse_pos);
-                            println!("Pressed mouse left: {:?}", mouse_down_pos.as_ref().unwrap());
-                        },
-                        _ => {}
+                    if let MouseButton::Left = mbutton {
+                        // mouse down
+                        mouse_down_pos = Some(mouse_pos);
+                        println!("Pressed mouse left: {:?}", mouse_down_pos.as_ref().unwrap());
                     }
                 },
                 Button::Keyboard(key) => {

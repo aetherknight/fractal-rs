@@ -128,8 +128,8 @@ impl AffineTransform<Point> for CartesianAffineTransform {
     }
 }
 
-/// Ensures that the cartesian area specified by top_left and bot_right fit
-/// into the view_area of a window/viewport without distortion.
+/// Ensures that the cartesian area specified by `top_left` and `bot_right` fit
+/// into the `view_area` of a window/viewport without distortion.
 ///
 /// It essentially implements a set of affine transforms from one coordinate
 /// space to another. However, it limits these transforms in a few specialized
@@ -234,12 +234,12 @@ pub fn cpow(c: Complex64, exponent: u64) -> Complex64 {
 
 #[cfg(test)]
 mod test {
+
+    use super::*;
     use graphics::math::Vec2d;
     use num::complex::Complex64;
     use std::f64::consts::PI;
     use std::f64::consts::SQRT_2;
-
-    use super::*;
 
     #[test]
     fn test_distance_to() {

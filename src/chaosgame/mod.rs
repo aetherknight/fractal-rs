@@ -25,8 +25,8 @@ use std::thread;
 
 use super::geometry::Point;
 
-/// A ChaosGame implementation with a method that will be run in a separate thread to create a
-/// generator function that yields Points across the channel. The ChaosGame should track whatever
+/// A `ChaosGame` implementation with a method that will be run in a separate thread to create a
+/// generator function that yields Points across the channel. The `ChaosGame` should track whatever
 /// parameters it wants or needs to to customize itself, and `generate()` will likely use an RNG to
 /// introduce the random element needed.
 pub trait ChaosGame {
@@ -36,7 +36,7 @@ pub trait ChaosGame {
     fn generate(&self, channel: &mut SyncSender<Point>);
 }
 
-/// Iterator for ChaosGames that uses a thread and ChaosGame::generate() to yield Points.
+/// Iterator for `ChaosGame`s that uses a thread and `ChaosGame::generate()` to yield Points.
 /// Implemented as its own iterator and not just using the channel Receiver's iterator in order to
 /// join the thread when the iterator goes out of scope.
 pub struct ChaosGameMoveIterator {
@@ -67,7 +67,7 @@ impl Iterator for ChaosGameMoveIterator {
     type Item = Point;
 
     fn next(&mut self) -> Option<Point> {
-        match self.rx.as_ref() {
+        match self.rx {
             Some(ref rx) => {
                 match rx.recv() {
                     Ok(result) => Some(result),

@@ -12,6 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+
+use super::*;
+use super::super::escapetime::EscapeTime;
+use super::super::geometry::{Point, ViewAreaTransformer};
+use super::super::work_multiplexer::*;
 use gfx_device_gl;
 use gfx_device_gl::Factory;
 use image as im;
@@ -19,11 +24,6 @@ use num::complex::Complex64;
 use piston_window::*;
 use std::cmp;
 use std::sync::{Arc, RwLock};
-
-use super::*;
-use super::super::escapetime::EscapeTime;
-use super::super::geometry::{Point, ViewAreaTransformer};
-use super::super::work_multiplexer::*;
 
 type ImageBuffer = im::ImageBuffer<im::Rgba<u8>, Vec<u8>>;
 

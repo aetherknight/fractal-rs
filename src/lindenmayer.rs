@@ -71,7 +71,7 @@ pub trait LindenmayerSystem<Alphabet: Clone> {
     /// ```
     fn apply_rule(&self, curr_symbol: Alphabet) -> Vec<Alphabet>;
 
-    fn generate_next_iteration(&self, last_iteration: &Vec<Alphabet>) -> Vec<Alphabet> {
+    fn generate_next_iteration(&self, last_iteration: &[Alphabet]) -> Vec<Alphabet> {
         let mut newlstr: Vec<Alphabet> = vec![];
 
         for l in last_iteration.iter().cloned() {
@@ -91,7 +91,7 @@ pub trait LindenmayerSystem<Alphabet: Clone> {
         let mut last: Vec<Alphabet> = self.initial();
         let mut i = 0;
         while i < iteration {
-            i = i + 1;
+            i += 1;
             last = self.generate_next_iteration(&last);
         }
         last
@@ -102,7 +102,7 @@ pub trait LindenmayerSystem<Alphabet: Clone> {
 /// the output from the L-System into turtle commands. To do this, we need to
 /// initial the turtle, and we need a way to convert the L-System's symbols
 /// into actions. This trait provides the methods needed to configure the
-/// LindenmayerSystemTurtleProgram, which is the glue that issues arbitrary
+/// `LindenmayerSystemTurtleProgram`, which is the glue that issues arbitrary
 /// Turtle commands.
 pub trait LindenmayerSystemDrawingParameters<Alphabet> {
     /// Returns the iteration that should be drawn.
@@ -223,13 +223,14 @@ impl<L, A> TurtleProgram for LindenmayerSystemTurtleProgram<L, A>
           A: Clone + 'static
 {
     fn init_turtle(&self) -> Vec<TurtleStep> {
-        vec![
-            TurtleStep::SetPos(self.cacheable_system.system.initial_pos()),
-            TurtleStep::SetRad(self.cacheable_system.system.initial_rad()),
-            TurtleStep::Down,
-        ]
+        vec![TurtleStep::SetPos(self.cacheable_system.system.initial_pos()),
+             TurtleStep::SetRad(self.cacheable_system.system.initial_rad()),
+             TurtleStep::Down]
     }
 
+    // The lifetimes are needed here to satisfy TurtleProgramIterator's type
+    // signature.
+    #[cfg_attr(feature = "cargo-clippy", allow(needless_lifetimes))]
     fn turtle_program_iter<'a>(&'a self) -> TurtleProgramIterator<'a> {
         let sequence = self.cacheable_system.generate(self.cacheable_system.system.iteration());
         println!("Done");

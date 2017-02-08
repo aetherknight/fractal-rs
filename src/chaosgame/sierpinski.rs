@@ -12,16 +12,16 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-//! Implementation of a 2-D Sierpinski triangle as a ChaosGame.
+//! Implementation of a 2-D Sierpinski triangle as a `ChaosGame`.
 
+
+use super::ChaosGame;
+use super::super::geometry::*;
 use rand;
 use rand::distributions::{IndependentSample, Range};
 use std::sync::mpsc::SyncSender;
 
-use super::ChaosGame;
-use super::super::geometry::*;
-
-#[derive(Clone)]
+#[derive(Clone, Default)]
 pub struct SierpinskiChaosGame;
 
 impl SierpinskiChaosGame {

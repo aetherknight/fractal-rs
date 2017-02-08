@@ -71,12 +71,12 @@ impl DragonFractal {
     pub fn turn_after_step(step: u64) -> Turn {
         let mut step_without_twos = step;
         while step_without_twos != 0 && (step_without_twos % 2) == 0 {
-            step_without_twos = step_without_twos / 2;
+            step_without_twos /= 2;
         }
         if step_without_twos % 4 == 1 {
-            return Turn::Left;
+            Turn::Left
         } else {
-            return Turn::Right;
+            Turn::Right
         }
     }
 
@@ -102,11 +102,9 @@ impl TurtleProgram for DragonFractal {
     /// Starts at (0.0, 0.0) and facing 0 degrees along the X axis. Tries to
     /// end at (1.0, 0.0).
     fn init_turtle(&self) -> Vec<TurtleStep> {
-        vec![
-            TurtleStep::SetPos(Point { x: 0.0, y: 0.0 }),
-            TurtleStep::SetRad(PI / 4.0 * -(self.iterations as f64)),
-            TurtleStep::Down,
-        ]
+        vec![TurtleStep::SetPos(Point { x: 0.0, y: 0.0 }),
+             TurtleStep::SetRad(PI / 4.0 * -(self.iterations as f64)),
+             TurtleStep::Down]
     }
 
     fn turtle_program_iter(&self) -> TurtleProgramIterator {
@@ -152,12 +150,12 @@ impl Iterator for DragonFractalTurtleProgramIterator {
 
 #[cfg(test)]
 mod test {
-    use geometry::Point;
-    use std::f64::consts::PI;
-    use std::f64::consts::SQRT_2;
 
     use super::DragonFractal;
     use super::Turn::{Left, Right};
+    use geometry::Point;
+    use std::f64::consts::PI;
+    use std::f64::consts::SQRT_2;
     use turtle::{TurtleProgram, TurtleStep};
 
     #[test]

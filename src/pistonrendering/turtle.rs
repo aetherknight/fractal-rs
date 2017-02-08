@@ -12,17 +12,19 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-//! Window handlers for drawing TurtlePrograms.
+//! Window handlers for drawing `TurtleProgram`s.
 
+
+use super::*;
+use super::super::geometry::{Point, Vector};
+use super::super::turtle::{Turtle, TurtleCollectToNextForwardIterator, TurtleProgram};
 use gfx_device_gl::Factory;
 use graphics;
 use piston_window::*;
 use std::fmt;
 
-use super::*;
-use super::super::geometry::{Point, Vector};
-use super::super::turtle::{Turtle, TurtleCollectToNextForwardIterator, TurtleProgram};
-
+// The lifetimes are needed here to make the boxed window handlers happy.
+#[cfg_attr(feature = "cargo-clippy", allow(needless_lifetimes))]
 pub fn construct_turtle_window_handler<'a>(program: &'a TurtleProgram,
                                            animate: u64)
                                            -> Box<WindowHandler + 'a> {
@@ -51,6 +53,12 @@ impl TurtleState {
             angle: 0.0,
             down: true,
         }
+    }
+}
+
+impl Default for TurtleState {
+    fn default() -> Self {
+        Self::new()
     }
 }
 
@@ -140,7 +148,7 @@ impl<'a, G> Turtle for PistonTurtle<'a, G>
 }
 
 
-/// WindowHandler that renders an entire turtle program per-frame, and
+/// `WindowHandler` that renders an entire turtle program per-frame, and
 /// optimizes re-renders by only rendering twice (once for each buffer).
 pub struct DoubleBufferedWindowHandler<'a> {
     program: &'a TurtleProgram,
@@ -201,7 +209,7 @@ impl<'a> WindowHandler for DoubleBufferedWindowHandler<'a> {
     }
 }
 
-/// WindowHandler that animates the drawing of the curve by only adding a few
+/// `WindowHandler` that animates the drawing of the curve by only adding a few
 /// line segments per frame.
 pub struct DoubleBufferedAnimatedWindowHandler<'a> {
     program: &'a TurtleProgram,

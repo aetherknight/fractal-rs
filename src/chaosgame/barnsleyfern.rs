@@ -14,12 +14,11 @@
 
 //! Implementation of the Barnsley Fern.
 
+use super::ChaosGame;
+use super::super::geometry::*;
 use rand;
 use rand::distributions::{IndependentSample, Weighted, WeightedChoice};
 use std::sync::mpsc::SyncSender;
-
-use super::ChaosGame;
-use super::super::geometry::*;
 
 /// The reference affine transforms for the Barnsley Fern.
 pub const REFERENCE_TRANSFORMS: [CartesianAffineTransform; 4] =
@@ -47,11 +46,14 @@ pub struct BarnsleyFern {
 impl BarnsleyFern {
     pub fn new(transforms: &[CartesianAffineTransform; 4], weights: &[u32; 4]) -> BarnsleyFern {
         BarnsleyFern {
-            transforms: transforms.clone(),
-            weights: weights.clone(),
+            transforms: *transforms,
+            weights: *weights,
         }
     }
 
+    // The lifetime is needed here to satisfy the compiler's use of the box
+    // elsewhere.
+    #[cfg_attr(feature = "cargo-clippy", allow(needless_lifetimes))]
     fn pick_transform<'a>(&'a self) -> Box<Fn(Point) -> Point + 'a> {
         // TODO: macro to unwrap creating the iterators used to create weighted_indices.
         let mut weighted_indices: Vec<Weighted<usize>> = (0..4)

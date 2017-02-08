@@ -15,7 +15,7 @@
 //! Data structures describing each fractal or curve that the program can draw.
 //!
 //! The data structures also provide a closure to process configuration for
-//! each curve and configure a WindowHandler to handle callbacks from the event
+//! each curve and configure a `WindowHandler` to handle callbacks from the event
 //! loop.
 
 use clap;
@@ -302,7 +302,7 @@ define_subcommands! {
     dragon: {
         TurtleCommand::new("dragon",
                            "Draws a dragon curve fractal",
-                           Box::new(|iteration| DragonFractal::new(iteration)))
+                           Box::new(DragonFractal::new))
     },
 
     kochcurve: {
@@ -338,7 +338,7 @@ define_subcommands! {
     },
 
     sierpinski: {
-        let ctor = Box::new(||SierpinskiChaosGame::new());
+        let ctor = Box::new(SierpinskiChaosGame::new);
         ChaosGameCommand::new("sierpinski", "Draws a Sierpinski triangle using a chaos game and 3 randomly chosen points on the screen", ctor)
     },
 

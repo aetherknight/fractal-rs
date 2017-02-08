@@ -70,7 +70,7 @@ pub trait Turtle {
     }
 }
 
-/// Represents the possible actions that a TurtleProgram can perform.
+/// Represents the possible actions that a `TurtleProgram` can perform.
 #[derive(Clone, Debug, PartialEq)]
 pub enum TurtleStep {
     /// Make the turtle move forward some distance in the coordinate system.
@@ -91,7 +91,7 @@ pub enum TurtleStep {
 /// An object that knows how to draw someting using a Turtle. Turtle programs
 /// are broken up into two parts: an initializer method that should place the
 /// Turtle into its initial state, and a method that returns a
-/// TurtleProgramIterator (which should wrap a Boxed internal iterator
+/// `TurtleProgramIterator` (which should wrap a Boxed internal iterator
 /// implementation) that yields the sequence of steps for the main turtle
 /// program.
 ///
@@ -106,7 +106,7 @@ pub trait TurtleProgram {
 
     /// Should return an iterator object that yields TurtleSteps representing
     /// each command the turtle will take.
-    fn turtle_program_iter<'a>(&'a self) -> TurtleProgramIterator;
+    fn turtle_program_iter(&self) -> TurtleProgramIterator;
 }
 
 pub struct NullTurtleProgramIterator;
@@ -119,7 +119,7 @@ impl Iterator for NullTurtleProgramIterator {
     }
 }
 
-/// The return type for a TurtleProgram's `turtle_program_iter()`. Since Rust
+/// The return type for `TurtleProgram::turtle_program_iter()`. Since Rust
 /// does not yet support abstract return types (eg, a trait return type), the
 /// next best thing is a wrapper around a boxed type.
 pub struct TurtleProgramIterator<'a> {
@@ -148,8 +148,8 @@ impl<'a> Iterator for TurtleProgramIterator<'a> {
     }
 }
 
-/// Iterator that yields vectors of TurtleSteps until the next
-/// TurtleStep::Forward or until the underlying iterator starts yielding None.
+/// Iterator that yields vectors of `TurtleSteps` until the next
+/// `TurtleStep::Forward` or until the underlying iterator starts yielding None.
 /// This allows us to do perform a finite number of drawing actions at a time.
 pub struct TurtleCollectToNextForwardIterator<'a> {
     iter: TurtleProgramIterator<'a>,
@@ -168,7 +168,7 @@ impl<'a> Iterator for TurtleCollectToNextForwardIterator<'a> {
         loop {
             match self.iter.next() {
                 None => {
-                    if retval.len() > 0 {
+                    if !retval.is_empty() {
                         return Some(retval);
                     } else {
                         return None;
@@ -196,11 +196,9 @@ mod test {
 
     #[test]
     fn test_collect_forward_iterator() {
-        let base_iter = TurtleProgramIterator::new(Box::new(vec![
-                                                            TurtleStep::Forward(1.0),
-                                                            TurtleStep::TurnRad(9.0),
-                                                            TurtleStep::Forward(2.0),
-        ]
+        let base_iter = TurtleProgramIterator::new(Box::new(vec![TurtleStep::Forward(1.0),
+                                                                 TurtleStep::TurnRad(9.0),
+                                                                 TurtleStep::Forward(2.0)]
             .into_iter()));
         let mut test_iter = TurtleCollectToNextForwardIterator { iter: base_iter };
 
@@ -229,12 +227,10 @@ mod test {
 
     #[test]
     fn test_collect_forward_iterator_actions_after_last_forward() {
-        let base_iter = TurtleProgramIterator::new(Box::new(vec![
-                                                            TurtleStep::Forward(1.0),
-                                                            TurtleStep::TurnRad(9.0),
-                                                            TurtleStep::Forward(2.0),
-                                                            TurtleStep::TurnRad(-1.0),
-        ]
+        let base_iter = TurtleProgramIterator::new(Box::new(vec![TurtleStep::Forward(1.0),
+                                                                 TurtleStep::TurnRad(9.0),
+                                                                 TurtleStep::Forward(2.0),
+                                                                 TurtleStep::TurnRad(-1.0)]
             .into_iter()));
         let mut test_iter = TurtleCollectToNextForwardIterator { iter: base_iter };
 
