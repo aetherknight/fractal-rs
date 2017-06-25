@@ -20,13 +20,13 @@ pub mod turtle;
 
 use gfx_device_gl::Factory;
 use graphics;
+pub use graphics::math::Vec2d;
 use piston_window::*;
 
-pub use graphics::math::Vec2d;
 pub use super::color::*;
 
 /// State machine for `WindowHandlers` that want to animate across the double buffered frames.
-#[derive(Debug,PartialEq)]
+#[derive(Debug, PartialEq)]
 pub enum WhichFrame {
     FirstFrame,
     SecondFrame,
@@ -59,7 +59,7 @@ pub trait WindowHandler {
     fn render_frame(&mut self, context: &mut RenderContext, frame_num: u32);
 
     /// Optional: used to indicate that the user selected an area of the window to zoom in on.
-    fn zoom(&mut self, rect: [ Vec2d; 2]) {
+    fn zoom(&mut self, rect: [Vec2d; 2]) {
         println!("Selected: {:?}, {:?}", rect[0], rect[1]);
     }
 
@@ -83,9 +83,9 @@ pub fn run(window_handler: &mut WindowHandler) {
         .unwrap_or_else(|e| panic!("Failed to build Window: {}", e));
 
     let mut frame_num: u32 = 0;
-    let mut old_size: Vec2d = [0.0,0.0];
+    let mut old_size: Vec2d = [0.0, 0.0];
 
-    let mut mouse_pos: Vec2d = [0.0,0.0];
+    let mut mouse_pos: Vec2d = [0.0, 0.0];
     let mut mouse_down_pos = None;
 
     window_handler.initialize_with_window(&mut window);
@@ -109,9 +109,9 @@ pub fn run(window_handler: &mut WindowHandler) {
             };
             window_handler.render_frame(&mut render_context, frame_num);
         });
-        e.mouse_cursor(|x,y| {
+        e.mouse_cursor(|x, y| {
             // mouse moved
-            mouse_pos = [x,y];
+            mouse_pos = [x, y];
         });
         e.press(|button| {
             match button {
@@ -121,32 +121,33 @@ pub fn run(window_handler: &mut WindowHandler) {
                         mouse_down_pos = Some(mouse_pos);
                         println!("Pressed mouse left: {:?}", mouse_down_pos.as_ref().unwrap());
                     }
-                },
+                }
                 Button::Keyboard(key) => {
                     match key {
                         Key::Backspace => {
                             // "backspace" key down
                             println!("reset zoom");
                             window_handler.reset_view();
-                        },
+                        }
                         Key::Minus => {
                             println!("zoom out");
                             // make the current screen's dimension become 50% the new view
-                            let halves = [old_size[0]/2.0,old_size[1]/2.0];
-                            let new_top_left = [-halves[0],-halves[1]];
-                            let new_bot_right = [old_size[0]+halves[0], old_size[1]+halves[1]];
+                            let halves = [old_size[0] / 2.0, old_size[1] / 2.0];
+                            let new_top_left = [-halves[0], -halves[1]];
+                            let new_bot_right = [old_size[0] + halves[0], old_size[1] + halves[1]];
 
                             window_handler.zoom([new_top_left, new_bot_right]);
-                        },
+                        }
                         Key::Equals => {
                             println!("zoom in");
                             // zoom in so that 50% of the current view is the new view
-                            let quarters = [old_size[0]/4.0,old_size[1]/4.0];
-                            let new_top_left = [quarters[0],quarters[1]];
-                            let new_bot_right = [old_size[0]-quarters[0], old_size[1]-quarters[1]];
+                            let quarters = [old_size[0] / 4.0, old_size[1] / 4.0];
+                            let new_top_left = [quarters[0], quarters[1]];
+                            let new_bot_right =
+                                [old_size[0] - quarters[0], old_size[1] - quarters[1]];
 
                             window_handler.zoom([new_top_left, new_bot_right]);
-                        },
+                        }
                         Key::Up => {
                             println!("up");
                             // scroll up by 25%
@@ -155,7 +156,7 @@ pub fn run(window_handler: &mut WindowHandler) {
                             let new_bot_right = [old_size[0], old_size[1] - move_up];
 
                             window_handler.zoom([new_top_left, new_bot_right]);
-                        },
+                        }
                         Key::Down => {
                             let move_down = old_size[1] * 0.25;
                             let new_top_left = [0.0, move_down];
@@ -163,24 +164,23 @@ pub fn run(window_handler: &mut WindowHandler) {
 
                             window_handler.zoom([new_top_left, new_bot_right]);
                         }
-                        ,
                         Key::Right => {
                             let move_right = old_size[0] * 0.25;
                             let new_top_left = [move_right, 0.0];
-                            let new_bot_right = [old_size[0] + move_right , old_size[1]];
+                            let new_bot_right = [old_size[0] + move_right, old_size[1]];
 
                             window_handler.zoom([new_top_left, new_bot_right]);
-                        },
+                        }
                         Key::Left => {
                             let move_left = old_size[0] * 0.25;
                             let new_top_left = [-move_left, 0.0];
-                            let new_bot_right = [old_size[0] - move_left , old_size[1]];
+                            let new_bot_right = [old_size[0] - move_left, old_size[1]];
 
                             window_handler.zoom([new_top_left, new_bot_right]);
-                        },
+                        }
                         _ => {}
                     }
-                },
+                }
                 _ => {}
             }
         });

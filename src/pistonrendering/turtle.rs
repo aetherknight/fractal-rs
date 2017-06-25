@@ -14,20 +14,23 @@
 
 //! Window handlers for drawing `TurtleProgram`s.
 
+use std::fmt;
+
+use gfx_device_gl::Factory;
+use graphics;
+use piston_window::*;
 
 use super::*;
 use super::super::geometry::{Point, Vector};
 use super::super::turtle::{Turtle, TurtleCollectToNextForwardIterator, TurtleProgram};
-use gfx_device_gl::Factory;
-use graphics;
-use piston_window::*;
-use std::fmt;
+
 
 // The lifetimes are needed here to make the boxed window handlers happy.
 #[cfg_attr(feature = "cargo-clippy", allow(needless_lifetimes))]
-pub fn construct_turtle_window_handler<'a>(program: &'a TurtleProgram,
-                                           animate: u64)
-                                           -> Box<WindowHandler + 'a> {
+pub fn construct_turtle_window_handler<'a>(
+    program: &'a TurtleProgram,
+    animate: u64,
+) -> Box<WindowHandler + 'a> {
     match animate {
         0 => Box::new(DoubleBufferedWindowHandler::new(program)),
         _ => Box::new(DoubleBufferedAnimatedWindowHandler::new(program, animate)),
@@ -35,8 +38,7 @@ pub fn construct_turtle_window_handler<'a>(program: &'a TurtleProgram,
 }
 
 
-/// Internal state of a turtle. Can be used by turtle implementations to
-/// store/pause their drawing.
+/// Internal state of a turtle. Can be used by turtle implementations to store/pause their drawing.
 #[derive(Clone, Debug)]
 pub struct TurtleState {
     position: Point,
@@ -45,8 +47,8 @@ pub struct TurtleState {
 }
 
 impl TurtleState {
-    /// Initializes a new TurtleState. A new turtle starts at (0,0) and faces
-    /// towards the positive X axis.
+    /// Initializes a new TurtleState. A new turtle starts at (0,0) and faces towards the
+    /// positive X axis.
     pub fn new() -> TurtleState {
         TurtleState {
             position: Point { x: 0.0, y: 0.0 },
@@ -64,7 +66,8 @@ impl Default for TurtleState {
 
 /// An implementation of a Turtle within a Piston window/gfx context.
 pub struct PistonTurtle<'a, G>
-    where G: Graphics + 'a
+where
+    G: Graphics + 'a,
 {
     context: graphics::context::Context,
     gfx: &'a mut G,
@@ -73,12 +76,14 @@ pub struct PistonTurtle<'a, G>
 }
 
 impl<'a, G> PistonTurtle<'a, G>
-    where G: Graphics + 'a
+where
+    G: Graphics + 'a,
 {
-    pub fn new(state: &'a mut TurtleState,
-               context: graphics::context::Context,
-               gfx: &'a mut G)
-               -> PistonTurtle<'a, G> {
+    pub fn new(
+        state: &'a mut TurtleState,
+        context: graphics::context::Context,
+        gfx: &'a mut G,
+    ) -> PistonTurtle<'a, G> {
         PistonTurtle {
             context: context,
             gfx: gfx,
@@ -88,7 +93,8 @@ impl<'a, G> PistonTurtle<'a, G>
 }
 
 impl<'a, G> Turtle for PistonTurtle<'a, G>
-    where G: Graphics + 'a
+where
+    G: Graphics + 'a,
 {
     fn forward(&mut self, distance: f64) {
         let old_pos = self.state.position;
@@ -116,11 +122,12 @@ impl<'a, G> Turtle for PistonTurtle<'a, G>
                 .flip_v()
                 .trans(0.0, 0.0);
 
-            Line::new(BLACK_F32.0, 0.5 / linesize)
-                .draw([old_pos.x, old_pos.y, new_pos.x, new_pos.y],
-                      &graphics::draw_state::DrawState::default(),
-                      transform,
-                      self.gfx);
+            Line::new(BLACK_F32.0, 0.5 / linesize).draw(
+                [old_pos.x, old_pos.y, new_pos.x, new_pos.y],
+                &graphics::draw_state::DrawState::default(),
+                transform,
+                self.gfx,
+            );
         }
 
         self.state.position = new_pos;
@@ -149,8 +156,8 @@ impl<'a, G> Turtle for PistonTurtle<'a, G>
 }
 
 
-/// `WindowHandler` that renders an entire turtle program per-frame, and
-/// optimizes re-renders by only rendering twice (once for each buffer).
+/// `WindowHandler` that renders an entire turtle program per-frame, and optimizes re-renders by
+/// only rendering twice (once for each buffer).
 pub struct DoubleBufferedWindowHandler<'a> {
     program: &'a TurtleProgram,
     /// Whether we need to re-render for double-buffered frames.
@@ -181,9 +188,11 @@ impl<'a> DoubleBufferedWindowHandler<'a> {
 
 impl<'a> fmt::Debug for DoubleBufferedWindowHandler<'a> {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f,
-               "DoubleBufferedWindowHandler(program:<program>, redraw:{:?})",
-               self.redraw)
+        write!(
+            f,
+            "DoubleBufferedWindowHandler(program:<program>, redraw:{:?})",
+            self.redraw
+        )
     }
 }
 
@@ -210,54 +219,58 @@ impl<'a> WindowHandler for DoubleBufferedWindowHandler<'a> {
     }
 }
 
-/// `WindowHandler` that animates the drawing of the curve by only adding a few
-/// line segments per frame.
+/// `WindowHandler` that animates the drawing of the curve by only adding a few line segments per
+/// frame.
 pub struct DoubleBufferedAnimatedWindowHandler<'a> {
     program: &'a TurtleProgram,
-    /// stored turtle state for each turtle. double-buffered means we need to
-    /// animate the curve
+    /// stored turtle state for each turtle. double-buffered means we need to animate the curve
     /// "twice".
     turtles: [TurtleState; 2],
     /// Two iterators.
     iters: [TurtleCollectToNextForwardIterator<'a>; 2],
     lines_per_frame: u64,
-    /// Which frame we are rendering. We need to perform the initial steps for
-    /// the first frame, and we need perform the initial steps and do one extra
-    /// move forward for the second frame (to stagger the double buffer). The
-    /// rest of the frames then just move forward.
+    /// Which frame we are rendering. We need to perform the initial steps for the first frame,
+    /// and we need perform the initial steps and do one extra move forward for the second frame
+    /// (to stagger the double buffer). The rest of the frames then just move forward.
     which_frame: WhichFrame,
 }
 
 impl<'a> fmt::Debug for DoubleBufferedAnimatedWindowHandler<'a> {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f,
-               "DoubleBufferedAnimatedWindowHandler(turtles:{:?}, iters:<iters>, which_frame:{:?})",
-               self.turtles,
-               self.which_frame)
+        write!(
+            f,
+            "DoubleBufferedAnimatedWindowHandler(turtles:{:?}, iters:<iters>, which_frame:{:?})",
+            self.turtles,
+            self.which_frame
+        )
     }
 }
 
 impl<'a> DoubleBufferedAnimatedWindowHandler<'a> {
     /// Initialize a new DoubleBufferedAnimatedWindowHandler.
     ///
-    /// `lines_per_frame` specifies how many line segments the turtle should
-    /// draw per frame.
-    pub fn new(program: &'a TurtleProgram,
-               lines_per_frame: u64)
-               -> DoubleBufferedAnimatedWindowHandler<'a> {
+    /// `lines_per_frame` specifies how many line segments the turtle should draw per frame.
+    pub fn new(
+        program: &'a TurtleProgram,
+        lines_per_frame: u64,
+    ) -> DoubleBufferedAnimatedWindowHandler<'a> {
         DoubleBufferedAnimatedWindowHandler {
             program: program,
             turtles: [TurtleState::new(), TurtleState::new()],
-            iters: [TurtleCollectToNextForwardIterator::new_null_iter(),
-                    TurtleCollectToNextForwardIterator::new_null_iter()],
+            iters: [
+                TurtleCollectToNextForwardIterator::new_null_iter(),
+                TurtleCollectToNextForwardIterator::new_null_iter(),
+            ],
             lines_per_frame: lines_per_frame,
             which_frame: WhichFrame::FirstFrame,
         }
     }
 
-    fn draw_one_move<G>(turtle: &mut PistonTurtle<G>,
-                        program_iter: &mut TurtleCollectToNextForwardIterator)
-        where G: Graphics
+    fn draw_one_move<G>(
+        turtle: &mut PistonTurtle<G>,
+        program_iter: &mut TurtleCollectToNextForwardIterator,
+    ) where
+        G: Graphics,
     {
         let one_move = program_iter.next();
         if !one_move.is_none() {
@@ -284,9 +297,11 @@ impl<'a> WindowHandler for DoubleBufferedAnimatedWindowHandler<'a> {
                 // turtle and also use it elsewhere, this would trigger the static analysis.
                 // This could be worked around by placing gfx into a RefCell.
                 clear(WHITE_F32.0, render_context.gfx);
-                let mut turtle = PistonTurtle::new(&mut self.turtles[bufnum],
-                                                   render_context.context,
-                                                   render_context.gfx);
+                let mut turtle = PistonTurtle::new(
+                    &mut self.turtles[bufnum],
+                    render_context.context,
+                    render_context.gfx,
+                );
                 for action in self.program.init_turtle() {
                     turtle.perform(action)
                 }
@@ -295,15 +310,17 @@ impl<'a> WindowHandler for DoubleBufferedAnimatedWindowHandler<'a> {
             }
             WhichFrame::SecondFrame => {
                 clear(WHITE_F32.0, render_context.gfx);
-                let mut turtle = PistonTurtle::new(&mut self.turtles[bufnum],
-                                                   render_context.context,
-                                                   render_context.gfx);
+                let mut turtle = PistonTurtle::new(
+                    &mut self.turtles[bufnum],
+                    render_context.context,
+                    render_context.gfx,
+                );
                 for action in self.program.init_turtle() {
                     turtle.perform(action)
                 }
                 self.iters[bufnum] = self.program.turtle_program_iter().collect_to_next_forward();
-                // if we are the second frame, then we need to stagger our buffer from
-                // the first buffer.
+                // if we are the second frame, then we need to stagger our buffer from the first
+                // buffer.
                 let one_move = self.iters[bufnum].next();
                 if !one_move.is_none() {
                     for action in one_move.unwrap() {
@@ -313,15 +330,21 @@ impl<'a> WindowHandler for DoubleBufferedAnimatedWindowHandler<'a> {
                 self.which_frame = WhichFrame::AllOtherFrames;
             }
             _ => {
-                let mut turtle = PistonTurtle::new(&mut self.turtles[bufnum],
-                                                   render_context.context,
-                                                   render_context.gfx);
+                let mut turtle = PistonTurtle::new(
+                    &mut self.turtles[bufnum],
+                    render_context.context,
+                    render_context.gfx,
+                );
                 for _ in 0..self.lines_per_frame {
                     // Make 2 moves per frame since we are double buffered.
-                    DoubleBufferedAnimatedWindowHandler::draw_one_move(&mut turtle,
-                                                                       &mut self.iters[bufnum]);
-                    DoubleBufferedAnimatedWindowHandler::draw_one_move(&mut turtle,
-                                                                       &mut self.iters[bufnum]);
+                    DoubleBufferedAnimatedWindowHandler::draw_one_move(
+                        &mut turtle,
+                        &mut self.iters[bufnum],
+                    );
+                    DoubleBufferedAnimatedWindowHandler::draw_one_move(
+                        &mut turtle,
+                        &mut self.iters[bufnum],
+                    );
                 }
             }
         }

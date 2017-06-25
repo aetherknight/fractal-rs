@@ -30,9 +30,9 @@ use super::geometry::Point;
 /// parameters it wants or needs to to customize itself, and `generate()` will likely use an RNG to
 /// introduce the random element needed.
 pub trait ChaosGame {
-    /// Generator function that should send Points across a buffered channel, possibly forever. The
-    /// function should only return if it is done or if the channel indicates that the remote side
-    /// has closed/errored.
+    /// Generator function that should send Points across a buffered channel, possibly forever.
+    /// The function should only return if it is done or if the channel indicates that the
+    /// remote side has closed/errored.
     fn generate(&self, channel: &mut SyncSender<Point>);
 }
 
@@ -46,9 +46,9 @@ pub struct ChaosGameMoveIterator {
 
 impl ChaosGameMoveIterator {
     /// Construct a new ChaosGameMoveIterator using an instance of a ChaosGame. It will launch a
-    /// thread that calls ChaosGame::generate() and sends the Points it generates to the iterator
-    /// using a channel. The ChaosGame must be managed by an Arc in order to share the ChaosGame
-    /// with the thread.
+    /// thread that calls ChaosGame::generate() and sends the Points it generates to the
+    /// iterator using a channel. The ChaosGame must be managed by an Arc in order to share the
+    /// ChaosGame with the thread.
     pub fn new(game: Arc<ChaosGame + Send + Sync>) -> ChaosGameMoveIterator {
         let (mut tx, rx) = sync_channel::<Point>(10);
         let worker = thread::spawn(move || {

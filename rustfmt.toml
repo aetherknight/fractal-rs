@@ -1,3 +1,7 @@
+array_width=100
+comment_width=100
 wrap_comments = true
 newline_style = "Unix"
 reorder_imports = true
+reorder_imported_names = true
+reorder_imports_in_group = true

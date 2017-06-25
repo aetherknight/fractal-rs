@@ -14,9 +14,10 @@
 
 //! Computations and abstractions needed for rendering a Lévy C Curve.
 
+use std::f64::consts::SQRT_2;
+
 use geometry::deg2rad;
 use lindenmayer::{LindenmayerSystem, LindenmayerSystemDrawingParameters};
-use std::f64::consts::SQRT_2;
 use turtle::TurtleStep;
 
 #[derive(Copy, Clone, Debug)]
@@ -77,21 +78,27 @@ impl LindenmayerSystemDrawingParameters<LSA> for LevyCCurve {
 
 #[cfg(test)]
 mod test {
+    use super::LevyCCurve;
     use geometry::Point;
     use lindenmayer::LindenmayerSystemDrawingParameters;
-    use super::LevyCCurve;
 
     #[test]
     fn test_initial_pos() {
-        assert_point_eq!(LevyCCurve::new(0).initial_pos(),
-                         Point { x: 0.0, y: 0.0 },
-                         0.000000001);
-        assert_point_eq!(LevyCCurve::new(1).initial_pos(),
-                         Point { x: 0.0, y: 0.0 },
-                         0.000000001);
-        assert_point_eq!(LevyCCurve::new(2).initial_pos(),
-                         Point { x: 0.0, y: 0.0 },
-                         0.000000001);
+        assert_point_eq!(
+            LevyCCurve::new(0).initial_pos(),
+            Point { x: 0.0, y: 0.0 },
+            0.000000001
+        );
+        assert_point_eq!(
+            LevyCCurve::new(1).initial_pos(),
+            Point { x: 0.0, y: 0.0 },
+            0.000000001
+        );
+        assert_point_eq!(
+            LevyCCurve::new(2).initial_pos(),
+            Point { x: 0.0, y: 0.0 },
+            0.000000001
+        );
     }
 
     #[test]

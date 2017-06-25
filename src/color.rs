@@ -14,8 +14,7 @@
 
 //! Color-related constants and functions.
 
-/// Colors that work with `graphics` functions, which want color as vectors of
-/// f32.
+/// Colors that work with `graphics` functions, which want color as vectors of f32.
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct ColorF32(pub [f32; 4]);
 
@@ -55,9 +54,9 @@ pub const WHITE_U8: ColorU8 = ColorU8([255, 255, 255, 255]);
 /// assert_eq!(range[10], ColorU8([10,10,10,255]));
 /// ```
 ///
-/// If you want to simulate a cutoff/saturation point where the gradients reach
-/// the peak color before some maximium index value, then you can use
-/// `std::cmp::min` to prevent an out of bounds error:
+/// If you want to simulate a cutoff/saturation point where the gradients reach the peak color
+/// before some maximium index value, then you can use `std::cmp::min` to prevent an out of bounds
+/// error:
 ///
 /// ```
 /// use fractal::color::{ColorU8, color_range_linear};
@@ -78,18 +77,24 @@ pub fn color_range_linear(first: ColorU8, last: ColorU8, count: usize) -> Vec<Co
     if count < 2 {
         panic!("Count must be 2 or more: {}", count);
     }
-    let deltas = [((last.0[0] as f32) - (first.0[0] as f32)) / ((count - 1) as f32),
-                  ((last.0[1] as f32) - (first.0[1] as f32)) / ((count - 1) as f32),
-                  ((last.0[2] as f32) - (first.0[2] as f32)) / ((count - 1) as f32),
-                  ((last.0[3] as f32) - (first.0[3] as f32)) / ((count - 1) as f32)];
+    let deltas = [
+        ((last.0[0] as f32) - (first.0[0] as f32)) / ((count - 1) as f32),
+        ((last.0[1] as f32) - (first.0[1] as f32)) / ((count - 1) as f32),
+        ((last.0[2] as f32) - (first.0[2] as f32)) / ((count - 1) as f32),
+        ((last.0[3] as f32) - (first.0[3] as f32)) / ((count - 1) as f32),
+    ];
 
     (0..count)
         .into_iter()
         .map(|i| {
-            ColorU8([((first.0[0] as f32) + (i as f32) * deltas[0]) as u8,
-                     ((first.0[1] as f32) + (i as f32) * deltas[1]) as u8,
-                     ((first.0[2] as f32) + (i as f32) * deltas[2]) as u8,
-                     ((first.0[3] as f32) + (i as f32) * deltas[3]) as u8])
+            ColorU8(
+                [
+                    ((first.0[0] as f32) + (i as f32) * deltas[0]) as u8,
+                    ((first.0[1] as f32) + (i as f32) * deltas[1]) as u8,
+                    ((first.0[2] as f32) + (i as f32) * deltas[2]) as u8,
+                    ((first.0[3] as f32) + (i as f32) * deltas[3]) as u8,
+                ],
+            )
         })
         .collect()
 }

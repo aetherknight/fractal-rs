@@ -79,8 +79,8 @@ impl LindenmayerSystemDrawingParameters<LSA> for CesaroTriFractal {
         // For iteration 2,         H / (2*(1 + sin(base_angle/2)))^2
         // and so forth.
         let hyp_unit = hyp /
-                       ((2.0_f64 * (1.0_f64 + (PI - (2.0_f64 * base_angle_rads)).sin()))
-            .powf(self.iterations as f64));
+            ((2.0_f64 * (1.0_f64 + (PI - (2.0_f64 * base_angle_rads)).sin()))
+                 .powf(self.iterations as f64));
 
         // cos(a) = A/H. A = hyp/2. H = A/cos(a)
         // let side_len = (hyp / 2.0_f64) / (base_angle_rads / 2.0_f64).cos();
@@ -110,15 +110,21 @@ mod test {
 
     #[test]
     fn test_initial_pos() {
-        assert_point_eq!(CesaroTriFractal::new(0).initial_pos(),
-                         Point { x: 0.0, y: 0.0 },
-                         0.000000001);
-        assert_point_eq!(CesaroTriFractal::new(1).initial_pos(),
-                         Point { x: 0.0, y: 0.0 },
-                         0.000000001);
-        assert_point_eq!(CesaroTriFractal::new(2).initial_pos(),
-                         Point { x: 0.0, y: 0.0 },
-                         0.000000001);
+        assert_point_eq!(
+            CesaroTriFractal::new(0).initial_pos(),
+            Point { x: 0.0, y: 0.0 },
+            0.000000001
+        );
+        assert_point_eq!(
+            CesaroTriFractal::new(1).initial_pos(),
+            Point { x: 0.0, y: 0.0 },
+            0.000000001
+        );
+        assert_point_eq!(
+            CesaroTriFractal::new(2).initial_pos(),
+            Point { x: 0.0, y: 0.0 },
+            0.000000001
+        );
     }
 
     #[test]

@@ -14,9 +14,10 @@
 
 //! Computations and abstractions needed for rendering a dragon fractal.
 
-use geometry::Point;
 use std::f64::consts::PI;
 use std::f64::consts::SQRT_2;
+
+use geometry::Point;
 use turtle::*;
 
 #[derive(Copy, Clone, Debug, Eq, PartialEq)]
@@ -30,11 +31,10 @@ pub struct DragonFractal {
     iterations: u64,
 }
 
-/// Represents the computations needed to render a dragon fractal of a
-/// particular iteration.
+/// Represents the computations needed to render a dragon fractal of a particular iteration.
 impl DragonFractal {
-    /// Create a new DragonFractal. `iterations` is the number of times you
-    /// would "fold" the curve in half. Eg:
+    /// Create a new DragonFractal. `iterations` is the number of times you would "fold" the
+    /// curve in half. Eg:
     ///
     /// ```text
     /// 0:
@@ -82,10 +82,10 @@ impl DragonFractal {
 
     /// How many line segments are between the starting and end points.
     ///
-    /// This can be used to calculate how long each line segment should be to
-    /// ensure that the drawing of the fractal ends at the desired endpoints.
-    /// For example, if the starting point is (0, 0) and the endpoint should be
-    /// (1, 0), then the size of each line segment would be:
+    /// This can be used to calculate how long each line segment should be to ensure that the
+    /// drawing of the fractal ends at the desired endpoints. For example, if the starting
+    /// point is (0, 0) and the endpoint should be (1, 0), then the size of each line segment
+    /// would be:
     ///
     /// ```text
     /// (x_start - x_end).abs() / df.lines_between_endpoints()
@@ -99,12 +99,13 @@ impl DragonFractal {
 }
 
 impl TurtleProgram for DragonFractal {
-    /// Starts at (0.0, 0.0) and facing 0 degrees along the X axis. Tries to
-    /// end at (1.0, 0.0).
+    /// Starts at (0.0, 0.0) and facing 0 degrees along the X axis. Tries to end at (1.0, 0.0).
     fn init_turtle(&self) -> Vec<TurtleStep> {
-        vec![TurtleStep::SetPos(Point { x: 0.0, y: 0.0 }),
-             TurtleStep::SetRad(PI / 4.0 * -(self.iterations as f64)),
-             TurtleStep::Down]
+        vec![
+            TurtleStep::SetPos(Point { x: 0.0, y: 0.0 }),
+            TurtleStep::SetRad(PI / 4.0 * -(self.iterations as f64)),
+            TurtleStep::Down,
+        ]
     }
 
     fn turtle_program_iter(&self) -> TurtleProgramIterator {
@@ -133,7 +134,9 @@ impl Iterator for DragonFractalTurtleProgramIterator {
         if self.move_next {
             self.move_next = false;
             println!("curr_step:{}, Forward", self.curr_step);
-            Some(TurtleStep::Forward(1.0 / (self.dragon.lines_between_endpoints() as f64)))
+            Some(TurtleStep::Forward(
+                1.0 / (self.dragon.lines_between_endpoints() as f64),
+            ))
         } else {
             let turn = DragonFractal::turn_after_step(self.curr_step);
             println!("curr_step:{}, {:?}", self.curr_step, turn);
@@ -188,21 +191,31 @@ mod test {
 
     #[test]
     fn test_lines_between_endpoints() {
-        assert_approx_eq!(DragonFractal::new(0).lines_between_endpoints(),
-                          1.0,
-                          0.000001);
-        assert_approx_eq!(DragonFractal::new(1).lines_between_endpoints(),
-                          SQRT_2,
-                          0.000001);
-        assert_approx_eq!(DragonFractal::new(2).lines_between_endpoints(),
-                          2.0,
-                          0.000001);
-        assert_approx_eq!(DragonFractal::new(3).lines_between_endpoints(),
-                          2.0 * SQRT_2,
-                          0.000001);
-        assert_approx_eq!(DragonFractal::new(4).lines_between_endpoints(),
-                          4.0,
-                          0.000001);
+        assert_approx_eq!(
+            DragonFractal::new(0).lines_between_endpoints(),
+            1.0,
+            0.000001
+        );
+        assert_approx_eq!(
+            DragonFractal::new(1).lines_between_endpoints(),
+            SQRT_2,
+            0.000001
+        );
+        assert_approx_eq!(
+            DragonFractal::new(2).lines_between_endpoints(),
+            2.0,
+            0.000001
+        );
+        assert_approx_eq!(
+            DragonFractal::new(3).lines_between_endpoints(),
+            2.0 * SQRT_2,
+            0.000001
+        );
+        assert_approx_eq!(
+            DragonFractal::new(4).lines_between_endpoints(),
+            4.0,
+            0.000001
+        );
     }
 
     #[test]

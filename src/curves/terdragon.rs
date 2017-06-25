@@ -25,12 +25,11 @@ pub struct TerdragonFractal {
     iterations: u64,
 }
 
-/// Represents the computations needed to render a terdragon fractal of a
-/// particular iteration. It uses a Lindenmeyer system under the hood
+/// Represents the computations needed to render a terdragon fractal of a particular iteration. It
+/// uses a Lindenmeyer system under the hood
 impl TerdragonFractal {
-    /// Create a new TerdragonFractal. `iterations` is the number of
-    /// generations to apply to the Lindenmeyer system used to generate the
-    /// fractal's turns.
+    /// Create a new TerdragonFractal. `iterations` is the number of generations to apply to the
+    /// Lindenmeyer system used to generate the fractal's turns.
     pub fn new(iterations: u64) -> TerdragonFractal {
         TerdragonFractal { iterations: iterations }
     }
@@ -44,10 +43,11 @@ impl TerdragonFractal {
 
     /// How many line segments are between the starting and end points.
     ///
-    /// This can be used to calculate how long each line segment should be to
-    /// ensure that the drawing of the fractal ends at the desired endpoints.
-    /// For example, if the starting point is (0, 0) and the endpoint should be
-    /// (1, 0), then the size of each line segment would be:
+    /// This can be used to calculate how long each line segment should be to ensure that the
+    /// drawing of the fractal ends at the desired endpoints. For example, if the starting
+    /// point is (0, 0) and the endpoint should be (1, 0), then the size of each line segment
+    /// would
+    /// be:
     ///
     /// ```text
     /// (x_start - x_end).abs() / df.lines_between_endpoints()
@@ -101,11 +101,11 @@ impl LindenmayerSystemDrawingParameters<LSA> for TerdragonFractal {
 
 #[cfg(test)]
 mod test {
+    use super::{LSA, TerdragonFractal};
+    use super::SQRT_3;
     use geometry::Point;
     use lindenmayer::LindenmayerSystemDrawingParameters;
     use std::f64::consts::PI;
-    use super::{LSA, TerdragonFractal};
-    use super::SQRT_3;
 
     #[test]
     fn test_step_count() {
@@ -117,21 +117,31 @@ mod test {
 
     #[test]
     fn test_lines_between_endpoints() {
-        assert_approx_eq!(TerdragonFractal::new(0).lines_between_endpoints(),
-                          1.0,
-                          0.000001);
-        assert_approx_eq!(TerdragonFractal::new(1).lines_between_endpoints(),
-                          SQRT_3,
-                          0.000001);
-        assert_approx_eq!(TerdragonFractal::new(2).lines_between_endpoints(),
-                          3.0,
-                          0.000001);
-        assert_approx_eq!(TerdragonFractal::new(3).lines_between_endpoints(),
-                          3.0 * SQRT_3,
-                          0.000001);
-        assert_approx_eq!(TerdragonFractal::new(4).lines_between_endpoints(),
-                          9.0,
-                          0.000001);
+        assert_approx_eq!(
+            TerdragonFractal::new(0).lines_between_endpoints(),
+            1.0,
+            0.000001
+        );
+        assert_approx_eq!(
+            TerdragonFractal::new(1).lines_between_endpoints(),
+            SQRT_3,
+            0.000001
+        );
+        assert_approx_eq!(
+            TerdragonFractal::new(2).lines_between_endpoints(),
+            3.0,
+            0.000001
+        );
+        assert_approx_eq!(
+            TerdragonFractal::new(3).lines_between_endpoints(),
+            3.0 * SQRT_3,
+            0.000001
+        );
+        assert_approx_eq!(
+            TerdragonFractal::new(4).lines_between_endpoints(),
+            9.0,
+            0.000001
+        );
     }
 
     #[test]
@@ -139,34 +149,65 @@ mod test {
         use super::super::super::lindenmayer::LindenmayerSystem; // needed to pull in generate()
         let l_system = TerdragonFractal::new(0);
         assert_eq!(l_system.generate(0), [LSA::F]);
-        assert_eq!(l_system.generate(1),
-                   [LSA::F, LSA::L, LSA::F, LSA::R, LSA::F]);
-        assert_eq!(l_system.generate(2),
-                   [LSA::F, LSA::L, LSA::F, LSA::R, LSA::F, LSA::L, LSA::F, LSA::L, LSA::F,
-                    LSA::R, LSA::F, LSA::R, LSA::F, LSA::L, LSA::F, LSA::R, LSA::F]);
+        assert_eq!(
+            l_system.generate(1),
+            [LSA::F, LSA::L, LSA::F, LSA::R, LSA::F]
+        );
+        assert_eq!(
+            l_system.generate(2),
+            [
+                LSA::F,
+                LSA::L,
+                LSA::F,
+                LSA::R,
+                LSA::F,
+                LSA::L,
+                LSA::F,
+                LSA::L,
+                LSA::F,
+                LSA::R,
+                LSA::F,
+                LSA::R,
+                LSA::F,
+                LSA::L,
+                LSA::F,
+                LSA::R,
+                LSA::F
+            ]
+        );
     }
 
     #[test]
     fn test_initial_pos() {
-        assert_point_eq!(TerdragonFractal::new(0).initial_pos(),
-                         Point { x: 0.0, y: 0.0 },
-                         0.000000001);
-        assert_point_eq!(TerdragonFractal::new(1).initial_pos(),
-                         Point { x: 0.0, y: 0.0 },
-                         0.000000001);
-        assert_point_eq!(TerdragonFractal::new(2).initial_pos(),
-                         Point { x: 0.0, y: 0.0 },
-                         0.000000001);
+        assert_point_eq!(
+            TerdragonFractal::new(0).initial_pos(),
+            Point { x: 0.0, y: 0.0 },
+            0.000000001
+        );
+        assert_point_eq!(
+            TerdragonFractal::new(1).initial_pos(),
+            Point { x: 0.0, y: 0.0 },
+            0.000000001
+        );
+        assert_point_eq!(
+            TerdragonFractal::new(2).initial_pos(),
+            Point { x: 0.0, y: 0.0 },
+            0.000000001
+        );
     }
 
     #[test]
     fn test_initial_angle() {
         assert_approx_eq!(TerdragonFractal::new(0).initial_rad(), 0.0, 0.00000001);
-        assert_approx_eq!(TerdragonFractal::new(1).initial_rad(),
-                          -1.0 * PI / 6.0,
-                          0.00000001);
-        assert_approx_eq!(TerdragonFractal::new(2).initial_rad(),
-                          -2.0 * PI / 6.0,
-                          0.00000001);
+        assert_approx_eq!(
+            TerdragonFractal::new(1).initial_rad(),
+            -1.0 * PI / 6.0,
+            0.00000001
+        );
+        assert_approx_eq!(
+            TerdragonFractal::new(2).initial_rad(),
+            -2.0 * PI / 6.0,
+            0.00000001
+        );
     }
 }

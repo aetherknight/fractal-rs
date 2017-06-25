@@ -72,21 +72,27 @@ impl LindenmayerSystemDrawingParameters<LSA> for KochCurve {
 
 #[cfg(test)]
 mod test {
+    use super::KochCurve;
     use geometry::Point;
     use lindenmayer::LindenmayerSystemDrawingParameters;
-    use super::KochCurve;
 
     #[test]
     fn test_initial_pos() {
-        assert_point_eq!(KochCurve::new(0).initial_pos(),
-                         Point { x: 0.0, y: 0.0 },
-                         0.000000001);
-        assert_point_eq!(KochCurve::new(1).initial_pos(),
-                         Point { x: 0.0, y: 0.0 },
-                         0.000000001);
-        assert_point_eq!(KochCurve::new(2).initial_pos(),
-                         Point { x: 0.0, y: 0.0 },
-                         0.000000001);
+        assert_point_eq!(
+            KochCurve::new(0).initial_pos(),
+            Point { x: 0.0, y: 0.0 },
+            0.000000001
+        );
+        assert_point_eq!(
+            KochCurve::new(1).initial_pos(),
+            Point { x: 0.0, y: 0.0 },
+            0.000000001
+        );
+        assert_point_eq!(
+            KochCurve::new(2).initial_pos(),
+            Point { x: 0.0, y: 0.0 },
+            0.000000001
+        );
     }
 
     #[test]

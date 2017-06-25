@@ -70,7 +70,9 @@ macro_rules! assert_complex_approx_in {
                 }
             }
             if ! found {
-                panic!("assertion failed: {:?} does not approximately contain: {}", collection, rhs);
+                panic!(
+                    "assertion failed: {:?} does not approximately contain: {}", collection, rhs
+                );
             }
         }
     }

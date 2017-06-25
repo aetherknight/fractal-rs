@@ -15,10 +15,11 @@
 //! Various types and functions the work within a 2-D cartesian coordinate
 //! system.
 
-use graphics::math::Vec2d;
-use num::complex::Complex64;
 use std::f64::consts::PI;
 use std::fmt;
+
+use graphics::math::Vec2d;
+use num::complex::Complex64;
 
 /// Represents a point in a 2-D cartesian coordinate system.
 #[derive(Copy, Clone, Debug, PartialEq)]
@@ -99,9 +100,9 @@ pub trait AffineTransform<T> {
     fn transform(&self, v: T) -> T;
 }
 
-/// Row-major matrix for applying affine transforms to Cartesian points.
-/// Affine transformations on the Cartesian plane are usually defined by 6
-/// parameters that correspond to a 2x2 matrix and a vector:
+/// Row-major matrix for applying affine transforms to Cartesian points. Affine transformations on
+/// the Cartesian plane are usually defined by 6 parameters that correspond to a 2x2 matrix and a
+/// vector:
 ///
 /// ```text
 ///     ⎡ x' ⎤ = ⎡ a b ⎤ * ⎡ x⎤ + ⎡ e ⎤
@@ -128,17 +129,16 @@ impl AffineTransform<Point> for CartesianAffineTransform {
     }
 }
 
-/// Ensures that the cartesian area specified by `top_left` and `bot_right` fit
-/// into the `view_area` of a window/viewport without distortion.
+/// Ensures that the cartesian area specified by `top_left` and `bot_right` fit into the
+/// `view_area` of a window/viewport without distortion.
 ///
-/// It essentially implements a set of affine transforms from one coordinate
-/// space to another. However, it limits these transforms in a few specialized
-/// ways:
+/// It essentially implements a set of affine transforms from one coordinate space to another.
+/// However, it limits these transforms in a few specialized ways:
 ///
-/// * It flips the Y axis. The positive direction for the screen is down and
-///   right, but in graphing the positive direction is usually up and right.
-/// * It ensures that the view area is not stretched or squished, limiting the
-///   transforms to zooming and shifting.
+/// * It flips the Y axis. The positive direction for the screen is down and right, but in graphing
+///   the positive direction is usually up and right.
+/// * It ensures that the view area is not stretched or squished, limiting the transforms to
+///   zooming and shifting.
 pub struct ViewAreaTransformer {
     // view_area_size: Vec2d,
     top_left: Point,
@@ -149,9 +149,8 @@ pub struct ViewAreaTransformer {
 }
 
 impl ViewAreaTransformer {
-    /// Initializes a ViewAreaTranformer using the size of the view area, and
-    /// two points that define a rectangle in the cartesian plane that should
-    /// be visible in the view area.
+    /// Initializes a ViewAreaTranformer using the size of the view area, and two points that
+    /// define a rectangle in the cartesian plane that should be visible in the view area.
     pub fn new(view_area_size: Vec2d, a: Point, b: Point) -> ViewAreaTransformer {
         let window_width = view_area_size[0];
         let window_height = view_area_size[1];
@@ -159,11 +158,13 @@ impl ViewAreaTransformer {
         let cart_height = (a.y - b.y).abs();
 
         let scale = Self::compute_scale(window_width, window_height, cart_width, cart_height);
-        let (offset_factor_x, offset_factor_y) = Self::compute_offset_factors(window_width,
-                                                                              window_height,
-                                                                              cart_width,
-                                                                              cart_height,
-                                                                              scale);
+        let (offset_factor_x, offset_factor_y) = Self::compute_offset_factors(
+            window_width,
+            window_height,
+            cart_width,
+            cart_height,
+            scale,
+        );
 
         ViewAreaTransformer {
             // view_area_size: view_area_size,
@@ -181,11 +182,12 @@ impl ViewAreaTransformer {
         }
     }
 
-    fn compute_scale(window_width: f64,
-                     window_height: f64,
-                     cart_width: f64,
-                     cart_height: f64)
-                     -> f64 {
+    fn compute_scale(
+        window_width: f64,
+        window_height: f64,
+        cart_width: f64,
+        cart_height: f64,
+    ) -> f64 {
         if (cart_height / cart_width) > (window_height / window_width) {
             cart_height / window_height
         } else {
@@ -193,12 +195,13 @@ impl ViewAreaTransformer {
         }
     }
 
-    fn compute_offset_factors(window_width: f64,
-                              window_height: f64,
-                              cart_width: f64,
-                              cart_height: f64,
-                              scale: f64)
-                              -> (f64, f64) {
+    fn compute_offset_factors(
+        window_width: f64,
+        window_height: f64,
+        cart_width: f64,
+        cart_height: f64,
+        scale: f64,
+    ) -> (f64, f64) {
         if (cart_height / cart_width) > (window_height / window_width) {
             (((window_width * scale - cart_width) / 2.0), 0.0)
         } else {
@@ -206,8 +209,8 @@ impl ViewAreaTransformer {
         }
     }
 
-    /// Calculates the cartesian point that exists at a given pixel-location on
-    /// the window/viewport.
+    /// Calculates the cartesian point that exists at a given pixel-location on the
+    /// window/viewport.
     pub fn map_pixel_to_point(&self, screen_coord: Vec2d) -> Point {
         Point {
             x: screen_coord[0] * self.scale + self.top_left.x - (self.offset_factor_x),
@@ -243,29 +246,43 @@ mod test {
 
     #[test]
     fn test_distance_to() {
-        assert_approx_eq!(Point { x: 0.0, y: 0.0 }.distance_to(Point { x: 0.0, y: 0.0 }),
-                          0.0,
-                          0.000001);
+        assert_approx_eq!(
+            Point { x: 0.0, y: 0.0 }.distance_to(Point { x: 0.0, y: 0.0 }),
+            0.0,
+            0.000001
+        );
 
-        assert_approx_eq!(Point { x: 0.0, y: 0.0 }.distance_to(Point { x: 0.0, y: 1.0 }),
-                          1.0,
-                          0.000001);
-        assert_approx_eq!(Point { x: 0.0, y: 0.0 }.distance_to(Point { x: 1.0, y: 0.0 }),
-                          1.0,
-                          0.000001);
-        assert_approx_eq!(Point { x: 0.0, y: 0.0 }.distance_to(Point { x: 1.0, y: 1.0 }),
-                          SQRT_2,
-                          0.000000001);
-        assert_approx_eq!(Point { x: 1.0, y: 1.0 }.distance_to(Point { x: 2.0, y: 2.0 }),
-                          SQRT_2,
-                          0.000000001);
-        assert_approx_eq!(Point { x: 1.0, y: 1.0 }.distance_to(Point { x: 4.0, y: 5.0 }),
-                          5.0,
-                          0.000000001);
+        assert_approx_eq!(
+            Point { x: 0.0, y: 0.0 }.distance_to(Point { x: 0.0, y: 1.0 }),
+            1.0,
+            0.000001
+        );
+        assert_approx_eq!(
+            Point { x: 0.0, y: 0.0 }.distance_to(Point { x: 1.0, y: 0.0 }),
+            1.0,
+            0.000001
+        );
+        assert_approx_eq!(
+            Point { x: 0.0, y: 0.0 }.distance_to(Point { x: 1.0, y: 1.0 }),
+            SQRT_2,
+            0.000000001
+        );
+        assert_approx_eq!(
+            Point { x: 1.0, y: 1.0 }.distance_to(Point { x: 2.0, y: 2.0 }),
+            SQRT_2,
+            0.000000001
+        );
+        assert_approx_eq!(
+            Point { x: 1.0, y: 1.0 }.distance_to(Point { x: 4.0, y: 5.0 }),
+            5.0,
+            0.000000001
+        );
 
-        assert_approx_eq!(Point { x: 4.0, y: 5.0 }.distance_to(Point { x: 1.0, y: 1.0 }),
-                          5.0,
-                          0.000000001);
+        assert_approx_eq!(
+            Point { x: 4.0, y: 5.0 }.distance_to(Point { x: 1.0, y: 1.0 }),
+            5.0,
+            0.000000001
+        );
     }
 
     #[test]
@@ -284,155 +301,179 @@ mod test {
 
     #[test]
     fn test_vector_delta_x() {
-        assert_approx_eq!(Vector {
-                                  direction: 0.0,
-                                  magnitude: 1.0,
-                              }
-                              .delta_x(),
-                          1.0,
-                          0.0000001);
-        assert_approx_eq!(Vector {
-                                  direction: PI / 2.0,
-                                  magnitude: 1.0,
-                              }
-                              .delta_x(),
-                          0.0,
-                          0.0000001);
-        assert_approx_eq!(Vector {
-                                  direction: PI / 4.0,
-                                  magnitude: 1.0,
-                              }
-                              .delta_x(),
-                          (PI / 4.0).cos(),
-                          0.0000001);
+        assert_approx_eq!(
+            Vector {
+                direction: 0.0,
+                magnitude: 1.0,
+            }.delta_x(),
+            1.0,
+            0.0000001
+        );
+        assert_approx_eq!(
+            Vector {
+                direction: PI / 2.0,
+                magnitude: 1.0,
+            }.delta_x(),
+            0.0,
+            0.0000001
+        );
+        assert_approx_eq!(
+            Vector {
+                direction: PI / 4.0,
+                magnitude: 1.0,
+            }.delta_x(),
+            (PI / 4.0).cos(),
+            0.0000001
+        );
 
-        assert_approx_eq!(Vector {
-                                  direction: PI / 4.0,
-                                  magnitude: 5.0,
-                              }
-                              .delta_x(),
-                          (PI / 4.0).cos() * 5.0,
-                          0.0000001);
-        assert_approx_eq!(Vector {
-                                  direction: 3.0 * PI / 4.0,
-                                  magnitude: 5.0,
-                              }
-                              .delta_x(),
-                          (PI / 4.0).cos() * -5.0,
-                          0.0000001);
+        assert_approx_eq!(
+            Vector {
+                direction: PI / 4.0,
+                magnitude: 5.0,
+            }.delta_x(),
+            (PI / 4.0).cos() * 5.0,
+            0.0000001
+        );
+        assert_approx_eq!(
+            Vector {
+                direction: 3.0 * PI / 4.0,
+                magnitude: 5.0,
+            }.delta_x(),
+            (PI / 4.0).cos() * -5.0,
+            0.0000001
+        );
 
-        assert_approx_eq!(Vector {
-                                  direction: PI,
-                                  magnitude: 1.0,
-                              }
-                              .delta_x(),
-                          -1.0,
-                          0.0000001);
-        assert_approx_eq!(Vector {
-                                  direction: PI,
-                                  magnitude: 5.0,
-                              }
-                              .delta_x(),
-                          -5.0,
-                          0.0000001);
+        assert_approx_eq!(
+            Vector {
+                direction: PI,
+                magnitude: 1.0,
+            }.delta_x(),
+            -1.0,
+            0.0000001
+        );
+        assert_approx_eq!(
+            Vector {
+                direction: PI,
+                magnitude: 5.0,
+            }.delta_x(),
+            -5.0,
+            0.0000001
+        );
 
-        assert_approx_eq!(Vector {
-                                  direction: 3.0 * PI / 2.0,
-                                  magnitude: 1.0,
-                              }
-                              .delta_x(),
-                          0.0,
-                          0.0000001);
-        assert_approx_eq!(Vector {
-                                  direction: 3.0 * PI / 2.0,
-                                  magnitude: 5.0,
-                              }
-                              .delta_x(),
-                          0.0,
-                          0.0000001);
+        assert_approx_eq!(
+            Vector {
+                direction: 3.0 * PI / 2.0,
+                magnitude: 1.0,
+            }.delta_x(),
+            0.0,
+            0.0000001
+        );
+        assert_approx_eq!(
+            Vector {
+                direction: 3.0 * PI / 2.0,
+                magnitude: 5.0,
+            }.delta_x(),
+            0.0,
+            0.0000001
+        );
     }
 
     #[test]
     fn test_vector_delta_y() {
-        assert_approx_eq!(Vector {
-                                  direction: 0.0,
-                                  magnitude: 1.0,
-                              }
-                              .delta_y(),
-                          0.0,
-                          0.0000001);
-        assert_approx_eq!(Vector {
-                                  direction: PI / 2.0,
-                                  magnitude: 1.0,
-                              }
-                              .delta_y(),
-                          1.0,
-                          0.0000001);
-        assert_approx_eq!(Vector {
-                                  direction: PI / 4.0,
-                                  magnitude: 1.0,
-                              }
-                              .delta_y(),
-                          (PI / 4.0).sin(),
-                          0.0000001);
+        assert_approx_eq!(
+            Vector {
+                direction: 0.0,
+                magnitude: 1.0,
+            }.delta_y(),
+            0.0,
+            0.0000001
+        );
+        assert_approx_eq!(
+            Vector {
+                direction: PI / 2.0,
+                magnitude: 1.0,
+            }.delta_y(),
+            1.0,
+            0.0000001
+        );
+        assert_approx_eq!(
+            Vector {
+                direction: PI / 4.0,
+                magnitude: 1.0,
+            }.delta_y(),
+            (PI / 4.0).sin(),
+            0.0000001
+        );
 
-        assert_approx_eq!(Vector {
-                                  direction: PI / 4.0,
-                                  magnitude: 5.0,
-                              }
-                              .delta_y(),
-                          (PI / 4.0).sin() * 5.0,
-                          0.0000001);
-        assert_approx_eq!(Vector {
-                                  direction: 5.0 * PI / 4.0,
-                                  magnitude: 5.0,
-                              }
-                              .delta_y(),
-                          (5.0 * PI / 4.0).sin() * 5.0,
-                          0.0000001);
+        assert_approx_eq!(
+            Vector {
+                direction: PI / 4.0,
+                magnitude: 5.0,
+            }.delta_y(),
+            (PI / 4.0).sin() * 5.0,
+            0.0000001
+        );
+        assert_approx_eq!(
+            Vector {
+                direction: 5.0 * PI / 4.0,
+                magnitude: 5.0,
+            }.delta_y(),
+            (5.0 * PI / 4.0).sin() * 5.0,
+            0.0000001
+        );
 
-        assert_approx_eq!(Vector {
-                                  direction: PI,
-                                  magnitude: 1.0,
-                              }
-                              .delta_y(),
-                          0.0,
-                          0.0000001);
-        assert_approx_eq!(Vector {
-                                  direction: PI,
-                                  magnitude: 5.0,
-                              }
-                              .delta_y(),
-                          0.0,
-                          0.0000001);
+        assert_approx_eq!(
+            Vector {
+                direction: PI,
+                magnitude: 1.0,
+            }.delta_y(),
+            0.0,
+            0.0000001
+        );
+        assert_approx_eq!(
+            Vector {
+                direction: PI,
+                magnitude: 5.0,
+            }.delta_y(),
+            0.0,
+            0.0000001
+        );
     }
 
     #[test]
     fn test_point_at() {
-        assert_point_eq!(Point { x: 0.0, y: 0.0 }.point_at(Vector {
-                             direction: 0.0,
-                             magnitude: 1.0,
-                         }),
-                         Point { x: 1.0, y: 0.0 },
-                         0.000000001);
-        assert_point_eq!(Point { x: 0.0, y: 0.0 }.point_at(Vector {
-                             direction: PI,
-                             magnitude: 1.0,
-                         }),
-                         Point { x: -1.0, y: 0.0 },
-                         0.000000001);
-        assert_point_eq!(Point { x: 1.0, y: 0.0 }.point_at(Vector {
-                             direction: PI,
-                             magnitude: 1.0,
-                         }),
-                         Point { x: -0.0, y: 0.0 },
-                         0.000000001);
-        assert_point_eq!(Point { x: 1.0, y: 0.0 }.point_at(Vector {
-                             direction: PI / 2.0,
-                             magnitude: 1.0,
-                         }),
-                         Point { x: 1.0, y: 1.0 },
-                         0.000000001);
+        assert_point_eq!(
+            Point { x: 0.0, y: 0.0 }.point_at(Vector {
+                direction: 0.0,
+                magnitude: 1.0,
+            }),
+            Point { x: 1.0, y: 0.0 },
+            0.000000001
+        );
+        assert_point_eq!(
+            Point { x: 0.0, y: 0.0 }.point_at(Vector {
+                direction: PI,
+                magnitude: 1.0,
+            }),
+            Point { x: -1.0, y: 0.0 },
+            0.000000001
+        );
+        assert_point_eq!(
+            Point { x: 1.0, y: 0.0 }.point_at(Vector {
+                direction: PI,
+                magnitude: 1.0,
+            }),
+            Point { x: -0.0, y: 0.0 },
+            0.000000001
+        );
+        assert_point_eq!(
+            Point { x: 1.0, y: 0.0 }.point_at(Vector {
+                direction: PI / 2.0,
+                magnitude: 1.0,
+            }),
+            Point { x: 1.0, y: 1.0 },
+            0.000000001
+        );
     }
 
     #[test]
@@ -453,25 +494,28 @@ mod test {
         assert_point_eq!(identity.transform(test_point), test_point, 0.0000000001);
 
         let move_right: CartesianAffineTransform = [[1.0, 0.0, 1.0], [0.0, 1.0, 0.0]];
-        assert_point_eq!(move_right.transform(test_point),
-                         Point { x: 2.45, y: 6.78 },
-                         0.0000000001);
+        assert_point_eq!(
+            move_right.transform(test_point),
+            Point { x: 2.45, y: 6.78 },
+            0.0000000001
+        );
 
         let mirror_x: CartesianAffineTransform = [[-1.0, 0.0, 0.0], [0.0, 1.0, 0.0]];
-        assert_point_eq!(mirror_x.transform(test_point),
-                         Point {
-                             x: -1.45,
-                             y: 6.78,
-                         },
-                         0.0000000001);
+        assert_point_eq!(
+            mirror_x.transform(test_point),
+            Point { x: -1.45, y: 6.78 },
+            0.0000000001
+        );
 
         let shrink_and_move: CartesianAffineTransform = [[0.5, 0.0, 1.2], [0.0, 0.5, -5.0]];
-        assert_point_eq!(shrink_and_move.transform(Point { x: 5.0, y: 4.9 }),
-                         Point {
-                             x: 0.5 * 5.0 + 0.0 + 1.2,
-                             y: 0.0 + 4.9 * 0.5 - 5.0,
-                         },
-                         0.0000000001);
+        assert_point_eq!(
+            shrink_and_move.transform(Point { x: 5.0, y: 4.9 }),
+            Point {
+                x: 0.5 * 5.0 + 0.0 + 1.2,
+                y: 0.0 + 4.9 * 0.5 - 5.0,
+            },
+            0.0000000001
+        );
     }
 
     /// 800x600 -> [(-1,1),(1,-1)], flip y
@@ -486,19 +530,25 @@ mod test {
 
         assert_approx_eq!(vat.map_pixel_to_point([0.0, 0.0]).y, 1.0, 0.0000000000001);
         assert_approx_eq!(vat.map_pixel_to_point([0.0, 300.0]).y, 0.0, 0.0000000000001);
-        assert_approx_eq!(vat.map_pixel_to_point([0.0, 600.0]).y,
-                          -1.0,
-                          0.0000000000001);
+        assert_approx_eq!(
+            vat.map_pixel_to_point([0.0, 600.0]).y,
+            -1.0,
+            0.0000000000001
+        );
 
         assert_approx_eq!(vat.map_pixel_to_point([100.0, 0.0]).x, -1.0, 0.000000000001);
         assert_approx_eq!(vat.map_pixel_to_point([400.0, 0.0]).x, 0.0, 0.000000000001);
         assert_approx_eq!(vat.map_pixel_to_point([700.0, 0.0]).x, 1.0, 0.000000000001);
-        assert_approx_eq!(vat.map_pixel_to_point([0.0, 0.0]).x,
-                          -1.0 - (1.0 / 3.0),
-                          0.0000000000001);
-        assert_approx_eq!(vat.map_pixel_to_point([800.0, 0.0]).x,
-                          1.0 + (1.0 / 3.0),
-                          0.0000000000001);
+        assert_approx_eq!(
+            vat.map_pixel_to_point([0.0, 0.0]).x,
+            -1.0 - (1.0 / 3.0),
+            0.0000000000001
+        );
+        assert_approx_eq!(
+            vat.map_pixel_to_point([800.0, 0.0]).x,
+            1.0 + (1.0 / 3.0),
+            0.0000000000001
+        );
     }
 
     /// 600x800 -> [(-1,1),(1,-1)], flip y
@@ -509,17 +559,23 @@ mod test {
         let bot_right = Point { x: 1.0, y: -1.0 };
         let vat = ViewAreaTransformer::new(screen_size, top_left, bot_right);
 
-        assert_approx_eq!(vat.map_pixel_to_point([0.0, 0.0]).y,
-                          1.0 + (1.0 / 3.0),
-                          0.0000000000001);
+        assert_approx_eq!(
+            vat.map_pixel_to_point([0.0, 0.0]).y,
+            1.0 + (1.0 / 3.0),
+            0.0000000000001
+        );
         assert_approx_eq!(vat.map_pixel_to_point([0.0, 100.0]).y, 1.0, 0.0000000000001);
         assert_approx_eq!(vat.map_pixel_to_point([0.0, 400.0]).y, 0.0, 0.0000000000001);
-        assert_approx_eq!(vat.map_pixel_to_point([0.0, 700.0]).y,
-                          -1.0,
-                          0.0000000000001);
-        assert_approx_eq!(vat.map_pixel_to_point([0.0, 800.0]).y,
-                          -1.0 - (1.0 / 3.0),
-                          0.0000000000001);
+        assert_approx_eq!(
+            vat.map_pixel_to_point([0.0, 700.0]).y,
+            -1.0,
+            0.0000000000001
+        );
+        assert_approx_eq!(
+            vat.map_pixel_to_point([0.0, 800.0]).y,
+            -1.0 - (1.0 / 3.0),
+            0.0000000000001
+        );
 
         assert_approx_eq!(vat.map_pixel_to_point([0.0, 0.0]).x, -1.0, 0.000000000001);
         assert_approx_eq!(vat.map_pixel_to_point([300.0, 0.0]).x, 0.0, 0.000000000001);
@@ -569,12 +625,16 @@ mod test {
         let vat = ViewAreaTransformer::new(screen_size, top_left, bot_right);
 
         // 0,0 maps to
-        assert_approx_eq!(vat.map_pixel_to_point([0.0, 0.0]).y,
-                          1.0 + 1.0 / 8.0,
-                          0.0000000000001);
-        assert_approx_eq!(vat.map_pixel_to_point([0.0, 600.0]).y,
-                          -1.0 - 1.0 / 8.0,
-                          0.0000000000001);
+        assert_approx_eq!(
+            vat.map_pixel_to_point([0.0, 0.0]).y,
+            1.0 + 1.0 / 8.0,
+            0.0000000000001
+        );
+        assert_approx_eq!(
+            vat.map_pixel_to_point([0.0, 600.0]).y,
+            -1.0 - 1.0 / 8.0,
+            0.0000000000001
+        );
 
         assert_approx_eq!(vat.map_pixel_to_point([0.0, 0.0]).x, -2.0, 0.000000000001);
         assert_approx_eq!(vat.map_pixel_to_point([800.0, 0.0]).x, 1.0, 0.000000000001);
@@ -584,19 +644,31 @@ mod test {
     fn test_cpow() {
         assert_eq!(cpow(Complex64::new(5.5, 0.0), 0), Complex64::new(1.0, 0.0));
         assert_eq!(cpow(Complex64::new(5.5, 0.0), 1), Complex64::new(5.5, 0.0));
-        assert_eq!(cpow(Complex64::new(5.5, 0.0), 2),
-                   Complex64::new(5.5f64 * 5.5f64, 0.0));
-        assert_eq!(cpow(Complex64::new(5.5, 0.0), 3),
-                   Complex64::new(5.5f64 * 5.5f64 * 5.5f64, 0.0));
-        assert_eq!(cpow(Complex64::new(5.5, 0.0), 4),
-                   Complex64::new(5.5f64 * 5.5f64 * 5.5f64 * 5.5f64, 0.0));
+        assert_eq!(
+            cpow(Complex64::new(5.5, 0.0), 2),
+            Complex64::new(5.5f64 * 5.5f64, 0.0)
+        );
+        assert_eq!(
+            cpow(Complex64::new(5.5, 0.0), 3),
+            Complex64::new(5.5f64 * 5.5f64 * 5.5f64, 0.0)
+        );
+        assert_eq!(
+            cpow(Complex64::new(5.5, 0.0), 4),
+            Complex64::new(5.5f64 * 5.5f64 * 5.5f64 * 5.5f64, 0.0)
+        );
 
         assert_eq!(cpow(Complex64::new(5.5, 1.0), 0), Complex64::new(1.0, 0.0));
         assert_eq!(cpow(Complex64::new(5.5, 1.0), 1), Complex64::new(5.5, 1.0));
-        assert_eq!(cpow(Complex64::new(5.5, 1.0), 2),
-                   Complex64::new(5.5 * 5.5 - 1.0 * 1.0, 2.0 * 5.5 * 1.0));
-        assert_eq!(cpow(Complex64::new(5.5, 1.0), 3),
-                   Complex64::new(5.5 * 5.5 * 5.5 - 3.0 * 5.5 * 1.0 * 1.0,
-                                  3.0 * 5.5 * 5.5 * 1.0 - 1.0 * 1.0 * 1.0));
+        assert_eq!(
+            cpow(Complex64::new(5.5, 1.0), 2),
+            Complex64::new(5.5 * 5.5 - 1.0 * 1.0, 2.0 * 5.5 * 1.0)
+        );
+        assert_eq!(
+            cpow(Complex64::new(5.5, 1.0), 3),
+            Complex64::new(
+                5.5 * 5.5 * 5.5 - 3.0 * 5.5 * 1.0 * 1.0,
+                3.0 * 5.5 * 5.5 * 1.0 - 1.0 * 1.0 * 1.0
+            )
+        );
     }
 }

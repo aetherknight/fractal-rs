@@ -14,12 +14,13 @@
 
 //! Implementation of a 2-D Sierpinski triangle as a `ChaosGame`.
 
+use std::sync::mpsc::SyncSender;
+
+use rand;
+use rand::distributions::{IndependentSample, Range};
 
 use super::ChaosGame;
 use super::super::geometry::*;
-use rand;
-use rand::distributions::{IndependentSample, Range};
-use std::sync::mpsc::SyncSender;
 
 #[derive(Clone, Default)]
 pub struct SierpinskiChaosGame;
@@ -36,18 +37,20 @@ impl ChaosGame for SierpinskiChaosGame {
         let space_range = Range::new(-1.0f64, 1.0f64);
 
         // Generate the outer triangle points.
-        let vertices = [Point {
-                            x: space_range.ind_sample(&mut rng),
-                            y: space_range.ind_sample(&mut rng),
-                        },
-                        Point {
-                            x: space_range.ind_sample(&mut rng),
-                            y: space_range.ind_sample(&mut rng),
-                        },
-                        Point {
-                            x: space_range.ind_sample(&mut rng),
-                            y: space_range.ind_sample(&mut rng),
-                        }];
+        let vertices = [
+            Point {
+                x: space_range.ind_sample(&mut rng),
+                y: space_range.ind_sample(&mut rng),
+            },
+            Point {
+                x: space_range.ind_sample(&mut rng),
+                y: space_range.ind_sample(&mut rng),
+            },
+            Point {
+                x: space_range.ind_sample(&mut rng),
+                y: space_range.ind_sample(&mut rng),
+            },
+        ];
 
         let point_range = Range::new(0, 3);
 

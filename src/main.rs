@@ -14,7 +14,6 @@
 
 extern crate clap;
 extern crate rustc_serialize;
-
 extern crate fractal;
 
 use fractal::fractaldata;
@@ -34,7 +33,7 @@ fn main() {
     match result {
         Ok(_) => {}
         Err(e) => {
-            use std::io::{stderr, Write};
+            use std::io::{Write, stderr};
             use std;
             writeln!(&mut stderr(), "{}", e).unwrap();
             std::process::exit(1);
