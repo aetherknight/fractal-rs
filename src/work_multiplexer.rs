@@ -45,6 +45,8 @@
 use std::sync::Arc;
 use std::sync::mpsc::*;
 use std::thread;
+
+use num_cpus;
 use time;
 
 /// Measures how long a block takes to complete, and returns that time.
@@ -79,14 +81,14 @@ impl ThreadNotifier {
 
 /// Builds up the configuration for a set of worker threads.
 pub struct ThreadedWorkMultiplexerBuilder {
-    pub thread_count: u32,
+    pub thread_count: usize,
     thread_base_name: String,
 }
 
 impl ThreadedWorkMultiplexerBuilder {
-    pub fn new(thread_count: u32) -> ThreadedWorkMultiplexerBuilder {
+    pub fn new() -> ThreadedWorkMultiplexerBuilder {
         ThreadedWorkMultiplexerBuilder {
-            thread_count: thread_count,
+            thread_count: num_cpus::get(),
             thread_base_name: "worker thread".to_string(),
         }
     }
@@ -98,7 +100,7 @@ impl ThreadedWorkMultiplexerBuilder {
 
     pub fn split_work<F>(self, job: F) -> ThreadedWorkMultiplexerHandles
     where
-        F: Fn(u32, u32, &ThreadNotifier, &str) + Send + Sync + 'static,
+        F: Fn(usize, usize, &ThreadNotifier, &str) + Send + Sync + 'static,
     {
         let mut thread_sync = Vec::with_capacity(self.thread_count as usize);
         // ARC the closure out here, so it is moved just once

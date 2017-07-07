@@ -17,6 +17,7 @@ extern crate clap;
 extern crate graphics;
 extern crate gfx_device_gl;
 extern crate num;
+extern crate num_cpus;
 extern crate piston;
 extern crate piston_window;
 extern crate image;

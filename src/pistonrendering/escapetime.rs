@@ -32,7 +32,6 @@ type ImageBuffer = im::ImageBuffer<im::Rgba<u8>, Vec<u8>>;
 /// plane.
 pub struct EscapeTimeWindowHandler {
     etsystem: Arc<EscapeTime + Send + Sync>,
-    threadcount: u32,
     screen_size: Vec2d,
     view_area: [Point; 2],
     vat: Arc<ViewAreaTransformer>,
@@ -46,7 +45,6 @@ pub struct EscapeTimeWindowHandler {
 impl EscapeTimeWindowHandler {
     pub fn new(
         etsystem: Arc<EscapeTime + Send + Sync>,
-        threadcount: u32,
     ) -> EscapeTimeWindowHandler {
         let canvas = Arc::new(RwLock::new(im::ImageBuffer::new(800, 600)));
         let view_area_c = etsystem.default_view_area();
@@ -54,7 +52,6 @@ impl EscapeTimeWindowHandler {
 
         EscapeTimeWindowHandler {
             etsystem: etsystem,
-            threadcount: threadcount,
             screen_size: [800.0, 600.0],
             view_area: view_area,
             vat: Arc::new(ViewAreaTransformer::new(
@@ -106,7 +103,7 @@ impl EscapeTimeWindowHandler {
             let tl = [0.0, 0.0];
             let br = self.screen_size;
 
-            let work_muxer = ThreadedWorkMultiplexerBuilder::new(self.threadcount)
+            let work_muxer = ThreadedWorkMultiplexerBuilder::new()
                 .base_name("escapetime_render")
                 .split_work(move |thread_id, total_threads, notifier, name| {
                     // Each thread will process x values, sharded by the number of
@@ -117,7 +114,7 @@ impl EscapeTimeWindowHandler {
                         .into_iter()
                         .enumerate()
                         .filter(|&(index, _)| {
-                            (index as u32 + thread_id) % total_threads == 0
+                            (index + thread_id) % total_threads == 0
                         })
                         .map(|(_, val)| val);
                     for x in sequence {

@@ -165,14 +165,6 @@ where
         clap::SubCommand::with_name(self.name)
             .about(self.description)
             .arg(
-                clap::Arg::with_name("threadcount")
-                    .long("threadcount")
-                    .takes_value(true)
-                    .value_name("N")
-                    .help("The number of worker threads to use for rendering")
-                    .default_value("1"),
-            )
-            .arg(
                 clap::Arg::with_name("MAX_ITERATIONS")
                     .required(true)
                     .index(1)
@@ -187,7 +179,6 @@ where
     }
 
     fn run(&self, matches: &clap::ArgMatches) -> Result<(), String> {
-        let threadcount = try!(extract!(matches, "threadcount"));
         let max_iterations = try!(extract!(matches, "MAX_ITERATIONS"));
         // .unwrap_or_else(|| return Err("Must specify a MAX_ITERATIONS of 1 or greater!"));
         let power = try!(extract!(matches, "POWER"));
@@ -200,8 +191,7 @@ where
         // return an Arc<EscapeTime> in order to abstract away the implementation of the trait.
         let et = Arc::new((self.ctor)(max_iterations, power));
         // TODO: `et` when passed in here wants E to be constraint by `'static`. Why?
-        let mut handler =
-            pistonrendering::escapetime::EscapeTimeWindowHandler::new(et, threadcount);
+        let mut handler = pistonrendering::escapetime::EscapeTimeWindowHandler::new(et);
         pistonrendering::run(&mut handler);
 
         Ok(())
