@@ -67,26 +67,55 @@ To run the application, you can use `cargo run` or call the binary directly
 will dynamically resize the curve as well. You can exit by pressing the `esc`
 key.
 
+For command usage information, try:
+```sh
+cargo run -- help
+```
+
 To open a window and draw iteration 4 of the Cesàro square fractal:
 
 ```sh
 cargo run -- cesaro 4
 ```
 
-To animate the drawing of a curve, you can use the `--animate` option. You must
+To animate the drawing of a curve, you can use the `--drawrate` option. You must
 specify the number of line segments that should be drawn per frame as well,
 such as `1` for one line per frame. The following will animate iteration 11 of
 the dragon fractal at a rate of 10 line segments per frame:
 
 ```sh
-cargo run -- --animate 10 dragon 11
+cargo run -- dragon 11 --drawrate 10 
 ```
 
 
 ### Exploring Fractals
+The fractal program has a the following subcommands:
 
-TODO: Usage for all supported fractals
+| Subcommand | Description |
+| ---------- | ----------- |
+| barnsleyfern&nbsp;[--drawrate&nbsp;&lt;MPF&gt;] | Draws the Barnsley Fern fractal using a chaos game with affine transforms. |
+| burningmandel&nbsp;&lt;MAX_IT&gt;&nbsp;&lt;POWER&gt; | Draws a variation of the burning ship fractal
+| burningship&nbsp;&lt;MAX_IT&gt;&nbsp;&lt;POWER&gt; | Draws the burning ship fractal
+| cesaro&nbsp;[--drawrate&nbsp;&lt;MPF&gt;] | Draws a square Césaro fractal
+| cestarotri&nbsp;[--drawrate&nbsp;&lt;MPF&gt;] | Draws a triangle Césaro fractal
+| dragon&nbsp;[--drawrate&nbsp;&lt;MPF&gt;] | Draws a dragon curve fractal
+| kochcurve&nbsp;[--drawrate&nbsp;&lt;MPF&gt;] | Draws a Koch snowflake curve
+| levyccurve&nbsp;[--drawrate&nbsp;&lt;MPF&gt;] | Draws a Levy C Curve
+| mandelbrot&nbsp;&lt;MAX_IT&gt;&nbsp;&lt;POWER&gt; | Draws the mandelbrot fractal
+| roadrunner&nbsp;&lt;MAX_IT&gt;&nbsp;&lt;POWER&gt; | Draws a variation of the burning ship fractal
+| sierpinski&nbsp;[--drawrate&nbsp;&lt;MPF&gt;] | Draws a Sierpinski triangle using a chaos game and 3 randomly chosen points on the screen
+| terdragon&nbsp;[--drawrate&nbsp;&lt;MPF&gt;] | Draws a terdragon curve
 
+The subcommands arguments have the following explanations
+
+| Argument | Description |
+| -------- | ----------- |
+| MPF | The number of points to draw per frame [default: 1]
+| MAX_IT | The maximum number of iterations of the escape time function before deciding the fracal has escaped
+| POWER | The exponent used in the escape time function (positive integer)
+
+
+### Notes
 Note that for most fractals the iteration number results in an exponential
 increase in computation, so if you want to explore a higher
 iteration/generation of a curve, you may want to start with a low iteration
