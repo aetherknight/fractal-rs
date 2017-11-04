@@ -18,7 +18,7 @@
 //! ```
 //! use fractal::work_multiplexer::*;
 //!
-//! let handles = ThreadedWorkMultiplexerBuilder::new(8)
+//! let handles = ThreadedWorkMultiplexerBuilder::new()
 //!     .base_name("hello worlder")
 //!     .split_work(|thread_id, total_threads, notifier, name| {
 //!         // break up a larger problem into smaller ones by
@@ -27,8 +27,7 @@
 //!             .into_iter()
 //!             .enumerate()
 //!             .filter(|&(index, _)| {
-//!                 (index as u32 + thread_id) %
-//!                 total_threads == 0
+//!                 (index + thread_id) % total_threads == 0
 //!             })
 //!             .map(|(_, val)| val);
 //!         for i in sharded {
