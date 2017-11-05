@@ -43,9 +43,7 @@ pub struct EscapeTimeWindowHandler {
 }
 
 impl EscapeTimeWindowHandler {
-    pub fn new(
-        etsystem: Arc<EscapeTime + Send + Sync>,
-    ) -> EscapeTimeWindowHandler {
+    pub fn new(etsystem: Arc<EscapeTime + Send + Sync>) -> EscapeTimeWindowHandler {
         let canvas = Arc::new(RwLock::new(im::ImageBuffer::new(800, 600)));
         let view_area_c = etsystem.default_view_area();
         let view_area = [Point::from(view_area_c[0]), Point::from(view_area_c[1])];
@@ -113,9 +111,7 @@ impl EscapeTimeWindowHandler {
                     let sequence = ((tl[0] as u32)..(br[0] as u32))
                         .into_iter()
                         .enumerate()
-                        .filter(|&(index, _)| {
-                            (index + thread_id) % total_threads == 0
-                        })
+                        .filter(|&(index, _)| (index + thread_id) % total_threads == 0)
                         .map(|(_, val)| val);
                     for x in sequence {
                         if notifier.should_i_stop() {
@@ -125,8 +121,8 @@ impl EscapeTimeWindowHandler {
                         let y_colors = ((tl[1] as u32)..(br[1] as u32))
                             .into_iter()
                             .map(|y| {
-                                let c: Complex64 = vat.map_pixel_to_point([x as f64, y as f64])
-                                    .into();
+                                let c: Complex64 =
+                                    vat.map_pixel_to_point([x as f64, y as f64]).into();
                                 let (attracted, time) = etsystem.test_point(c);
                                 if attracted {
                                     im::Rgba(AEBLUE_U8.0)
@@ -170,14 +166,14 @@ impl WindowHandler for EscapeTimeWindowHandler {
         // tick)
         {
             let canvas = self.canvas.read().unwrap();
-            self.texture = Some(
-                Texture::from_image(factory, &*canvas, &TextureSettings::new()).unwrap(),
-            );
+            self.texture =
+                Some(Texture::from_image(factory, &*canvas, &TextureSettings::new()).unwrap());
         }
     }
 
     fn render_frame(&mut self, render_context: &mut RenderContext, _: u32) {
-        let mut texture = self.texture.as_mut().unwrap();
+        // Convert the Option<Texture> into a mutable reference to the Texture
+        let texture = self.texture.as_mut().unwrap();
         {
             let canvas = self.canvas.read().unwrap();
             if let Err(e) = texture.update(&mut render_context.gfx.encoder, &*canvas) {

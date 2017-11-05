@@ -1,4 +1,4 @@
-// Copyright (c) 2016 William (B.J.) Snow Orvis
+// Copyright (c) 2016-2017 William (B.J.) Snow Orvis
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -39,6 +39,7 @@ use super::turtle::TurtleProgram;
 
 
 /// Helper to get the size of a list of expressions
+#[allow(unused_macros)]
 macro_rules! count_exprs {
     () => (0);
     ($head:expr) => (1);

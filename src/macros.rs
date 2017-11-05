@@ -1,4 +1,4 @@
-// Copyright (c) 2015-2016 William (B.J.) Snow Orvis
+// Copyright (c) 2015-2017 William (B.J.) Snow Orvis
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -21,6 +21,7 @@
 /// work well with values close to 0.0.
 ///
 /// Not worrying about it, since this is for unit tests and not application logic.
+#[cfg(test)]
 macro_rules! assert_approx_eq {
     ( $lhs:expr, $rhs:expr, $epsilon:expr ) => {
         {
@@ -38,6 +39,8 @@ macro_rules! assert_approx_eq {
 /// Macro to assert that two complex numbers are almost equal.
 ///
 /// Complex numbers need to compare the modulus of their difference to the epsilon.
+#[allow(unused_macros)]
+#[cfg(test)]
 macro_rules! assert_complex_approx_eq {
     ( $lhs:expr, $rhs:expr, $epsilon:expr ) => {
         {
@@ -54,6 +57,9 @@ macro_rules! assert_complex_approx_eq {
     }
 }
 
+/// Macro to assert that a complex number is almost equal to one of the values in `$collection`.
+#[allow(unused_macros)]
+#[cfg(test)]
 macro_rules! assert_complex_approx_in {
     ( $collection:expr, $rhs:expr, $epsilon:expr ) => {
         {
@@ -82,6 +88,7 @@ macro_rules! assert_complex_approx_in {
 ///
 /// This would use float-cmp and use ULPs instead of an epsilon, but float-cmp relies upon a Rust
 /// language/stdlib feature that is not yet in the stable release, as of 2015/12/12.
+#[cfg(test)]
 macro_rules! assert_point_eq {
     ( $lhs:expr, $rhs:expr, $epsilon:expr ) => {
         {
