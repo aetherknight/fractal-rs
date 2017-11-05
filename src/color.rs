@@ -78,23 +78,21 @@ pub fn color_range_linear(first: ColorU8, last: ColorU8, count: usize) -> Vec<Co
         panic!("Count must be 2 or more: {}", count);
     }
     let deltas = [
-        ((last.0[0] as f32) - (first.0[0] as f32)) / ((count - 1) as f32),
-        ((last.0[1] as f32) - (first.0[1] as f32)) / ((count - 1) as f32),
-        ((last.0[2] as f32) - (first.0[2] as f32)) / ((count - 1) as f32),
-        ((last.0[3] as f32) - (first.0[3] as f32)) / ((count - 1) as f32),
+        (f32::from(last.0[0]) - f32::from(first.0[0])) / f32::from((count as u16) - 1),
+        (f32::from(last.0[1]) - f32::from(first.0[1])) / f32::from((count as u16) - 1),
+        (f32::from(last.0[2]) - f32::from(first.0[2])) / f32::from((count as u16) - 1),
+        (f32::from(last.0[3]) - f32::from(first.0[3])) / f32::from((count as u16) - 1),
     ];
 
     (0..count)
         .into_iter()
         .map(|i| {
-            ColorU8(
-                [
-                    ((first.0[0] as f32) + (i as f32) * deltas[0]) as u8,
-                    ((first.0[1] as f32) + (i as f32) * deltas[1]) as u8,
-                    ((first.0[2] as f32) + (i as f32) * deltas[2]) as u8,
-                    ((first.0[3] as f32) + (i as f32) * deltas[3]) as u8,
-                ],
-            )
+            ColorU8([
+                (f32::from(first.0[0]) + f32::from(i as u16) * deltas[0]) as u8,
+                (f32::from(first.0[1]) + f32::from(i as u16) * deltas[1]) as u8,
+                (f32::from(first.0[2]) + f32::from(i as u16) * deltas[2]) as u8,
+                (f32::from(first.0[3]) + f32::from(i as u16) * deltas[3]) as u8,
+            ])
         })
         .collect()
 }

@@ -95,7 +95,7 @@ impl WindowHandler for ChaosGameWindowHandler {
             WhichFrame::FirstFrame => {
                 // The first frame clears its screen and starts drawing.
                 clear(WHITE_F32.0, render_context.gfx);
-                self.iter = Some(ChaosGameMoveIterator::new(self.game.clone()));
+                self.iter = Some(ChaosGameMoveIterator::new(Arc::clone(&self.game)));
                 // draw up to dots_per_frame dots, and store them for the next frame to also
                 // draw
                 for _ in 0..self.dots_per_frame {

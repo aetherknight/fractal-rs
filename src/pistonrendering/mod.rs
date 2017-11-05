@@ -93,7 +93,7 @@ pub fn run(window_handler: &mut WindowHandler) {
     while let Some(e) = window.next() {
         if let Some(args) = e.render_args() {
             let uvec = args.viewport().window_size;
-            let size: Vec2d = [uvec[0] as f64, uvec[1] as f64];
+            let size: Vec2d = [f64::from(uvec[0]), f64::from(uvec[1])];
             if size != old_size {
                 println!("resized");
                 old_size = size;

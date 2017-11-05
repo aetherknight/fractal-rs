@@ -94,10 +94,10 @@ impl EscapeTimeWindowHandler {
         )));
 
         {
-            let shared_canvas = self.canvas.clone();
-            let vat = self.vat.clone();
-            let etsystem = self.etsystem.clone();
-            let colors = colors.clone();
+            let shared_canvas = Arc::clone(&self.canvas);
+            let vat = Arc::clone(&self.vat);
+            let etsystem = Arc::clone(&self.etsystem);
+            let colors = Arc::clone(&colors);
             let tl = [0.0, 0.0];
             let br = self.screen_size;
 
@@ -122,7 +122,7 @@ impl EscapeTimeWindowHandler {
                             .into_iter()
                             .map(|y| {
                                 let c: Complex64 =
-                                    vat.map_pixel_to_point([x as f64, y as f64]).into();
+                                    vat.map_pixel_to_point([f64::from(x), f64::from(y)]).into();
                                 let (attracted, time) = etsystem.test_point(c);
                                 if attracted {
                                     im::Rgba(AEBLUE_U8.0)

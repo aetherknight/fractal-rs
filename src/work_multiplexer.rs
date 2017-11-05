@@ -84,7 +84,18 @@ pub struct ThreadedWorkMultiplexerBuilder {
     thread_base_name: String,
 }
 
+impl Default for ThreadedWorkMultiplexerBuilder {
+    /// Just calls `ThreadedWorkMultiplexerBuilder::new()`.
+    fn default() -> ThreadedWorkMultiplexerBuilder {
+        ThreadedWorkMultiplexerBuilder::new()
+    }
+}
+
 impl ThreadedWorkMultiplexerBuilder {
+    /// Construct a new ThreadedWorkMultiplexerBuilder.
+    ///
+    /// It will set the thead_count to the number of CPUs/cores on the system, and it sets the
+    /// base name for the threads to "worker thread".
     pub fn new() -> ThreadedWorkMultiplexerBuilder {
         ThreadedWorkMultiplexerBuilder {
             thread_count: num_cpus::get(),
@@ -92,11 +103,24 @@ impl ThreadedWorkMultiplexerBuilder {
         }
     }
 
+    /// Set/update the `thread_base_name` to a new value.
     pub fn base_name(mut self, name: &str) -> ThreadedWorkMultiplexerBuilder {
         self.thread_base_name = name.to_string();
         self
     }
 
+    /// Runs a function or lambda that satisfies the function signature on every thread,
+    /// effectively distributing work uniformly.
+    ///
+    /// The function signature, with variable names is essentially:
+    ///
+    /// `Fn(thread_index: usize, total_threads: usize, notifier: &ThreadNotifier, thread_name:
+    /// &str)`
+    ///
+    /// The function is expected to use the `thread_index` and `total_threads` to determine how
+    /// to shard the work for the current thread. `notifier` should be checked periodically to
+    /// see if the thread should stop before finishing all of its work. `thread_name` provides
+    /// the unique name for this thread, for use during logging/debugging.
     pub fn split_work<F>(self, job: F) -> ThreadedWorkMultiplexerHandles
     where
         F: Fn(usize, usize, &ThreadNotifier, &str) + Send + Sync + 'static,
@@ -111,7 +135,7 @@ impl ThreadedWorkMultiplexerBuilder {
             let total_threads = self.thread_count;
             let notifier = ThreadNotifier::new(rx);
             let thread_name = name.clone();
-            let thread_code = arc_code.clone();
+            let thread_code = Arc::clone(&arc_code);
 
             let res = thread::Builder::new().name(name).spawn(move || {
                 let (time_delta, _) = measure_time(|| {
@@ -125,7 +149,9 @@ impl ThreadedWorkMultiplexerBuilder {
                 panic!("Failed to spawn thread {}", i);
             }
         }
-        ThreadedWorkMultiplexerHandles { thread_sync: thread_sync }
+        ThreadedWorkMultiplexerHandles {
+            thread_sync: thread_sync,
+        }
     }
 }
 
