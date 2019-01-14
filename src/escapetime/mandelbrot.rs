@@ -13,7 +13,7 @@
 // limitations under the License.
 
 //! The Mandelbrot fractal is an iterated function system defined over the complex number function:
-//! ```
+//! ```text
 //! f(z) = z^2 + c
 //! ```
 //! A given point, which corresponds to `c`, belongs to the Mandelbrot set if iterating on f(0)
