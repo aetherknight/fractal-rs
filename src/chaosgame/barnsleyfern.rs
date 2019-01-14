@@ -17,7 +17,7 @@
 use std::sync::mpsc::SyncSender;
 
 use rand;
-use rand::distributions::{IndependentSample, Weighted, WeightedChoice};
+use rand::distributions::{Distribution, WeightedIndex};
 
 use super::super::geometry::*;
 use super::ChaosGame;
@@ -57,17 +57,9 @@ impl BarnsleyFern {
     // elsewhere.
     #[cfg_attr(feature = "cargo-clippy", allow(needless_lifetimes))]
     fn pick_transform<'a>(&'a self) -> Box<Fn(Point) -> Point + 'a> {
-        // TODO: macro to unwrap creating the iterators used to create weighted_indices.
-        let mut weighted_indices: Vec<Weighted<usize>> = (0..4)
-            .into_iter()
-            .map(|i| Weighted {
-                weight: self.weights[i],
-                item: i as usize,
-            })
-            .collect();
-        let chooser = WeightedChoice::new(&mut weighted_indices);
+        let dist = WeightedIndex::new(&self.weights).unwrap();
         let mut rng = rand::thread_rng();
-        let chosen_index = chooser.ind_sample(&mut rng);
+        let chosen_index = dist.sample(&mut rng);
         // box up and return a closure to do the call
         Box::new(move |p| self.transforms[chosen_index].transform(p))
     }

@@ -17,7 +17,7 @@
 use std::sync::mpsc::SyncSender;
 
 use rand;
-use rand::distributions::{IndependentSample, Range};
+use rand::distributions::{Distribution, Uniform};
 
 use super::super::geometry::*;
 use super::ChaosGame;
@@ -34,25 +34,25 @@ impl SierpinskiChaosGame {
 impl ChaosGame for SierpinskiChaosGame {
     fn generate(&self, channel: &mut SyncSender<Point>) {
         let mut rng = rand::thread_rng();
-        let space_range = Range::new(-1.0f64, 1.0f64);
+        let space_range = Uniform::from(-1.0f64..1.0f64);
 
         // Generate the outer triangle points.
         let vertices = [
             Point {
-                x: space_range.ind_sample(&mut rng),
-                y: space_range.ind_sample(&mut rng),
+                x: space_range.sample(&mut rng),
+                y: space_range.sample(&mut rng),
             },
             Point {
-                x: space_range.ind_sample(&mut rng),
-                y: space_range.ind_sample(&mut rng),
+                x: space_range.sample(&mut rng),
+                y: space_range.sample(&mut rng),
             },
             Point {
-                x: space_range.ind_sample(&mut rng),
-                y: space_range.ind_sample(&mut rng),
+                x: space_range.sample(&mut rng),
+                y: space_range.sample(&mut rng),
             },
         ];
 
-        let point_range = Range::new(0, 3);
+        let point_range = Uniform::from(0..3);
 
         // Construct the center point.
         let sum_point = vertices
@@ -67,7 +67,7 @@ impl ChaosGame for SierpinskiChaosGame {
         };
 
         // pick the first vertex to jump halfway towards
-        let mut target = point_range.ind_sample(&mut rng);
+        let mut target = point_range.sample(&mut rng);
         let mut target_point = vertices[target];
 
         // first move towards that vertex
@@ -78,7 +78,7 @@ impl ChaosGame for SierpinskiChaosGame {
 
         // Send the move, repeat ad naseum
         while let Ok(_) = channel.send(curr_point) {
-            target = point_range.ind_sample(&mut rng);
+            target = point_range.sample(&mut rng);
             target_point = vertices[target];
             curr_point = Point {
                 x: (curr_point.x + target_point.x) / 2.0,
