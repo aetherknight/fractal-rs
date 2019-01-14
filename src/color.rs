@@ -85,7 +85,6 @@ pub fn color_range_linear(first: ColorU8, last: ColorU8, count: usize) -> Vec<Co
     ];
 
     (0..count)
-        .into_iter()
         .map(|i| {
             ColorU8([
                 (f32::from(first.0[0]) + f32::from(i as u16) * deltas[0]) as u8,

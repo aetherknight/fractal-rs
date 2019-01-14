@@ -34,9 +34,7 @@ pub enum LSA {
 
 impl LevyCCurve {
     pub fn new(iterations: u64) -> LevyCCurve {
-        LevyCCurve {
-            iterations: iterations,
-        }
+        LevyCCurve { iterations }
     }
 
     fn lines_between_endpoints(self) -> f64 {

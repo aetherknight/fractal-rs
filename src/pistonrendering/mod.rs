@@ -93,6 +93,7 @@ pub fn run(window_handler: &mut WindowHandler) {
     while let Some(e) = window.next() {
         if let Some(args) = e.render_args() {
             let uvec = args.viewport().window_size;
+            #[allow(clippy::identity_conversion)]
             let size: Vec2d = [f64::from(uvec[0]), f64::from(uvec[1])];
             if size != old_size {
                 println!("resized");
@@ -103,10 +104,7 @@ pub fn run(window_handler: &mut WindowHandler) {
         window.draw_2d(&e, |context, gfx| {
             frame_num += 1;
             // println!("Render frame {}, window: {:?}", frame_num, size);
-            let mut render_context = RenderContext {
-                context: context,
-                gfx: gfx,
-            };
+            let mut render_context = RenderContext { context, gfx };
             window_handler.render_frame(&mut render_context, frame_num);
         });
         e.mouse_cursor(|x, y| {

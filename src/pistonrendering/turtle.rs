@@ -25,7 +25,6 @@ use super::super::turtle::{Turtle, TurtleCollectToNextForwardIterator, TurtlePro
 use super::*;
 
 // The lifetimes are needed here to make the boxed window handlers happy.
-#[cfg_attr(feature = "cargo-clippy", allow(needless_lifetimes))]
 pub fn construct_turtle_window_handler<'a>(
     program: &'a TurtleProgram,
     animate: u64,
@@ -83,9 +82,9 @@ where
         gfx: &'a mut G,
     ) -> PistonTurtle<'a, G> {
         PistonTurtle {
-            context: context,
-            gfx: gfx,
-            state: state,
+            context,
+            gfx,
+            state,
         }
     }
 }
@@ -165,7 +164,7 @@ pub struct DoubleBufferedWindowHandler<'a> {
 impl<'a> DoubleBufferedWindowHandler<'a> {
     pub fn new(program: &TurtleProgram) -> DoubleBufferedWindowHandler {
         DoubleBufferedWindowHandler {
-            program: program,
+            program,
             redraw: [true; 2],
         }
     }
@@ -252,13 +251,13 @@ impl<'a> DoubleBufferedAnimatedWindowHandler<'a> {
         lines_per_frame: u64,
     ) -> DoubleBufferedAnimatedWindowHandler<'a> {
         DoubleBufferedAnimatedWindowHandler {
-            program: program,
+            program,
             turtles: [TurtleState::new(), TurtleState::new()],
             iters: [
                 TurtleCollectToNextForwardIterator::new_null_iter(),
                 TurtleCollectToNextForwardIterator::new_null_iter(),
             ],
-            lines_per_frame: lines_per_frame,
+            lines_per_frame,
             which_frame: WhichFrame::FirstFrame,
         }
     }
@@ -270,7 +269,7 @@ impl<'a> DoubleBufferedAnimatedWindowHandler<'a> {
         G: Graphics,
     {
         let one_move = program_iter.next();
-        if !one_move.is_none() {
+        if one_move.is_some() {
             for action in one_move.unwrap() {
                 turtle.perform(action)
             }
@@ -319,7 +318,7 @@ impl<'a> WindowHandler for DoubleBufferedAnimatedWindowHandler<'a> {
                 // if we are the second frame, then we need to stagger our buffer from the first
                 // buffer.
                 let one_move = self.iters[bufnum].next();
-                if !one_move.is_none() {
+                if one_move.is_some() {
                     for action in one_move.unwrap() {
                         turtle.perform(action)
                     }

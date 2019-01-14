@@ -37,9 +37,7 @@ pub enum LSA {
 
 impl CesaroTriFractal {
     pub fn new(iterations: u64) -> CesaroTriFractal {
-        CesaroTriFractal {
-            iterations: iterations,
-        }
+        CesaroTriFractal { iterations }
     }
 }
 
@@ -90,9 +88,7 @@ impl LindenmayerSystemDrawingParameters<LSA> for CesaroTriFractal {
         self.iterations
     }
 
-    // It is cleaner to read the Lyndenmayer System Alphabet matcher arms
-    // separately.
-    #[cfg_attr(feature = "cargo-clippy", allow(match_same_arms))]
+    // It is cleaner to read the Lyndenmayer System Alphabet matcher arms separately.
     fn interpret_symbol(&self, symbol: LSA) -> TurtleStep {
         // use std::f64::consts::SQRT_2;
         use std::f64::consts::PI;

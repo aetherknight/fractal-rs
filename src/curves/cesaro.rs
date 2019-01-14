@@ -33,9 +33,7 @@ pub enum LSA {
 
 impl CesaroFractal {
     pub fn new(iterations: u64) -> CesaroFractal {
-        CesaroFractal {
-            iterations: iterations,
-        }
+        CesaroFractal { iterations }
     }
 
     fn distance_forward(self) -> f64 {

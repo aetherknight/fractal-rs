@@ -52,9 +52,7 @@ impl DragonFractal {
     ///     |__|
     /// ```
     pub fn new(iterations: u64) -> DragonFractal {
-        DragonFractal {
-            iterations: iterations,
-        }
+        DragonFractal { iterations }
     }
 
     /// The number of lines that will be drawn.

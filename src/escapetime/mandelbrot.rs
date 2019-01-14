@@ -41,7 +41,7 @@ impl Mandelbrot {
     pub fn new(max_iterations: u64, power: u64) -> Mandelbrot {
         Mandelbrot {
             max_iters: max_iterations,
-            power: power,
+            power,
         }
     }
 }

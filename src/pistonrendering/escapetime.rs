@@ -49,15 +49,15 @@ impl EscapeTimeWindowHandler {
         let view_area = [Point::from(view_area_c[0]), Point::from(view_area_c[1])];
 
         EscapeTimeWindowHandler {
-            etsystem: etsystem,
+            etsystem,
             screen_size: [800.0, 600.0],
-            view_area: view_area,
+            view_area,
             vat: Arc::new(ViewAreaTransformer::new(
                 [800.0, 600.0],
                 view_area[0],
                 view_area[1],
             )),
-            canvas: canvas,
+            canvas,
             threads: None,
             texture: None,
         }
@@ -109,7 +109,6 @@ impl EscapeTimeWindowHandler {
                     //
                     // no `step_by` in stable yet.
                     let sequence = ((tl[0] as u32)..(br[0] as u32))
-                        .into_iter()
                         .enumerate()
                         .filter(|&(index, _)| (index + thread_id) % total_threads == 0)
                         .map(|(_, val)| val);
@@ -119,7 +118,6 @@ impl EscapeTimeWindowHandler {
                             break;
                         }
                         let y_colors = ((tl[1] as u32)..(br[1] as u32))
-                            .into_iter()
                             .map(|y| {
                                 let c: Complex64 =
                                     vat.map_pixel_to_point([f64::from(x), f64::from(y)]).into();

@@ -69,7 +69,7 @@ pub struct ThreadNotifier {
 
 impl ThreadNotifier {
     pub fn new(receiver: Receiver<()>) -> ThreadNotifier {
-        ThreadNotifier { receiver: receiver }
+        ThreadNotifier { receiver }
     }
 
     /// If true, then the thread should break out of its processing loop.
@@ -149,9 +149,7 @@ impl ThreadedWorkMultiplexerBuilder {
                 panic!("Failed to spawn thread {}", i);
             }
         }
-        ThreadedWorkMultiplexerHandles {
-            thread_sync: thread_sync,
-        }
+        ThreadedWorkMultiplexerHandles { thread_sync }
     }
 }
 

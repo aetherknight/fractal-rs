@@ -121,7 +121,7 @@ pub struct TurtleProgramIterator<'a> {
 
 impl<'a> TurtleProgramIterator<'a> {
     pub fn new(iter: Box<Iterator<Item = TurtleStep> + 'a>) -> TurtleProgramIterator {
-        TurtleProgramIterator { iter: iter }
+        TurtleProgramIterator { iter }
     }
 
     /// Turns the TurtleProgramIterator into an iterator that will return Vec<TurtleStep>s that

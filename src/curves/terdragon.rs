@@ -18,7 +18,7 @@ use crate::geometry::deg2rad;
 use crate::lindenmayer::{LindenmayerSystem, LindenmayerSystemDrawingParameters};
 use crate::turtle::TurtleStep;
 
-const SQRT_3: f64 = 1.7320508075;
+const SQRT_3: f64 = 1.732_050_807_5;
 
 #[derive(Copy, Clone, Debug)]
 pub struct TerdragonFractal {
@@ -31,9 +31,7 @@ impl TerdragonFractal {
     /// Create a new TerdragonFractal. `iterations` is the number of generations to apply to the
     /// Lindenmeyer system used to generate the fractal's turns.
     pub fn new(iterations: u64) -> TerdragonFractal {
-        TerdragonFractal {
-            iterations: iterations,
-        }
+        TerdragonFractal { iterations }
     }
 
     /// The number of lines that will be drawn.

@@ -32,9 +32,7 @@ pub enum LSA {
 
 impl KochCurve {
     pub fn new(iterations: u64) -> KochCurve {
-        KochCurve {
-            iterations: iterations,
-        }
+        KochCurve { iterations }
     }
 
     /// 0 -> 1

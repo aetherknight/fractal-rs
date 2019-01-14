@@ -176,9 +176,9 @@ impl ViewAreaTransformer {
             //     x: a.x.max(b.x),
             //     y: a.y.min(b.y),
             // },
-            scale: scale,
-            offset_factor_x: offset_factor_x,
-            offset_factor_y: offset_factor_y,
+            scale,
+            offset_factor_x,
+            offset_factor_y,
         }
     }
 
@@ -228,7 +228,7 @@ pub fn cpow(c: Complex64, exponent: u64) -> Complex64 {
         _ => {
             let mut accum: Complex64 = c;
             for _ in 1..exponent {
-                accum = accum * c;
+                accum *= c;
             }
             accum
         }

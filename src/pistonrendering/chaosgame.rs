@@ -73,10 +73,10 @@ pub struct ChaosGameWindowHandler {
 impl ChaosGameWindowHandler {
     pub fn new(game: Arc<ChaosGame + Send + Sync>, dots_per_frame: u64) -> ChaosGameWindowHandler {
         ChaosGameWindowHandler {
-            game: game,
+            game,
             which_frame: WhichFrame::FirstFrame,
             iter: None,
-            dots_per_frame: dots_per_frame,
+            dots_per_frame,
             last_moves: Vec::with_capacity(dots_per_frame as usize),
         }
     }

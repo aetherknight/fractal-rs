@@ -49,7 +49,7 @@ impl BurningShip {
     pub fn new(max_iterations: u64, power: u64) -> BurningShip {
         BurningShip {
             max_iters: max_iterations,
-            power: power,
+            power,
         }
     }
 }
@@ -103,7 +103,7 @@ impl BurningMandel {
     pub fn new(max_iterations: u64, power: u64) -> BurningMandel {
         BurningMandel {
             max_iters: max_iterations,
-            power: power,
+            power,
         }
     }
 }
@@ -157,7 +157,7 @@ impl RoadRunner {
     pub fn new(max_iterations: u64, power: u64) -> RoadRunner {
         RoadRunner {
             max_iters: max_iterations,
-            power: power,
+            power,
         }
     }
 }

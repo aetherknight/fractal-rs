@@ -145,7 +145,7 @@ where
     pub fn new(system: L) -> LindenmayerSystemCachingDecorator<L, A> {
         LindenmayerSystemCachingDecorator {
             alphabet: PhantomData,
-            system: system,
+            system,
             iteration_cache: RefCell::new(vec![]),
         }
     }
@@ -228,10 +228,8 @@ where
         ]
     }
 
-    // The lifetimes are needed here to satisfy TurtleProgramIterator's type
-    // signature.
-    #[cfg_attr(feature = "cargo-clippy", allow(needless_lifetimes))]
-    fn turtle_program_iter<'a>(&'a self) -> TurtleProgramIterator<'a> {
+    // The lifetimes are needed here to satisfy TurtleProgramIterator's type signature.
+    fn turtle_program_iter(&'_ self) -> TurtleProgramIterator<'_> {
         let sequence = self
             .cacheable_system
             .generate(self.cacheable_system.system.iteration());
@@ -240,7 +238,7 @@ where
         TurtleProgramIterator::new(Box::new(LindenmayerSystemTurtleProgramIterator {
             alphabet: PhantomData,
             program: self,
-            sequence: sequence,
+            sequence,
             curr_step: 0,
         }))
     }

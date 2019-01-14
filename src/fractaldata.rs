@@ -97,9 +97,9 @@ where
         ctor: Box<Fn() -> E>,
     ) -> ChaosGameCommand<E> {
         ChaosGameCommand {
-            name: name,
-            description: description,
-            ctor: ctor,
+            name,
+            description,
+            ctor,
         }
     }
 }
@@ -151,9 +151,9 @@ where
         ctor: Box<Fn(u64, u64) -> E>,
     ) -> EscapeTimeCommand<E> {
         EscapeTimeCommand {
-            name: name,
-            description: description,
-            ctor: ctor,
+            name,
+            description,
+            ctor,
         }
     }
 }
@@ -221,9 +221,9 @@ where
         ctor: Box<Fn(u64) -> E>,
     ) -> TurtleCommand<E> {
         TurtleCommand {
-            name: name,
-            description: description,
-            ctor: ctor,
+            name,
+            description,
+            ctor,
         }
     }
 }
