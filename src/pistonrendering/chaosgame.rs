@@ -20,10 +20,9 @@ use gfx_device_gl::Factory;
 use graphics;
 use piston_window::*;
 
-use super::*;
 use super::super::chaosgame::{ChaosGame, ChaosGameMoveIterator};
 use super::super::geometry::Point;
-
+use super::*;
 
 /// Draw a dot at the given point. (0.0,0.0) is the center of the screen, (1.0,1.0) is near the top
 /// right, and (-1.0,-1.0) is near the bottom left.

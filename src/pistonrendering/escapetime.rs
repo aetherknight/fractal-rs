@@ -15,18 +15,18 @@
 use std::cmp;
 use std::sync::{Arc, RwLock};
 
+use ::image::{ImageBuffer, Rgba};
 use gfx_device_gl;
 use gfx_device_gl::Factory;
-use ::image as im;
 use num::complex::Complex64;
 use piston_window::*;
 
-use super::*;
 use super::super::escapetime::EscapeTime;
 use super::super::geometry::{Point, ViewAreaTransformer};
 use super::super::work_multiplexer::*;
+use super::*;
 
-type ImageBuffer = im::ImageBuffer<im::Rgba<u8>, Vec<u8>>;
+type FractalImageBuffer = ImageBuffer<Rgba<u8>, Vec<u8>>;
 
 /// Draws escape time fractals by testing the point that each pixel corresponds to on the complex
 /// plane.
@@ -36,7 +36,7 @@ pub struct EscapeTimeWindowHandler {
     view_area: [Point; 2],
     vat: Arc<ViewAreaTransformer>,
     /// Must be a u8 to work with Texture::from_image?
-    canvas: Arc<RwLock<ImageBuffer>>,
+    canvas: Arc<RwLock<FractalImageBuffer>>,
     threads: Option<ThreadedWorkMultiplexerHandles>,
     /// Main thread only
     texture: Option<Texture<gfx_device_gl::Resources>>,
@@ -44,7 +44,7 @@ pub struct EscapeTimeWindowHandler {
 
 impl EscapeTimeWindowHandler {
     pub fn new(etsystem: Arc<EscapeTime + Send + Sync>) -> EscapeTimeWindowHandler {
-        let canvas = Arc::new(RwLock::new(im::ImageBuffer::new(800, 600)));
+        let canvas = Arc::new(RwLock::new(FractalImageBuffer::new(800, 600)));
         let view_area_c = etsystem.default_view_area();
         let view_area = [Point::from(view_area_c[0]), Point::from(view_area_c[1])];
 
@@ -88,7 +88,7 @@ impl EscapeTimeWindowHandler {
             cmp::min(self.etsystem.max_iterations(), 50) as usize,
         ));
 
-        self.canvas = Arc::new(RwLock::new(im::ImageBuffer::new(
+        self.canvas = Arc::new(RwLock::new(FractalImageBuffer::new(
             self.screen_size[0] as u32,
             self.screen_size[1] as u32,
         )));
@@ -125,12 +125,12 @@ impl EscapeTimeWindowHandler {
                                     vat.map_pixel_to_point([f64::from(x), f64::from(y)]).into();
                                 let (attracted, time) = etsystem.test_point(c);
                                 if attracted {
-                                    im::Rgba(AEBLUE_U8.0)
+                                    Rgba(AEBLUE_U8.0)
                                 } else {
-                                    im::Rgba(colors[cmp::min(time, 50 - 1) as usize].0)
+                                    Rgba(colors[cmp::min(time, 50 - 1) as usize].0)
                                 }
                             })
-                            .collect::<Vec<im::Rgba<u8>>>();
+                            .collect::<Vec<Rgba<u8>>>();
                         // only lock the canvas while writing to it
                         {
                             // Write a column at a time to improve performance. Locking for every

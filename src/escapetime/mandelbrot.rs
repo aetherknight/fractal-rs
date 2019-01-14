@@ -20,8 +20,8 @@
 //! converges. That is, f(0), f(f(0)), f(f(f(0))), ... converges. Alternately, if it diverges
 //! (trends towards a value of ∞ ), then a point `c` is not in the Mandelbrot set.
 
-use super::*;
 use super::super::geometry;
+use super::*;
 
 pub struct Mandelbrot {
     max_iters: u64,

@@ -14,7 +14,7 @@
 
 //! Turtle program abstractions.
 
-use crate::geometry::{Point, deg2rad};
+use crate::geometry::{deg2rad, Point};
 
 /// A Turtle is an abstraction for drawing lines in a space. It has a position and it faces a
 /// particular direction. A program usually tells a turtle to move forward based upon its facing,
@@ -190,8 +190,12 @@ mod test {
     #[test]
     fn test_collect_forward_iterator() {
         let base_iter = TurtleProgramIterator::new(Box::new(
-            vec![TurtleStep::Forward(1.0), TurtleStep::TurnRad(9.0), TurtleStep::Forward(2.0)]
-                .into_iter(),
+            vec![
+                TurtleStep::Forward(1.0),
+                TurtleStep::TurnRad(9.0),
+                TurtleStep::Forward(2.0),
+            ]
+            .into_iter(),
         ));
         let mut test_iter = TurtleCollectToNextForwardIterator { iter: base_iter };
 
@@ -232,7 +236,8 @@ mod test {
                 TurtleStep::TurnRad(9.0),
                 TurtleStep::Forward(2.0),
                 TurtleStep::TurnRad(-1.0),
-            ].into_iter(),
+            ]
+            .into_iter(),
         ));
         let mut test_iter = TurtleCollectToNextForwardIterator { iter: base_iter };
 

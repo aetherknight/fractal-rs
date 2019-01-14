@@ -28,8 +28,8 @@
 //! only taking the absolute value of one of the components of z (taking no absolute value would be
 //! the mandelbrot set)
 
-use super::*;
 use super::super::geometry;
+use super::*;
 
 pub struct BurningShip {
     max_iters: u64,
@@ -62,7 +62,6 @@ impl EscapeTime for BurningShip {
     fn default_view_area(&self) -> [Complex64; 2] {
         [Complex64::new(-2.5, 2.0), Complex64::new(1.5, -1.0)]
     }
-
 
     fn iterate(&self, c: Complex64, z: Complex64) -> Complex64 {
         let absz = Complex64::new(z.re.abs(), -z.im.abs());
@@ -118,7 +117,6 @@ impl EscapeTime for BurningMandel {
         [Complex64::new(-2.5, 1.0), Complex64::new(1.5, -1.0)]
     }
 
-
     fn iterate(&self, c: Complex64, z: Complex64) -> Complex64 {
         let absz = Complex64::new(z.re.abs(), -z.im);
         geometry::cpow(absz, self.power) + c
@@ -172,7 +170,6 @@ impl EscapeTime for RoadRunner {
     fn default_view_area(&self) -> [Complex64; 2] {
         [Complex64::new(-2.5, 1.5), Complex64::new(1.5, -1.5)]
     }
-
 
     fn iterate(&self, c: Complex64, z: Complex64) -> Complex64 {
         let absz = Complex64::new(z.re, -z.im.abs());

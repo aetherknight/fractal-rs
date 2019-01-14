@@ -41,8 +41,8 @@
 //! println!("Done!")
 //! ```
 
-use std::sync::Arc;
 use std::sync::mpsc::*;
+use std::sync::Arc;
 use std::thread;
 
 use num_cpus;

@@ -19,8 +19,8 @@ use std::sync::mpsc::SyncSender;
 use rand;
 use rand::distributions::{IndependentSample, Range};
 
-use super::ChaosGame;
 use super::super::geometry::*;
+use super::ChaosGame;
 
 #[derive(Clone, Default)]
 pub struct SierpinskiChaosGame;
@@ -55,12 +55,12 @@ impl ChaosGame for SierpinskiChaosGame {
         let point_range = Range::new(0, 3);
 
         // Construct the center point.
-        let sum_point = vertices.iter().fold(Point { x: 0.0, y: 0.0 }, |acc, &p| {
-            Point {
+        let sum_point = vertices
+            .iter()
+            .fold(Point { x: 0.0, y: 0.0 }, |acc, &p| Point {
                 x: acc.x + p.x,
                 y: acc.y + p.y,
-            }
-        });
+            });
         let curr_point = Point {
             x: sum_point.x / (vertices.len() as f64),
             y: sum_point.y / (vertices.len() as f64),

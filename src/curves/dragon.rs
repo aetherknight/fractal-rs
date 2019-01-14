@@ -52,7 +52,9 @@ impl DragonFractal {
     ///     |__|
     /// ```
     pub fn new(iterations: u64) -> DragonFractal {
-        DragonFractal { iterations: iterations }
+        DragonFractal {
+            iterations: iterations,
+        }
     }
 
     /// The number of lines that will be drawn.
@@ -150,16 +152,15 @@ impl Iterator for DragonFractalTurtleProgramIterator {
     }
 }
 
-
 #[cfg(test)]
 mod test {
 
     use super::DragonFractal;
     use super::Turn::{Left, Right};
     use crate::geometry::Point;
+    use crate::turtle::{TurtleProgram, TurtleStep};
     use std::f64::consts::PI;
     use std::f64::consts::SQRT_2;
-    use crate::turtle::{TurtleProgram, TurtleStep};
 
     #[test]
     fn test_step_count() {

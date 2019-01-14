@@ -19,17 +19,16 @@ use std::sync::mpsc::SyncSender;
 use rand;
 use rand::distributions::{IndependentSample, Weighted, WeightedChoice};
 
-use super::ChaosGame;
 use super::super::geometry::*;
+use super::ChaosGame;
 
 /// The reference affine transforms for the Barnsley Fern.
-pub const REFERENCE_TRANSFORMS: [CartesianAffineTransform; 4] =
-    [
-        [[0.0, 0.0, 0.0], [0.0, 0.16, 0.0]],
-        [[0.85, 0.04, 0.0], [-0.04, 0.85, 1.6]],
-        [[0.2, -0.26, 0.0], [0.23, 0.22, 1.6]],
-        [[-0.15, 0.28, 0.0], [0.26, 0.24, 0.44]],
-    ];
+pub const REFERENCE_TRANSFORMS: [CartesianAffineTransform; 4] = [
+    [[0.0, 0.0, 0.0], [0.0, 0.16, 0.0]],
+    [[0.85, 0.04, 0.0], [-0.04, 0.85, 1.6]],
+    [[0.2, -0.26, 0.0], [0.23, 0.22, 1.6]],
+    [[-0.15, 0.28, 0.0], [0.26, 0.24, 0.44]],
+];
 /// The reference affine transform weights for the Barnsley Fern.
 pub const REFERENCE_WEIGHTS: [u32; 4] = [1, 85, 7, 7];
 
@@ -61,11 +60,9 @@ impl BarnsleyFern {
         // TODO: macro to unwrap creating the iterators used to create weighted_indices.
         let mut weighted_indices: Vec<Weighted<usize>> = (0..4)
             .into_iter()
-            .map(|i| {
-                Weighted {
-                    weight: self.weights[i],
-                    item: i as usize,
-                }
+            .map(|i| Weighted {
+                weight: self.weights[i],
+                item: i as usize,
             })
             .collect();
         let chooser = WeightedChoice::new(&mut weighted_indices);

@@ -13,11 +13,10 @@
 // limitations under the License.
 
 extern crate clap;
-extern crate rustc_serialize;
 extern crate fractal;
+extern crate rustc_serialize;
 
 use fractal::fractaldata;
-
 
 fn main() {
     // Command line arguments specification
@@ -33,8 +32,8 @@ fn main() {
     match result {
         Ok(_) => {}
         Err(e) => {
-            use std::io::{Write, stderr};
             use std;
+            use std::io::{stderr, Write};
             writeln!(&mut stderr(), "{}", e).unwrap();
             std::process::exit(1);
         }

@@ -31,13 +31,15 @@ pub enum LSA {
     Q1, // corner 1
     Q2, // corner 2
     Q3, // corner 3
-    L, // turn left X degrees
-    R, // turn right X degrees
+    L,  // turn left X degrees
+    R,  // turn right X degrees
 }
 
 impl CesaroTriFractal {
     pub fn new(iterations: u64) -> CesaroTriFractal {
-        CesaroTriFractal { iterations: iterations }
+        CesaroTriFractal {
+            iterations: iterations,
+        }
     }
 }
 
@@ -48,9 +50,36 @@ impl LindenmayerSystem<LSA> for CesaroTriFractal {
 
     fn apply_rule(&self, lstr: LSA) -> Vec<LSA> {
         match lstr {
-            LSA::F1 => vec![LSA::F1, LSA::L, LSA::F1, LSA::R, LSA::R, LSA::F1, LSA::L, LSA::F1],
-            LSA::F2 => vec![LSA::F2, LSA::L, LSA::F2, LSA::R, LSA::R, LSA::F2, LSA::L, LSA::F2],
-            LSA::F3 => vec![LSA::F3, LSA::L, LSA::F3, LSA::R, LSA::R, LSA::F3, LSA::L, LSA::F3],
+            LSA::F1 => vec![
+                LSA::F1,
+                LSA::L,
+                LSA::F1,
+                LSA::R,
+                LSA::R,
+                LSA::F1,
+                LSA::L,
+                LSA::F1,
+            ],
+            LSA::F2 => vec![
+                LSA::F2,
+                LSA::L,
+                LSA::F2,
+                LSA::R,
+                LSA::R,
+                LSA::F2,
+                LSA::L,
+                LSA::F2,
+            ],
+            LSA::F3 => vec![
+                LSA::F3,
+                LSA::L,
+                LSA::F3,
+                LSA::R,
+                LSA::R,
+                LSA::F3,
+                LSA::L,
+                LSA::F3,
+            ],
             x => vec![x],
         }
     }
@@ -72,15 +101,15 @@ impl LindenmayerSystemDrawingParameters<LSA> for CesaroTriFractal {
         let base_angle_rads = base_angle / 180.0_f64 * PI;
 
         let hyp = 1.0_f64; // length of the whole hypotenuse side
-        // the length of a line segment on the hypotenuse.
-        //
-        // For iteration 0, this is the hypotenuse.
-        // For iteration 1, this is H / (2*(1 + sin(base_angle/2)))
-        // For iteration 2,         H / (2*(1 + sin(base_angle/2)))^2
-        // and so forth.
-        let hyp_unit = hyp /
-            ((2.0_f64 * (1.0_f64 + (PI - (2.0_f64 * base_angle_rads)).sin()))
-                 .powf(self.iterations as f64));
+                           // the length of a line segment on the hypotenuse.
+                           //
+                           // For iteration 0, this is the hypotenuse.
+                           // For iteration 1, this is H / (2*(1 + sin(base_angle/2)))
+                           // For iteration 2,         H / (2*(1 + sin(base_angle/2)))^2
+                           // and so forth.
+        let hyp_unit = hyp
+            / ((2.0_f64 * (1.0_f64 + (PI - (2.0_f64 * base_angle_rads)).sin()))
+                .powf(self.iterations as f64));
 
         // cos(a) = A/H. A = hyp/2. H = A/cos(a)
         // let side_len = (hyp / 2.0_f64) / (base_angle_rads / 2.0_f64).cos();

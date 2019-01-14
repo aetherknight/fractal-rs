@@ -19,8 +19,8 @@
 pub mod barnsleyfern;
 pub mod sierpinski;
 
+use std::sync::mpsc::{sync_channel, Receiver, SyncSender};
 use std::sync::Arc;
-use std::sync::mpsc::{Receiver, SyncSender, sync_channel};
 use std::thread;
 
 use super::geometry::Point;
@@ -68,15 +68,13 @@ impl Iterator for ChaosGameMoveIterator {
 
     fn next(&mut self) -> Option<Point> {
         match self.rx {
-            Some(ref rx) => {
-                match rx.recv() {
-                    Ok(result) => Some(result),
-                    Err(e) => {
-                        println!("Remote generator exited: {}", e.to_string());
-                        None
-                    }
+            Some(ref rx) => match rx.recv() {
+                Ok(result) => Some(result),
+                Err(e) => {
+                    println!("Remote generator exited: {}", e.to_string());
+                    None
                 }
-            }
+            },
             None => None,
         }
     }

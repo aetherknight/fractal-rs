@@ -20,10 +20,9 @@ use gfx_device_gl::Factory;
 use graphics;
 use piston_window::*;
 
-use super::*;
 use super::super::geometry::{Point, Vector};
 use super::super::turtle::{Turtle, TurtleCollectToNextForwardIterator, TurtleProgram};
-
+use super::*;
 
 // The lifetimes are needed here to make the boxed window handlers happy.
 #[cfg_attr(feature = "cargo-clippy", allow(needless_lifetimes))]
@@ -36,7 +35,6 @@ pub fn construct_turtle_window_handler<'a>(
         _ => Box::new(DoubleBufferedAnimatedWindowHandler::new(program, animate)),
     }
 }
-
 
 /// Internal state of a turtle. Can be used by turtle implementations to store/pause their drawing.
 #[derive(Clone, Debug)]
@@ -115,7 +113,8 @@ where
 
             let linesize = (startx - endx).abs() as f64;
 
-            let transform = self.context
+            let transform = self
+                .context
                 .transform
                 .trans(startx, starty)
                 .zoom(linesize)
@@ -154,7 +153,6 @@ where
         self.state.down = false;
     }
 }
-
 
 /// `WindowHandler` that renders an entire turtle program per-frame, and optimizes re-renders by
 /// only rendering twice (once for each buffer).
@@ -240,8 +238,7 @@ impl<'a> fmt::Debug for DoubleBufferedAnimatedWindowHandler<'a> {
         write!(
             f,
             "DoubleBufferedAnimatedWindowHandler(turtles:{:?}, iters:<iters>, which_frame:{:?})",
-            self.turtles,
-            self.which_frame
+            self.turtles, self.which_frame
         )
     }
 }

@@ -32,7 +32,9 @@ pub enum LSA {
 
 impl KochCurve {
     pub fn new(iterations: u64) -> KochCurve {
-        KochCurve { iterations: iterations }
+        KochCurve {
+            iterations: iterations,
+        }
     }
 
     /// 0 -> 1
@@ -50,7 +52,16 @@ impl LindenmayerSystem<LSA> for KochCurve {
 
     fn apply_rule(&self, lstr: LSA) -> Vec<LSA> {
         match lstr {
-            LSA::F => vec![LSA::F, LSA::R, LSA::F, LSA::L, LSA::L, LSA::F, LSA::R, LSA::F],
+            LSA::F => vec![
+                LSA::F,
+                LSA::R,
+                LSA::F,
+                LSA::L,
+                LSA::L,
+                LSA::F,
+                LSA::R,
+                LSA::F,
+            ],
             x => vec![x],
         }
     }

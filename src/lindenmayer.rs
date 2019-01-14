@@ -21,9 +21,9 @@
 //! curve/fractal/plant (which is what this implementation provides).
 
 use crate::geometry::Point;
+use crate::turtle::*;
 use std::cell::RefCell;
 use std::marker::PhantomData;
-use crate::turtle::*;
 
 /// Represents a particular Lindenmayer system. It requires an alphabet (represented as an enum),
 /// an initial sequence ("string"), and one or more rules that transform the sequence with each
@@ -188,7 +188,7 @@ where
             let mut cache = self.iteration_cache.borrow_mut();
             cache.push(curr);
         } // end borrow of the cache
-        // Now that we have cached, try again (which should use the cache)
+          // Now that we have cached, try again (which should use the cache)
         self.generate(iteration)
     }
 }
@@ -232,7 +232,8 @@ where
     // signature.
     #[cfg_attr(feature = "cargo-clippy", allow(needless_lifetimes))]
     fn turtle_program_iter<'a>(&'a self) -> TurtleProgramIterator<'a> {
-        let sequence = self.cacheable_system
+        let sequence = self
+            .cacheable_system
             .generate(self.cacheable_system.system.iteration());
         println!("Done");
 

@@ -23,17 +23,18 @@
 /// Not worrying about it, since this is for unit tests and not application logic.
 #[cfg(test)]
 macro_rules! assert_approx_eq {
-    ( $lhs:expr, $rhs:expr, $epsilon:expr ) => {
-        {
-            let lhs = $lhs as f64;
-            let rhs = $rhs as f64;
-            let epsilon = ($epsilon as f64).abs();
+    ( $lhs:expr, $rhs:expr, $epsilon:expr ) => {{
+        let lhs = $lhs as f64;
+        let rhs = $rhs as f64;
+        let epsilon = ($epsilon as f64).abs();
 
-            if ! ((lhs - rhs).abs() < epsilon) {
-                panic!("assertion failed: {} does not approximately equal: {}", lhs, rhs);
-            }
+        if !((lhs - rhs).abs() < epsilon) {
+            panic!(
+                "assertion failed: {} does not approximately equal: {}",
+                lhs, rhs
+            );
         }
-    }
+    }};
 }
 
 /// Macro to assert that two complex numbers are almost equal.
@@ -42,46 +43,46 @@ macro_rules! assert_approx_eq {
 #[allow(unused_macros)]
 #[cfg(test)]
 macro_rules! assert_complex_approx_eq {
-    ( $lhs:expr, $rhs:expr, $epsilon:expr ) => {
-        {
-            use num::complex::Complex64;
+    ( $lhs:expr, $rhs:expr, $epsilon:expr ) => {{
+        use num::complex::Complex64;
 
-            let lhs = ($lhs as Complex64);
-            let rhs = ($rhs as Complex64);
-            let epsilon = ($epsilon as f64).abs();
+        let lhs = ($lhs as Complex64);
+        let rhs = ($rhs as Complex64);
+        let epsilon = ($epsilon as f64).abs();
 
-            if ! ((lhs - rhs).norm().abs() < epsilon) {
-                panic!("assertion failed: {} does not approximately equal: {}", lhs, rhs);
-            }
+        if !((lhs - rhs).norm().abs() < epsilon) {
+            panic!(
+                "assertion failed: {} does not approximately equal: {}",
+                lhs, rhs
+            );
         }
-    }
+    }};
 }
 
 /// Macro to assert that a complex number is almost equal to one of the values in `$collection`.
 #[allow(unused_macros)]
 #[cfg(test)]
 macro_rules! assert_complex_approx_in {
-    ( $collection:expr, $rhs:expr, $epsilon:expr ) => {
-        {
-            use num::complex::Complex64;
+    ( $collection:expr, $rhs:expr, $epsilon:expr ) => {{
+        use num::complex::Complex64;
 
-            let collection = $collection as &[Complex64];
-            let rhs = $rhs as Complex64;
-            let epsilon = ($epsilon as f64).abs();
+        let collection = $collection as &[Complex64];
+        let rhs = $rhs as Complex64;
+        let epsilon = ($epsilon as f64).abs();
 
-            let mut found = false;
-            for item in collection {
-                if (item - rhs).norm().abs() < epsilon {
-                    found = true
-                }
-            }
-            if ! found {
-                panic!(
-                    "assertion failed: {:?} does not approximately contain: {}", collection, rhs
-                );
+        let mut found = false;
+        for item in collection {
+            if (item - rhs).norm().abs() < epsilon {
+                found = true
             }
         }
-    }
+        if !found {
+            panic!(
+                "assertion failed: {:?} does not approximately contain: {}",
+                collection, rhs
+            );
+        }
+    }};
 }
 
 /// Macro to assert that two Points are almost equal.
@@ -90,18 +91,22 @@ macro_rules! assert_complex_approx_in {
 /// language/stdlib feature that is not yet in the stable release, as of 2015/12/12.
 #[cfg(test)]
 macro_rules! assert_point_eq {
-    ( $lhs:expr, $rhs:expr, $epsilon:expr ) => {
-        {
-            let lhs: Point = $lhs;
-            let rhs: Point = $rhs;
-            let epsilon = $epsilon as f64;
+    ( $lhs:expr, $rhs:expr, $epsilon:expr ) => {{
+        let lhs: Point = $lhs;
+        let rhs: Point = $rhs;
+        let epsilon = $epsilon as f64;
 
-            if ! ((lhs.x - rhs.x).abs() < epsilon) {
-                panic!("assertion failed: {}.x does not approximately equal: {}.x", lhs, rhs);
-            }
-            if ! ((lhs.y - rhs.y).abs() < epsilon) {
-                panic!("assertion failed: {}.y does not approximately equal: {}.y", lhs, rhs);
-            }
+        if !((lhs.x - rhs.x).abs() < epsilon) {
+            panic!(
+                "assertion failed: {}.x does not approximately equal: {}.x",
+                lhs, rhs
+            );
         }
-    }
+        if !((lhs.y - rhs.y).abs() < epsilon) {
+            panic!(
+                "assertion failed: {}.y does not approximately equal: {}.y",
+                lhs, rhs
+            );
+        }
+    }};
 }

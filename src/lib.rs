@@ -14,13 +14,13 @@
 
 //! Library of things to explore and draw various fractal curves.
 extern crate clap;
-extern crate graphics;
 extern crate gfx_device_gl;
+extern crate graphics;
+extern crate image;
 extern crate num;
 extern crate num_cpus;
 extern crate piston;
 extern crate piston_window;
-extern crate image;
 extern crate rand;
 extern crate time;
 

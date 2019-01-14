@@ -31,7 +31,9 @@ impl TerdragonFractal {
     /// Create a new TerdragonFractal. `iterations` is the number of generations to apply to the
     /// Lindenmeyer system used to generate the fractal's turns.
     pub fn new(iterations: u64) -> TerdragonFractal {
-        TerdragonFractal { iterations: iterations }
+        TerdragonFractal {
+            iterations: iterations,
+        }
     }
 
     /// The number of lines that will be drawn.
@@ -101,8 +103,8 @@ impl LindenmayerSystemDrawingParameters<LSA> for TerdragonFractal {
 
 #[cfg(test)]
 mod test {
-    use super::{LSA, TerdragonFractal};
     use super::SQRT_3;
+    use super::{TerdragonFractal, LSA};
     use crate::geometry::Point;
     use crate::lindenmayer::LindenmayerSystemDrawingParameters;
     use std::f64::consts::PI;

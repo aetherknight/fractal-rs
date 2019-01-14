@@ -21,22 +21,21 @@ use clap;
 use std;
 use std::sync::Arc;
 
-use super::chaosgame::ChaosGame;
 use super::chaosgame::barnsleyfern;
 use super::chaosgame::sierpinski::SierpinskiChaosGame;
+use super::chaosgame::ChaosGame;
 use super::curves::cesaro::CesaroFractal;
 use super::curves::cesarotri::CesaroTriFractal;
 use super::curves::dragon::DragonFractal;
 use super::curves::kochcurve::KochCurve;
 use super::curves::levyccurve::LevyCCurve;
 use super::curves::terdragon::TerdragonFractal;
-use super::escapetime::EscapeTime;
 use super::escapetime::burningship::*;
 use super::escapetime::mandelbrot::Mandelbrot;
+use super::escapetime::EscapeTime;
 use super::lindenmayer::LindenmayerSystemTurtleProgram;
 use super::pistonrendering;
 use super::turtle::TurtleProgram;
-
 
 /// Helper to get the size of a list of expressions
 #[allow(unused_macros)]
@@ -49,10 +48,11 @@ macro_rules! count_exprs {
 /// Helper to extract and parse a value from a command line argument.
 macro_rules! extract {
     ($matches:expr, $name:expr) => {
-        $matches.value_of($name)
-            .map(|s| parse_arg($name, s) )
+        $matches
+            .value_of($name)
+            .map(|s| parse_arg($name, s))
             .unwrap_or_else(|| Err(format!("Missing {}", $name)))
-    }
+    };
 }
 
 /// Method to help with parsing a command line argument into some other type.
@@ -174,9 +174,12 @@ where
                          deciding the fracal has escaped",
                     ),
             )
-            .arg(clap::Arg::with_name("POWER").required(true).index(2).help(
-                "The exponent used in the escape time function (positive integer)",
-            ))
+            .arg(
+                clap::Arg::with_name("POWER")
+                    .required(true)
+                    .index(2)
+                    .help("The exponent used in the escape time function (positive integer)"),
+            )
     }
 
     fn run(&self, matches: &clap::ArgMatches) -> Result<(), String> {
@@ -276,7 +279,6 @@ macro_rules! define_subcommands {
         }
     }
 }
-
 
 define_subcommands! {
     barnsleyfern: {

@@ -305,7 +305,8 @@ mod test {
             Vector {
                 direction: 0.0,
                 magnitude: 1.0,
-            }.delta_x(),
+            }
+            .delta_x(),
             1.0,
             0.0000001
         );
@@ -313,7 +314,8 @@ mod test {
             Vector {
                 direction: PI / 2.0,
                 magnitude: 1.0,
-            }.delta_x(),
+            }
+            .delta_x(),
             0.0,
             0.0000001
         );
@@ -321,7 +323,8 @@ mod test {
             Vector {
                 direction: PI / 4.0,
                 magnitude: 1.0,
-            }.delta_x(),
+            }
+            .delta_x(),
             (PI / 4.0).cos(),
             0.0000001
         );
@@ -330,7 +333,8 @@ mod test {
             Vector {
                 direction: PI / 4.0,
                 magnitude: 5.0,
-            }.delta_x(),
+            }
+            .delta_x(),
             (PI / 4.0).cos() * 5.0,
             0.0000001
         );
@@ -338,7 +342,8 @@ mod test {
             Vector {
                 direction: 3.0 * PI / 4.0,
                 magnitude: 5.0,
-            }.delta_x(),
+            }
+            .delta_x(),
             (PI / 4.0).cos() * -5.0,
             0.0000001
         );
@@ -347,7 +352,8 @@ mod test {
             Vector {
                 direction: PI,
                 magnitude: 1.0,
-            }.delta_x(),
+            }
+            .delta_x(),
             -1.0,
             0.0000001
         );
@@ -355,7 +361,8 @@ mod test {
             Vector {
                 direction: PI,
                 magnitude: 5.0,
-            }.delta_x(),
+            }
+            .delta_x(),
             -5.0,
             0.0000001
         );
@@ -364,7 +371,8 @@ mod test {
             Vector {
                 direction: 3.0 * PI / 2.0,
                 magnitude: 1.0,
-            }.delta_x(),
+            }
+            .delta_x(),
             0.0,
             0.0000001
         );
@@ -372,7 +380,8 @@ mod test {
             Vector {
                 direction: 3.0 * PI / 2.0,
                 magnitude: 5.0,
-            }.delta_x(),
+            }
+            .delta_x(),
             0.0,
             0.0000001
         );
@@ -384,7 +393,8 @@ mod test {
             Vector {
                 direction: 0.0,
                 magnitude: 1.0,
-            }.delta_y(),
+            }
+            .delta_y(),
             0.0,
             0.0000001
         );
@@ -392,7 +402,8 @@ mod test {
             Vector {
                 direction: PI / 2.0,
                 magnitude: 1.0,
-            }.delta_y(),
+            }
+            .delta_y(),
             1.0,
             0.0000001
         );
@@ -400,7 +411,8 @@ mod test {
             Vector {
                 direction: PI / 4.0,
                 magnitude: 1.0,
-            }.delta_y(),
+            }
+            .delta_y(),
             (PI / 4.0).sin(),
             0.0000001
         );
@@ -409,7 +421,8 @@ mod test {
             Vector {
                 direction: PI / 4.0,
                 magnitude: 5.0,
-            }.delta_y(),
+            }
+            .delta_y(),
             (PI / 4.0).sin() * 5.0,
             0.0000001
         );
@@ -417,7 +430,8 @@ mod test {
             Vector {
                 direction: 5.0 * PI / 4.0,
                 magnitude: 5.0,
-            }.delta_y(),
+            }
+            .delta_y(),
             (5.0 * PI / 4.0).sin() * 5.0,
             0.0000001
         );
@@ -426,7 +440,8 @@ mod test {
             Vector {
                 direction: PI,
                 magnitude: 1.0,
-            }.delta_y(),
+            }
+            .delta_y(),
             0.0,
             0.0000001
         );
@@ -434,7 +449,8 @@ mod test {
             Vector {
                 direction: PI,
                 magnitude: 5.0,
-            }.delta_y(),
+            }
+            .delta_y(),
             0.0,
             0.0000001
         );

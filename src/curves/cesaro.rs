@@ -14,7 +14,7 @@
 
 //! Computations and abstractions needed for rendering a Césaro fractal
 
-use crate::geometry::{Point, deg2rad};
+use crate::geometry::{deg2rad, Point};
 use crate::lindenmayer::{LindenmayerSystem, LindenmayerSystemDrawingParameters};
 use crate::turtle::TurtleStep;
 
@@ -33,7 +33,9 @@ pub enum LSA {
 
 impl CesaroFractal {
     pub fn new(iterations: u64) -> CesaroFractal {
-        CesaroFractal { iterations: iterations }
+        CesaroFractal {
+            iterations: iterations,
+        }
     }
 
     fn distance_forward(self) -> f64 {
@@ -44,12 +46,30 @@ impl CesaroFractal {
 
 impl LindenmayerSystem<LSA> for CesaroFractal {
     fn initial(&self) -> Vec<LSA> {
-        vec![LSA::F, LSA::Q, LSA::F, LSA::Q, LSA::F, LSA::Q, LSA::F, LSA::Q]
+        vec![
+            LSA::F,
+            LSA::Q,
+            LSA::F,
+            LSA::Q,
+            LSA::F,
+            LSA::Q,
+            LSA::F,
+            LSA::Q,
+        ]
     }
 
     fn apply_rule(&self, lstr: LSA) -> Vec<LSA> {
         match lstr {
-            LSA::F => vec![LSA::F, LSA::L, LSA::F, LSA::R, LSA::R, LSA::F, LSA::L, LSA::F],
+            LSA::F => vec![
+                LSA::F,
+                LSA::L,
+                LSA::F,
+                LSA::R,
+                LSA::R,
+                LSA::F,
+                LSA::L,
+                LSA::F,
+            ],
             x => vec![x],
         }
     }
