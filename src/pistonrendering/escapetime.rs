@@ -17,7 +17,7 @@ use std::sync::{Arc, RwLock};
 
 use gfx_device_gl;
 use gfx_device_gl::Factory;
-use image as im;
+use ::image as im;
 use num::complex::Complex64;
 use piston_window::*;
 
