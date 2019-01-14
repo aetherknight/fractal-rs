@@ -14,9 +14,9 @@
 
 //! Computations and abstractions needed for rendering a Koch Curve.
 
-use geometry::deg2rad;
-use lindenmayer::{LindenmayerSystem, LindenmayerSystemDrawingParameters};
-use turtle::TurtleStep;
+use crate::geometry::deg2rad;
+use crate::lindenmayer::{LindenmayerSystem, LindenmayerSystemDrawingParameters};
+use crate::turtle::TurtleStep;
 
 #[derive(Copy, Clone, Debug)]
 pub struct KochCurve {
@@ -73,8 +73,8 @@ impl LindenmayerSystemDrawingParameters<LSA> for KochCurve {
 #[cfg(test)]
 mod test {
     use super::KochCurve;
-    use geometry::Point;
-    use lindenmayer::LindenmayerSystemDrawingParameters;
+    use crate::geometry::Point;
+    use crate::lindenmayer::LindenmayerSystemDrawingParameters;
 
     #[test]
     fn test_initial_pos() {

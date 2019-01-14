@@ -14,9 +14,9 @@
 
 //! Computations and abstractions needed for rendering a Césaro fractal
 
-use geometry::{Point, deg2rad};
-use lindenmayer::{LindenmayerSystem, LindenmayerSystemDrawingParameters};
-use turtle::TurtleStep;
+use crate::geometry::{Point, deg2rad};
+use crate::lindenmayer::{LindenmayerSystem, LindenmayerSystemDrawingParameters};
+use crate::turtle::TurtleStep;
 
 #[derive(Copy, Clone, Debug)]
 pub struct CesaroFractal {
@@ -78,8 +78,8 @@ impl LindenmayerSystemDrawingParameters<LSA> for CesaroFractal {
 #[cfg(test)]
 mod test {
     use super::CesaroFractal;
-    use geometry::Point;
-    use lindenmayer::LindenmayerSystemDrawingParameters;
+    use crate::geometry::Point;
+    use crate::lindenmayer::LindenmayerSystemDrawingParameters;
 
     #[test]
     fn test_initial_pos() {

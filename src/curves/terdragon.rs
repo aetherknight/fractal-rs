@@ -14,9 +14,9 @@
 
 //! Computations and abstractions needed for rendering a terdragon fractal.
 
-use geometry::deg2rad;
-use lindenmayer::{LindenmayerSystem, LindenmayerSystemDrawingParameters};
-use turtle::TurtleStep;
+use crate::geometry::deg2rad;
+use crate::lindenmayer::{LindenmayerSystem, LindenmayerSystemDrawingParameters};
+use crate::turtle::TurtleStep;
 
 const SQRT_3: f64 = 1.7320508075;
 
@@ -103,8 +103,8 @@ impl LindenmayerSystemDrawingParameters<LSA> for TerdragonFractal {
 mod test {
     use super::{LSA, TerdragonFractal};
     use super::SQRT_3;
-    use geometry::Point;
-    use lindenmayer::LindenmayerSystemDrawingParameters;
+    use crate::geometry::Point;
+    use crate::lindenmayer::LindenmayerSystemDrawingParameters;
     use std::f64::consts::PI;
 
     #[test]

@@ -14,7 +14,7 @@
 
 //! Turtle program abstractions.
 
-use geometry::{Point, deg2rad};
+use crate::geometry::{Point, deg2rad};
 
 /// A Turtle is an abstraction for drawing lines in a space. It has a position and it faces a
 /// particular direction. A program usually tells a turtle to move forward based upon its facing,

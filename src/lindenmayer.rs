@@ -20,10 +20,10 @@
 //! that some representation process, such as a turtle drawing program, can then use to draw a
 //! curve/fractal/plant (which is what this implementation provides).
 
-use geometry::Point;
+use crate::geometry::Point;
 use std::cell::RefCell;
 use std::marker::PhantomData;
-use turtle::*;
+use crate::turtle::*;
 
 /// Represents a particular Lindenmayer system. It requires an alphabet (represented as an enum),
 /// an initial sequence ("string"), and one or more rules that transform the sequence with each

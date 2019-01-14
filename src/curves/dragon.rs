@@ -17,8 +17,8 @@
 use std::f64::consts::PI;
 use std::f64::consts::SQRT_2;
 
-use geometry::Point;
-use turtle::*;
+use crate::geometry::Point;
+use crate::turtle::*;
 
 #[derive(Copy, Clone, Debug, Eq, PartialEq)]
 pub enum Turn {
@@ -156,10 +156,10 @@ mod test {
 
     use super::DragonFractal;
     use super::Turn::{Left, Right};
-    use geometry::Point;
+    use crate::geometry::Point;
     use std::f64::consts::PI;
     use std::f64::consts::SQRT_2;
-    use turtle::{TurtleProgram, TurtleStep};
+    use crate::turtle::{TurtleProgram, TurtleStep};
 
     #[test]
     fn test_step_count() {

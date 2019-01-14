@@ -16,9 +16,9 @@
 
 use std::f64::consts::SQRT_2;
 
-use geometry::deg2rad;
-use lindenmayer::{LindenmayerSystem, LindenmayerSystemDrawingParameters};
-use turtle::TurtleStep;
+use crate::geometry::deg2rad;
+use crate::lindenmayer::{LindenmayerSystem, LindenmayerSystemDrawingParameters};
+use crate::turtle::TurtleStep;
 
 #[derive(Copy, Clone, Debug)]
 pub struct LevyCCurve {
@@ -79,8 +79,8 @@ impl LindenmayerSystemDrawingParameters<LSA> for LevyCCurve {
 #[cfg(test)]
 mod test {
     use super::LevyCCurve;
-    use geometry::Point;
-    use lindenmayer::LindenmayerSystemDrawingParameters;
+    use crate::geometry::Point;
+    use crate::lindenmayer::LindenmayerSystemDrawingParameters;
 
     #[test]
     fn test_initial_pos() {
