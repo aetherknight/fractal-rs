@@ -7,5 +7,4 @@ edition = "2018"
 
 [dependencies]
 num = "^0.2"
-piston2d-graphics = "^0.28.0"
 rand = "^0.6"

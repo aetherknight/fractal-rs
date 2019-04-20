@@ -15,11 +15,11 @@
 //! Various types and functions the work within a 2-D cartesian coordinate
 //! system.
 
+use num::complex::Complex64;
 use std::f64::consts::PI;
 use std::fmt;
 
-use graphics::math::Vec2d;
-use num::complex::Complex64;
+pub type Vec2d = [f64; 2];
 
 /// Represents a point in a 2-D cartesian coordinate system.
 #[derive(Copy, Clone, Debug, PartialEq)]
