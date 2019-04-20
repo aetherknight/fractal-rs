@@ -1,5 +1,5 @@
 [workspace]
 
 members = [
-  "fractal-ui",
+  "fractal-piston",
 ]

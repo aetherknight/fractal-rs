@@ -1,12 +1,12 @@
 [package]
-name = "fractal-ui"
+name = "fractal-piston"
 version = "0.0.1"
 authors = ["William (B.J.) Snow Orvis <aetherknight@gmail.com>"]
 description = "Fractal rendering program"
 edition = "2018"
 
 [[bin]]
-name = "fractal-ui"
+name = "fractal-piston"
 doc = false
 
 [dependencies]
