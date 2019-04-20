@@ -14,15 +14,13 @@
 
 //! Window handlers for drawing `TurtleProgram`s.
 
-use std::fmt;
-
+use super::*;
+use fractal_lib::geometry::{Point, Vector};
+use fractal_lib::turtle::{Turtle, TurtleCollectToNextForwardIterator, TurtleProgram};
 use gfx_device_gl::Factory;
 use graphics;
 use piston_window::*;
-
-use super::super::geometry::{Point, Vector};
-use super::super::turtle::{Turtle, TurtleCollectToNextForwardIterator, TurtleProgram};
-use super::*;
+use std::fmt;
 
 // The lifetimes are needed here to make the boxed window handlers happy.
 pub fn construct_turtle_window_handler<'a>(

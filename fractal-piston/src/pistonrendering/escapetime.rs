@@ -12,19 +12,17 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use std::cmp;
-use std::sync::{Arc, RwLock};
-
+use super::super::work_multiplexer::*;
+use super::*;
 use ::image::{ImageBuffer, Rgba};
+use fractal_lib::escapetime::EscapeTime;
+use fractal_lib::geometry::{Point, ViewAreaTransformer};
 use gfx_device_gl;
 use gfx_device_gl::Factory;
 use num::complex::Complex64;
 use piston_window::*;
-
-use super::super::escapetime::EscapeTime;
-use super::super::geometry::{Point, ViewAreaTransformer};
-use super::super::work_multiplexer::*;
-use super::*;
+use std::cmp;
+use std::sync::{Arc, RwLock};
 
 type FractalImageBuffer = ImageBuffer<Rgba<u8>, Vec<u8>>;
 

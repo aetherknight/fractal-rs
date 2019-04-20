@@ -18,12 +18,11 @@ pub mod chaosgame;
 pub mod escapetime;
 pub mod turtle;
 
+pub use fractal_lib::color::*;
 use gfx_device_gl::Factory;
 use graphics;
 pub use graphics::math::Vec2d;
 use piston_window::*;
-
-pub use super::color::*;
 
 /// State machine for `WindowHandlers` that want to animate across the double buffered frames.
 #[derive(Debug, PartialEq)]

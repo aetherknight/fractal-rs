@@ -21,21 +21,21 @@ use clap;
 use std;
 use std::sync::Arc;
 
-use super::chaosgame::barnsleyfern;
-use super::chaosgame::sierpinski::SierpinskiChaosGame;
-use super::chaosgame::ChaosGame;
-use super::curves::cesaro::CesaroFractal;
-use super::curves::cesarotri::CesaroTriFractal;
-use super::curves::dragon::DragonFractal;
-use super::curves::kochcurve::KochCurve;
-use super::curves::levyccurve::LevyCCurve;
-use super::curves::terdragon::TerdragonFractal;
-use super::escapetime::burningship::*;
-use super::escapetime::mandelbrot::Mandelbrot;
-use super::escapetime::EscapeTime;
-use super::lindenmayer::LindenmayerSystemTurtleProgram;
 use super::pistonrendering;
-use super::turtle::TurtleProgram;
+use fractal_lib::chaosgame::barnsleyfern;
+use fractal_lib::chaosgame::sierpinski::SierpinskiChaosGame;
+use fractal_lib::chaosgame::ChaosGame;
+use fractal_lib::curves::cesaro::CesaroFractal;
+use fractal_lib::curves::cesarotri::CesaroTriFractal;
+use fractal_lib::curves::dragon::DragonFractal;
+use fractal_lib::curves::kochcurve::KochCurve;
+use fractal_lib::curves::levyccurve::LevyCCurve;
+use fractal_lib::curves::terdragon::TerdragonFractal;
+use fractal_lib::escapetime::burningship::*;
+use fractal_lib::escapetime::mandelbrot::Mandelbrot;
+use fractal_lib::escapetime::EscapeTime;
+use fractal_lib::lindenmayer::LindenmayerSystemTurtleProgram;
+use fractal_lib::turtle::TurtleProgram;
 
 /// Helper to get the size of a list of expressions
 #[allow(unused_macros)]

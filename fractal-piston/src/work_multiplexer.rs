@@ -41,11 +41,10 @@
 //! println!("Done!")
 //! ```
 
+use num_cpus;
 use std::sync::mpsc::*;
 use std::sync::Arc;
 use std::thread;
-
-use num_cpus;
 use time;
 
 /// Measures how long a block takes to complete, and returns that time.

@@ -41,7 +41,7 @@ pub trait LindenmayerSystem<Alphabet: Clone> {
     /// A common implementation approach would be to use `match` with the Alphabet. For example:
     ///
     /// ```
-    /// use fractal::lindenmayer::LindenmayerSystem;
+    /// use fractal_lib::lindenmayer::LindenmayerSystem;
     ///
     /// /// Our Alphbet
     /// #[derive(Clone)]

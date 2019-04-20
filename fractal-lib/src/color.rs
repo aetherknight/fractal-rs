@@ -42,7 +42,7 @@ pub const WHITE_U8: ColorU8 = ColorU8([255, 255, 255, 255]);
 /// Eg, to create a spectrum from white to black:
 ///
 /// ```
-/// use fractal::color::{ColorU8, color_range_linear};
+/// use fractal_lib::color::{ColorU8, color_range_linear};
 ///
 /// let black = ColorU8([0,0,0,255]);
 /// let white = ColorU8([255,255,255,255]);
@@ -59,7 +59,7 @@ pub const WHITE_U8: ColorU8 = ColorU8([255, 255, 255, 255]);
 /// error:
 ///
 /// ```
-/// use fractal::color::{ColorU8, color_range_linear};
+/// use fractal_lib::color::{ColorU8, color_range_linear};
 /// use std::cmp::min;
 ///
 /// let black = ColorU8([0,0,0,255]);

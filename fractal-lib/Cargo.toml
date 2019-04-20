@@ -1,0 +1,11 @@
+[package]
+name = "fractal-lib"
+version = "0.0.1"
+authors = ["William (B.J.) Snow Orvis <aetherknight@gmail.com>"]
+description = "Fractal library"
+edition = "2018"
+
+[dependencies]
+num = "^0.2"
+piston2d-graphics = "^0.28.0"
+rand = "^0.6"
