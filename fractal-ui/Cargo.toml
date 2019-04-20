@@ -1,13 +1,12 @@
 [package]
-name = "fractal"
+name = "aefractal"
 version = "0.0.1"
 authors = ["William (B.J.) Snow Orvis <aetherknight@gmail.com>"]
 description = "Fractal rendering program"
 edition = "2018"
 
-
 [[bin]]
-name = "fractal"
+name = "aefractal"
 doc = false
 
 [dependencies]
@@ -22,6 +21,3 @@ piston_window = "0.85.0"
 rand = "^0.6"
 rustc-serialize = "^0.3"
 time = "~0.1"
-
-#[dev-dependencies]
-#float-cmp = "~0.2.1"
