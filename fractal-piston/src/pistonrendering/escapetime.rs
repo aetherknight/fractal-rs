@@ -12,15 +12,18 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use super::super::work_multiplexer::*;
-use super::*;
+use super::super::work_multiplexer::{
+    ThreadedWorkMultiplexerBuilder, ThreadedWorkMultiplexerHandles,
+};
+use super::{RenderContext, WindowHandler};
 use ::image::{ImageBuffer, Rgba};
+use fractal_lib::color;
 use fractal_lib::escapetime::EscapeTime;
 use fractal_lib::geometry::{Point, ViewAreaTransformer};
 use gfx_device_gl;
-use gfx_device_gl::Factory;
+use graphics::math::Vec2d;
 use num::complex::Complex64;
-use piston_window::*;
+use piston_window;
 use std::cmp;
 use std::sync::{Arc, RwLock};
 
@@ -37,7 +40,7 @@ pub struct EscapeTimeWindowHandler {
     canvas: Arc<RwLock<FractalImageBuffer>>,
     threads: Option<ThreadedWorkMultiplexerHandles>,
     /// Main thread only
-    texture: Option<Texture<gfx_device_gl::Resources>>,
+    texture: Option<piston_window::Texture<gfx_device_gl::Resources>>,
 }
 
 impl EscapeTimeWindowHandler {
@@ -80,9 +83,9 @@ impl EscapeTimeWindowHandler {
             self.screen_size[1] as u32,
             self.vat.map_pixel_to_point(self.screen_size)
         );
-        let colors = Arc::new(color_range_linear(
-            BLACK_U8,
-            WHITE_U8,
+        let colors = Arc::new(color::color_range_linear(
+            color::BLACK_U8,
+            color::WHITE_U8,
             cmp::min(self.etsystem.max_iterations(), 50) as usize,
         ));
 
@@ -121,7 +124,7 @@ impl EscapeTimeWindowHandler {
                                     vat.map_pixel_to_point([f64::from(x), f64::from(y)]).into();
                                 let (attracted, time) = etsystem.test_point(c);
                                 if attracted {
-                                    Rgba(AEBLUE_U8.0)
+                                    Rgba(color::AEBLUE_U8.0)
                                 } else {
                                     Rgba(colors[cmp::min(time, 50 - 1) as usize].0)
                                 }
@@ -146,14 +149,19 @@ impl EscapeTimeWindowHandler {
 }
 
 impl WindowHandler for EscapeTimeWindowHandler {
-    fn initialize_with_window(&mut self, window: &mut PistonWindow) {
+    fn initialize_with_window(&mut self, window: &mut piston_window::PistonWindow) {
         let canvas = self.canvas.read().unwrap();
         self.texture = Some(
-            Texture::from_image(&mut window.factory, &*canvas, &TextureSettings::new()).unwrap(),
+            piston_window::Texture::from_image(
+                &mut window.factory,
+                &*canvas,
+                &piston_window::TextureSettings::new(),
+            )
+            .unwrap(),
         );
     }
 
-    fn window_resized(&mut self, new_size: Vec2d, factory: &mut Factory) {
+    fn window_resized(&mut self, new_size: Vec2d, factory: &mut gfx_device_gl::Factory) {
         // Set the new size
         self.screen_size = new_size;
         // Create a new canvas and start rendering it
@@ -162,8 +170,14 @@ impl WindowHandler for EscapeTimeWindowHandler {
         // tick)
         {
             let canvas = self.canvas.read().unwrap();
-            self.texture =
-                Some(Texture::from_image(factory, &*canvas, &TextureSettings::new()).unwrap());
+            self.texture = Some(
+                piston_window::Texture::from_image(
+                    factory,
+                    &*canvas,
+                    &piston_window::TextureSettings::new(),
+                )
+                .unwrap(),
+            );
         }
     }
 
@@ -177,8 +191,8 @@ impl WindowHandler for EscapeTimeWindowHandler {
             }
         }
 
-        clear(WHITE_F32.0, render_context.gfx);
-        image(
+        piston_window::clear(color::WHITE_F32.0, render_context.gfx);
+        piston_window::image(
             texture,
             render_context.context.transform,
             render_context.gfx,

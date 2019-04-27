@@ -14,17 +14,20 @@
 
 //! Window handlers for drawing points as part of playing a `ChaosGame`.
 
-use super::*;
+use super::{RenderContext, WhichFrame, WindowHandler};
 use fractal_lib::chaosgame::{ChaosGame, ChaosGameMoveIterator};
+use fractal_lib::color;
 use fractal_lib::geometry::Point;
-use gfx_device_gl::Factory;
+use gfx_device_gl;
 use graphics;
-use piston_window::*;
+use graphics::math::Vec2d;
+use graphics::Transformed;
+use piston_window;
 use std::sync::Arc;
 
 /// Draw a dot at the given point. (0.0,0.0) is the center of the screen, (1.0,1.0) is near the top
 /// right, and (-1.0,-1.0) is near the bottom left.
-fn draw_dot(context: graphics::context::Context, gfx: &mut G2d, point: Point) {
+fn draw_dot(context: graphics::context::Context, gfx: &mut piston_window::G2d, point: Point) {
     let view_size = context.get_view_size();
     let screen_width = view_size[0];
     let screen_height = view_size[1];
@@ -52,7 +55,7 @@ fn draw_dot(context: graphics::context::Context, gfx: &mut G2d, point: Point) {
     let delta = 0.5 / one_unit_to_pixels as f64;
 
     // println!("Drawing {}", point);
-    Rectangle::new(BLACK_F32.0).draw(
+    piston_window::Rectangle::new(color::BLACK_F32.0).draw(
         [point.x - delta, point.y - delta, 2.0 * delta, 2.0 * delta],
         &graphics::draw_state::DrawState::default(),
         transform,
@@ -81,7 +84,7 @@ impl ChaosGameWindowHandler {
 }
 
 impl WindowHandler for ChaosGameWindowHandler {
-    fn window_resized(&mut self, _: Vec2d, _: &mut Factory) {
+    fn window_resized(&mut self, _: Vec2d, _: &mut gfx_device_gl::Factory) {
         self.which_frame = WhichFrame::FirstFrame;
         self.iter = None;
         self.last_moves = Vec::with_capacity(self.dots_per_frame as usize);
@@ -91,7 +94,7 @@ impl WindowHandler for ChaosGameWindowHandler {
         match self.which_frame {
             WhichFrame::FirstFrame => {
                 // The first frame clears its screen and starts drawing.
-                clear(WHITE_F32.0, render_context.gfx);
+                piston_window::clear(color::WHITE_F32.0, render_context.gfx);
                 self.iter = Some(ChaosGameMoveIterator::new(Arc::clone(&self.game)));
                 // draw up to dots_per_frame dots, and store them for the next frame to also
                 // draw
@@ -106,7 +109,7 @@ impl WindowHandler for ChaosGameWindowHandler {
             WhichFrame::SecondFrame => {
                 // The second frame is on the second buffer, so it needs to clear the screen,
                 // draw the first frame's dots, and then draw some more dots.
-                clear(WHITE_F32.0, render_context.gfx);
+                piston_window::clear(color::WHITE_F32.0, render_context.gfx);
                 // catch up to the first frame by draining last_moves
                 for oldmove in self.last_moves.drain(..) {
                     draw_dot(render_context.context, render_context.gfx, oldmove);

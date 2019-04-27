@@ -18,11 +18,13 @@ pub mod chaosgame;
 pub mod escapetime;
 pub mod turtle;
 
-pub use fractal_lib::color::*;
-use gfx_device_gl::Factory;
+use gfx_device_gl;
 use graphics;
-pub use graphics::math::Vec2d;
-use piston_window::*;
+use graphics::math::Vec2d;
+use piston_window::{
+    Button, G2d, Key, MouseButton, MouseCursorEvent, OpenGL, PistonWindow, PressEvent,
+    ReleaseEvent, RenderEvent, WindowSettings,
+};
 
 /// State machine for `WindowHandlers` that want to animate across the double buffered frames.
 #[derive(Debug, PartialEq)]
@@ -52,7 +54,7 @@ pub trait WindowHandler {
     fn initialize_with_window(&mut self, _: &mut PistonWindow) {}
 
     /// When the window is resized, we may need to plan to re-render.
-    fn window_resized(&mut self, new_size: Vec2d, factory: &mut Factory);
+    fn window_resized(&mut self, new_size: Vec2d, factory: &mut gfx_device_gl::Factory);
 
     /// Render a frame.
     fn render_frame(&mut self, context: &mut RenderContext, frame_num: u32);

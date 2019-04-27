@@ -14,12 +14,15 @@
 
 //! Window handlers for drawing `TurtleProgram`s.
 
-use super::*;
+use super::{RenderContext, WhichFrame, WindowHandler};
+use fractal_lib::color;
 use fractal_lib::geometry::{Point, Vector};
 use fractal_lib::turtle::{Turtle, TurtleCollectToNextForwardIterator, TurtleProgram};
-use gfx_device_gl::Factory;
+use gfx_device_gl;
 use graphics;
-use piston_window::*;
+use graphics::math::Vec2d;
+use graphics::Transformed;
+use piston_window;
 use std::fmt;
 
 // The lifetimes are needed here to make the boxed window handlers happy.
@@ -62,9 +65,9 @@ impl Default for TurtleState {
 /// An implementation of a Turtle within a Piston window/gfx context.
 pub struct PistonTurtle<'a, G>
 where
-    G: Graphics + 'a,
+    G: graphics::Graphics + 'a,
 {
-    context: graphics::context::Context,
+    context: graphics::Context,
     gfx: &'a mut G,
 
     state: &'a mut TurtleState,
@@ -72,11 +75,11 @@ where
 
 impl<'a, G> PistonTurtle<'a, G>
 where
-    G: Graphics + 'a,
+    G: graphics::Graphics + 'a,
 {
     pub fn new(
         state: &'a mut TurtleState,
-        context: graphics::context::Context,
+        context: graphics::Context,
         gfx: &'a mut G,
     ) -> PistonTurtle<'a, G> {
         PistonTurtle {
@@ -89,7 +92,7 @@ where
 
 impl<'a, G> Turtle for PistonTurtle<'a, G>
 where
-    G: Graphics + 'a,
+    G: graphics::Graphics + 'a,
 {
     fn forward(&mut self, distance: f64) {
         let old_pos = self.state.position;
@@ -118,7 +121,7 @@ where
                 .flip_v()
                 .trans(0.0, 0.0);
 
-            Line::new(BLACK_F32.0, 0.5 / linesize).draw(
+            piston_window::Line::new(color::BLACK_F32.0, 0.5 / linesize).draw(
                 [old_pos.x, old_pos.y, new_pos.x, new_pos.y],
                 &graphics::draw_state::DrawState::default(),
                 transform,
@@ -192,7 +195,7 @@ impl<'a> fmt::Debug for DoubleBufferedWindowHandler<'a> {
 }
 
 impl<'a> WindowHandler for DoubleBufferedWindowHandler<'a> {
-    fn window_resized(&mut self, _: Vec2d, _: &mut Factory) {
+    fn window_resized(&mut self, _: Vec2d, _: &mut gfx_device_gl::Factory) {
         self.redraw[0] = true;
         self.redraw[1] = true;
     }
@@ -201,7 +204,7 @@ impl<'a> WindowHandler for DoubleBufferedWindowHandler<'a> {
         let redraw = self.redraw[(frame_num % 2) as usize];
         if redraw {
             println!("Redrawing frame {}", frame_num % 2);
-            clear(WHITE_F32.0, render_context.gfx);
+            piston_window::clear(color::WHITE_F32.0, render_context.gfx);
 
             let mut state = TurtleState::new();
             let mut turtle =
@@ -264,7 +267,7 @@ impl<'a> DoubleBufferedAnimatedWindowHandler<'a> {
         turtle: &mut PistonTurtle<G>,
         program_iter: &mut TurtleCollectToNextForwardIterator,
     ) where
-        G: Graphics,
+        G: graphics::Graphics,
     {
         let one_move = program_iter.next();
         if one_move.is_some() {
@@ -276,7 +279,7 @@ impl<'a> DoubleBufferedAnimatedWindowHandler<'a> {
 }
 
 impl<'a> WindowHandler for DoubleBufferedAnimatedWindowHandler<'a> {
-    fn window_resized(&mut self, _: Vec2d, _: &mut Factory) {
+    fn window_resized(&mut self, _: Vec2d, _: &mut gfx_device_gl::Factory) {
         self.which_frame = WhichFrame::FirstFrame;
         self.turtles[0] = TurtleState::new();
         self.turtles[1] = TurtleState::new();
@@ -290,7 +293,7 @@ impl<'a> WindowHandler for DoubleBufferedAnimatedWindowHandler<'a> {
                 // gfx can only be &mut borrowed by one thing at a time. If we loan it to the
                 // turtle and also use it elsewhere, this would trigger the static analysis.
                 // This could be worked around by placing gfx into a RefCell.
-                clear(WHITE_F32.0, render_context.gfx);
+                piston_window::clear(color::WHITE_F32.0, render_context.gfx);
                 let mut turtle = PistonTurtle::new(
                     &mut self.turtles[bufnum],
                     render_context.context,
@@ -303,7 +306,7 @@ impl<'a> WindowHandler for DoubleBufferedAnimatedWindowHandler<'a> {
                 self.which_frame = WhichFrame::SecondFrame;
             }
             WhichFrame::SecondFrame => {
-                clear(WHITE_F32.0, render_context.gfx);
+                piston_window::clear(color::WHITE_F32.0, render_context.gfx);
                 let mut turtle = PistonTurtle::new(
                     &mut self.turtles[bufnum],
                     render_context.context,
