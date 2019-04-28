@@ -239,7 +239,6 @@ pub fn cpow(c: Complex64, exponent: u64) -> Complex64 {
 mod test {
 
     use super::*;
-    use graphics::math::Vec2d;
     use num::complex::Complex64;
     use std::f64::consts::PI;
     use std::f64::consts::SQRT_2;

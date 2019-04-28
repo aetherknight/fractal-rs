@@ -85,7 +85,33 @@ pub enum TurtleStep {
     Up,
 }
 
-/// An object that knows how to draw someting using a Turtle. Turtle programs are broken up into
+/// Internal state of a turtle. Can be used by turtle implementations to store/pause their drawing.
+#[derive(Clone, Debug)]
+pub struct TurtleState {
+    pub position: Point,
+    pub angle: f64,
+    pub down: bool,
+}
+
+impl TurtleState {
+    /// Initializes a new TurtleState. A new turtle starts at (0,0) and faces towards the
+    /// positive X axis.
+    pub fn new() -> TurtleState {
+        TurtleState {
+            position: Point { x: 0.0, y: 0.0 },
+            angle: 0.0,
+            down: true,
+        }
+    }
+}
+
+impl Default for TurtleState {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+/// An object that knows how to draw something using a Turtle. Turtle programs are broken up into
 /// two parts: an initializer method that should place the Turtle into its initial state, and a
 /// method that returns a `TurtleProgramIterator` (which should wrap a Boxed internal iterator
 /// implementation) that yields the sequence of steps for the main turtle program.

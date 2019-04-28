@@ -17,7 +17,7 @@
 use super::{RenderContext, WhichFrame, WindowHandler};
 use fractal_lib::color;
 use fractal_lib::geometry::{Point, Vector};
-use fractal_lib::turtle::{Turtle, TurtleCollectToNextForwardIterator, TurtleProgram};
+use fractal_lib::turtle::{Turtle, TurtleCollectToNextForwardIterator, TurtleProgram, TurtleState};
 use gfx_device_gl;
 use graphics;
 use graphics::math::Vec2d;
@@ -33,32 +33,6 @@ pub fn construct_turtle_window_handler<'a>(
     match animate {
         0 => Box::new(DoubleBufferedWindowHandler::new(program)),
         _ => Box::new(DoubleBufferedAnimatedWindowHandler::new(program, animate)),
-    }
-}
-
-/// Internal state of a turtle. Can be used by turtle implementations to store/pause their drawing.
-#[derive(Clone, Debug)]
-pub struct TurtleState {
-    position: Point,
-    angle: f64,
-    down: bool,
-}
-
-impl TurtleState {
-    /// Initializes a new TurtleState. A new turtle starts at (0,0) and faces towards the
-    /// positive X axis.
-    pub fn new() -> TurtleState {
-        TurtleState {
-            position: Point { x: 0.0, y: 0.0 },
-            angle: 0.0,
-            down: true,
-        }
-    }
-}
-
-impl Default for TurtleState {
-    fn default() -> Self {
-        Self::new()
     }
 }
 
