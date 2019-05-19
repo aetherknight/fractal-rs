@@ -5,15 +5,33 @@
   <title>Fractals!</title>
 </head>
 <body style="background-color: lavender">
-  <div>
+  <div style="float: left;">
     <canvas id="fractal-canvas" width="800" height="600" style="border: .25em solid blue; background-color: white">
     </canvas>
+
+    <div id="coords">
+    </div>
+
+    <div id="turtle-coords">
+    </div>
   </div>
 
-  <div id="coords">
-  </div>
+  <div style="float: left;">
+    <select id="fractal-type">
+      <option value="dragon" selected>
+        Dragon Curve
+      </option>
+      <option value="terdragon">
+        Terdragon curve
+      </option>
+    </select>
+    <div class="config" id="dragon-config">
+      <label for="dragon-iterations">Iterations</label><input id="dragon-iterations">
+    </div>
 
-  <div id="turtle-coords">
+    <div class="config" id="terdragon-config">
+      <label for="terdragoon-iterations">Iterations</label><input id="terdragon-iterations">
+    </div>
   </div>
 </body>
 </html>
