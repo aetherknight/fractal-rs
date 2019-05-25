@@ -34,16 +34,16 @@ pub fn turtle_to_screen_transform(screen_width: f64, screen_height: f64) -> [[f6
     // flip vertical
     transform = vecmath::row_mat2x3_mul(transform, [[1f64, 0f64, 0f64], [0f64, -1f64, 0f64]]);
 
-    console::log_3(
-        &transform[0][0].into(),
-        &transform[0][1].into(),
-        &transform[0][2].into(),
-    );
-    console::log_3(
-        &transform[1][0].into(),
-        &transform[1][1].into(),
-        &transform[1][2].into(),
-    );
+    // console::log_3(
+    //     &transform[0][0].into(),
+    //     &transform[0][1].into(),
+    //     &transform[0][2].into(),
+    // );
+    // console::log_3(
+    //     &transform[1][0].into(),
+    //     &transform[1][1].into(),
+    //     &transform[1][2].into(),
+    // );
 
     transform
 }
@@ -96,17 +96,17 @@ impl<'a> Turtle for CanvasTurtle<'a> {
             //
             let old_coords = vecmath::row_mat2x3_transform_pos2(transform, [old_pos.x, old_pos.y]);
             let new_coords = vecmath::row_mat2x3_transform_pos2(transform, [new_pos.x, new_pos.y]);
-            console::log_3(&"Line to".into(), &new_pos.x.into(), &new_pos.y.into());
-            console::log_3(
-                &"old coords".into(),
-                &old_coords[0].into(),
-                &old_coords[1].into(),
-            );
-            console::log_3(
-                &"new coords".into(),
-                &new_coords[0].into(),
-                &new_coords[1].into(),
-            );
+            // console::log_3(&"Line to".into(), &new_pos.x.into(), &new_pos.y.into());
+            // console::log_3(
+            //     &"old coords".into(),
+            //     &old_coords[0].into(),
+            //     &old_coords[1].into(),
+            // );
+            // console::log_3(
+            //     &"new coords".into(),
+            //     &new_coords[0].into(),
+            //     &new_coords[1].into(),
+            // );
 
             self.ctx.set_line_width(1.0f64);
             self.ctx.begin_path();

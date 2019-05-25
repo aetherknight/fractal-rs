@@ -1,6 +1,25 @@
 const fractal_descriptions = [
   {
-    name: "dragon",
+    id: "cesaro",
+    name: "Cesáro Fractal",
+    config: [{ name: "Iterations", id: "iterations" }],
+    run_config: (canvas, fractal) => event => {
+      let iterations = parseInt(event.target.value);
+      fractal.render_cesaro(canvas, iterations);
+    }
+  },
+  {
+    id: "cesarotri",
+    name: "Triangle Cesáro Fractal",
+    config: [{ name: "Iterations", id: "iterations" }],
+    run_config: (canvas, fractal) => event => {
+      let iterations = parseInt(event.target.value);
+      fractal.render_cesarotri(canvas, iterations);
+    }
+  },
+  {
+    id: "dragon",
+    name: "Dragon Fractal",
     config: [{ name: "Iterations", id: "iterations" }],
     run_config: (canvas, fractal) => event => {
       let iterations = parseInt(event.target.value);
@@ -8,7 +27,8 @@ const fractal_descriptions = [
     }
   },
   {
-    name: "terdragon",
+    id: "terdragon",
+    name: "Terdragon Fractal",
     config: [{ name: "Iterations", id: "iterations" }],
     run_config: (canvas, fractal) => event => {
       let iterations = parseInt(event.target.value);
@@ -22,6 +42,7 @@ const fractal_descriptions = [
  **********************************************************/
 
 function set_visible_config(selected_fractal) {
+  console.log("Displaying config for " + selected_fractal);
   let config_panels = document.querySelectorAll(".config");
   for (panel of config_panels) {
     if (panel.id === selected_fractal + "-config") {
@@ -34,6 +55,12 @@ function set_visible_config(selected_fractal) {
 
 function setup_configs(canvas, fractal) {
   let fractal_picker = document.querySelector("#fractal-type");
+  for (desc of fractal_descriptions) {
+    let option = document.createElement("option");
+    option.value = desc.id;
+    option.appendChild(document.createTextNode(desc.name));
+    fractal_picker.appendChild(option);
+  }
   fractal_picker.addEventListener("input", event => {
     let choice = event.target.selectedOptions[0];
     let selected_fractal = choice.value;
@@ -46,17 +73,17 @@ function setup_configs(canvas, fractal) {
     // Build the config section for the fractal
     let fractal_config = document.createElement("div");
     fractal_config.className = "config";
-    fractal_config.id = desc.name + "-config";
+    fractal_config.id = desc.id + "-config";
     for (config_option of desc.config) {
       // Add a label
       let config_label = document.createElement("label");
-      config_label.htmlFor = desc.name + "-" + config_option.id;
+      config_label.htmlFor = desc.id + "-" + config_option.id;
       config_label.appendChild(document.createTextNode(config_option.name));
       fractal_config.appendChild(config_label);
 
       // Add an Input
       let config_input = document.createElement("input");
-      config_input.id = desc.name + "-" + config_option.id;
+      config_input.id = desc.id + "-" + config_option.id;
       fractal_config.appendChild(config_input);
     }
 

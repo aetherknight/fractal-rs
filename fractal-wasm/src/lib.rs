@@ -12,6 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+use fractal_lib::curves::cesaro;
+use fractal_lib::curves::cesarotri;
 use fractal_lib::curves::dragon;
 use fractal_lib::curves::terdragon;
 use fractal_lib::lindenmayer::LindenmayerSystemTurtleProgram;
@@ -70,6 +72,31 @@ pub fn render_terdragon(canvas: &HtmlCanvasElement, iteration: u32) -> Result<()
     render_turtle(&canvas, &program);
 
     console::log_1(&"Done".into());
+    Ok(())
+}
+
+#[wasm_bindgen]
+pub fn render_cesaro(canvas: &HtmlCanvasElement, iteration: u32) -> Result<(), JsValue> {
+    console::log_1(&format!("Rendering cesaro {}", iteration).into());
+    let program = LindenmayerSystemTurtleProgram::new(cesaro::CesaroFractal::new(iteration as u64));
+
+    render_turtle(&canvas, &program);
+
+    console::log_1(&"Done".into());
+
+    Ok(())
+}
+
+#[wasm_bindgen]
+pub fn render_cesarotri(canvas: &HtmlCanvasElement, iteration: u32) -> Result<(), JsValue> {
+    console::log_1(&format!("Rendering cesaro {}", iteration).into());
+    let program =
+        LindenmayerSystemTurtleProgram::new(cesarotri::CesaroTriFractal::new(iteration as u64));
+
+    render_turtle(&canvas, &program);
+
+    console::log_1(&"Done".into());
+
     Ok(())
 }
 
