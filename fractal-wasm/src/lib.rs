@@ -19,6 +19,7 @@ use fractal_lib::curves::terdragon;
 use fractal_lib::lindenmayer::LindenmayerSystemTurtleProgram;
 use fractal_lib::turtle::{Turtle, TurtleProgram, TurtleState};
 use js_sys::Array;
+use paste;
 use vecmath;
 use wasm_bindgen::prelude::*;
 use wasm_bindgen::JsCast;
@@ -50,55 +51,44 @@ fn render_turtle(canvas: &HtmlCanvasElement, program: &dyn TurtleProgram) {
     turtle.up();
 }
 
-// iteration needs to be a u32 for now.. As of 2019/04/28, Firefox 66.0.2 doesn't support
-// BigUint64Array/bigints.
-#[wasm_bindgen]
-pub fn render_dragon(canvas: &HtmlCanvasElement, iteration: u32) -> Result<(), JsValue> {
-    console::log_1(&"Rendering dragon".into());
-    let program = dragon::DragonFractal::new(iteration as u64);
+macro_rules! render_turtle {
+    ($name:ident: $expr:expr) => {
+        // Paste is needed to concatenate render_ and the name of the fractal. Rust's own macros
+        // don't provide a good way to do this.
+        paste::item! {
+            // iteration needs to be a u32 for now.. As of 2019/04/28, Firefox 66.0.2 doesn't
+            // support BigUint64Array/bigints.
+            #[wasm_bindgen]
+            pub fn [<render_ $name>] (
+                canvas: &HtmlCanvasElement,
+                iteration: u32
+            ) -> Result<(), JsValue> {
+                console::log_1(&format!("Rendering {}", stringify!($name)).into());
+                let program = $expr;
 
-    render_turtle(&canvas, &program);
+                render_turtle(&canvas, &program);
 
-    console::log_1(&"Done".into());
-    Ok(())
+                console::log_1(&"Done".into());
+                Ok(())
+            }
+        }
+    };
 }
 
-#[wasm_bindgen]
-pub fn render_terdragon(canvas: &HtmlCanvasElement, iteration: u32) -> Result<(), JsValue> {
-    console::log_1(&format!("Rendering terdragon {}", iteration).into());
-    let program =
-        LindenmayerSystemTurtleProgram::new(terdragon::TerdragonFractal::new(iteration as u64));
-
-    render_turtle(&canvas, &program);
-
-    console::log_1(&"Done".into());
-    Ok(())
-}
-
-#[wasm_bindgen]
-pub fn render_cesaro(canvas: &HtmlCanvasElement, iteration: u32) -> Result<(), JsValue> {
-    console::log_1(&format!("Rendering cesaro {}", iteration).into());
-    let program = LindenmayerSystemTurtleProgram::new(cesaro::CesaroFractal::new(iteration as u64));
-
-    render_turtle(&canvas, &program);
-
-    console::log_1(&"Done".into());
-
-    Ok(())
-}
-
-#[wasm_bindgen]
-pub fn render_cesarotri(canvas: &HtmlCanvasElement, iteration: u32) -> Result<(), JsValue> {
-    console::log_1(&format!("Rendering cesaro {}", iteration).into());
-    let program =
-        LindenmayerSystemTurtleProgram::new(cesarotri::CesaroTriFractal::new(iteration as u64));
-
-    render_turtle(&canvas, &program);
-
-    console::log_1(&"Done".into());
-
-    Ok(())
-}
+render_turtle!(dragon: dragon::DragonFractal::new(iteration as u64));
+render_turtle!(
+    terdragon: LindenmayerSystemTurtleProgram::new(
+        terdragon::TerdragonFractal::new(iteration as u64)
+    )
+);
+render_turtle!(
+    cesaro: LindenmayerSystemTurtleProgram::new(cesaro::CesaroFractal::new(iteration as u64))
+);
+render_turtle!(
+    cesarotri: LindenmayerSystemTurtleProgram::new(cesarotri::CesaroTriFractal::new(
+        iteration as u64)
+    )
+);
 
 #[wasm_bindgen]
 pub fn screen_to_turtle(canvas: &HtmlCanvasElement, x: f64, y: f64) -> Array {
