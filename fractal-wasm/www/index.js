@@ -1,6 +1,7 @@
 const fractal_descriptions = [
   {
     name: "dragon",
+    config: [{ name: "Iterations", id: "iterations" }],
     run_config: (canvas, fractal) => event => {
       let iterations = parseInt(event.target.value);
       fractal.render_dragon(canvas, iterations);
@@ -8,6 +9,7 @@ const fractal_descriptions = [
   },
   {
     name: "terdragon",
+    config: [{ name: "Iterations", id: "iterations" }],
     run_config: (canvas, fractal) => event => {
       let iterations = parseInt(event.target.value);
       fractal.render_terdragon(canvas, iterations);
@@ -30,9 +32,43 @@ function set_visible_config(selected_fractal) {
   }
 }
 
-set_visible_config(
-  document.querySelector("#fractal-type").selectedOptions[0].value
-);
+function setup_configs(canvas, fractal) {
+  let fractal_picker = document.querySelector("#fractal-type");
+  fractal_picker.addEventListener("input", event => {
+    let choice = event.target.selectedOptions[0];
+    let selected_fractal = choice.value;
+
+    set_visible_config(selected_fractal);
+  });
+
+  let config_container = document.querySelector("#configs");
+  for (desc of fractal_descriptions) {
+    // Build the config section for the fractal
+    let fractal_config = document.createElement("div");
+    fractal_config.className = "config";
+    fractal_config.id = desc.name + "-config";
+    for (config_option of desc.config) {
+      // Add a label
+      let config_label = document.createElement("label");
+      config_label.htmlFor = desc.name + "-" + config_option.id;
+      config_label.appendChild(document.createTextNode(config_option.name));
+      fractal_config.appendChild(config_label);
+
+      // Add an Input
+      let config_input = document.createElement("input");
+      config_input.id = desc.name + "-" + config_option.id;
+      fractal_config.appendChild(config_input);
+    }
+
+    // Add it to the page
+    config_container.appendChild(fractal_config);
+    // Listen for changes
+    fractal_config.addEventListener("input", desc.run_config(canvas, fractal));
+  }
+  set_visible_config(
+    document.querySelector("#fractal-type").selectedOptions[0].value
+  );
+}
 
 /**********************************************************
  * Load the wasm
@@ -56,18 +92,6 @@ import("../pkg/fractal_wasm")
         "Turtle coords: X: " + othercoords[0] + ", Y: " + othercoords[1];
     });
 
-    let fractal_picker = document.querySelector("#fractal-type");
-    fractal_picker.addEventListener("input", event => {
-      let choice = event.target.selectedOptions[0];
-      let selected_fractal = choice.value;
-
-      set_visible_config(selected_fractal);
-    });
-
-    for (desc of fractal_descriptions) {
-      document
-        .querySelector("#" + desc.name + "-iterations")
-        .addEventListener("input", desc.run_config(canvas, fractal));
-    }
+    setup_configs(canvas, fractal);
   })
   .catch(console.error);
