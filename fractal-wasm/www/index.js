@@ -27,6 +27,24 @@ const fractal_descriptions = [
     }
   },
   {
+    id: "kochcurve",
+    name: "Koch Curve",
+    config: [{ name: "Iterations", id: "iterations" }],
+    run_config: (canvas, fractal) => event => {
+      let iterations = parseInt(event.target.value);
+      fractal.render_kochcurve(canvas, iterations);
+    }
+  },
+  {
+    id: "levyccurve",
+    name: "Levy C Curve",
+    config: [{ name: "Iterations", id: "iterations" }],
+    run_config: (canvas, fractal) => event => {
+      let iterations = parseInt(event.target.value);
+      fractal.render_levyccurve(canvas, iterations);
+    }
+  },
+  {
     id: "terdragon",
     name: "Terdragon Fractal",
     config: [{ name: "Iterations", id: "iterations" }],

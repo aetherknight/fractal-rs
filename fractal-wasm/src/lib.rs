@@ -15,6 +15,8 @@
 use fractal_lib::curves::cesaro;
 use fractal_lib::curves::cesarotri;
 use fractal_lib::curves::dragon;
+use fractal_lib::curves::kochcurve;
+use fractal_lib::curves::levyccurve;
 use fractal_lib::curves::terdragon;
 use fractal_lib::lindenmayer::LindenmayerSystemTurtleProgram;
 use fractal_lib::turtle::{Turtle, TurtleProgram, TurtleState};
@@ -75,18 +77,24 @@ macro_rules! render_turtle {
     };
 }
 
-render_turtle!(dragon: dragon::DragonFractal::new(iteration as u64));
-render_turtle!(
-    terdragon: LindenmayerSystemTurtleProgram::new(
-        terdragon::TerdragonFractal::new(iteration as u64)
-    )
-);
 render_turtle!(
     cesaro: LindenmayerSystemTurtleProgram::new(cesaro::CesaroFractal::new(iteration as u64))
 );
 render_turtle!(
     cesarotri: LindenmayerSystemTurtleProgram::new(cesarotri::CesaroTriFractal::new(
         iteration as u64)
+    )
+);
+render_turtle!(dragon: dragon::DragonFractal::new(iteration as u64));
+render_turtle!(
+    kochcurve: LindenmayerSystemTurtleProgram::new(kochcurve::KochCurve::new(iteration as u64))
+);
+render_turtle!(
+    levyccurve: LindenmayerSystemTurtleProgram::new(levyccurve::LevyCCurve::new(iteration as u64))
+);
+render_turtle!(
+    terdragon: LindenmayerSystemTurtleProgram::new(
+        terdragon::TerdragonFractal::new(iteration as u64)
     )
 );
 
