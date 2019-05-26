@@ -141,12 +141,16 @@ impl Iterator for NullTurtleProgramIterator {
 /// The return type for `TurtleProgram::turtle_program_iter()`. Since Rust does not yet support
 /// abstract return types (eg, a trait return type), the next best thing is a wrapper around a
 /// boxed type.
-pub struct TurtleProgramIterator<'a> {
-    iter: Box<Iterator<Item = TurtleStep> + 'a>,
+///
+/// The Iterator it is initialized with must not have a lifetime, so that the TurtleProgramIterator
+/// can potentially outlive the lifetime the TurtleProgram it is created from. This means the
+/// TurtleProgram probably needs to clone/copy itself and move that copy into the iterator.
+pub struct TurtleProgramIterator {
+    iter: Box<Iterator<Item = TurtleStep>>,
 }
 
-impl<'a> TurtleProgramIterator<'a> {
-    pub fn new(iter: Box<Iterator<Item = TurtleStep> + 'a>) -> TurtleProgramIterator {
+impl<'a> TurtleProgramIterator {
+    pub fn new(iter: Box<Iterator<Item = TurtleStep>>) -> TurtleProgramIterator {
         TurtleProgramIterator { iter }
     }
 
@@ -154,12 +158,12 @@ impl<'a> TurtleProgramIterator<'a> {
     /// each contain all steps up to the next TurtleStep::Forward. This allows a renderer to
     /// render a TurtleProgram in chunks that are broken up by moves that actually draw
     /// something.
-    pub fn collect_to_next_forward(self) -> TurtleCollectToNextForwardIterator<'a> {
+    pub fn collect_to_next_forward(self) -> TurtleCollectToNextForwardIterator {
         TurtleCollectToNextForwardIterator { iter: self }
     }
 }
 
-impl<'a> Iterator for TurtleProgramIterator<'a> {
+impl<'a> Iterator for TurtleProgramIterator {
     type Item = TurtleStep;
 
     fn next(&mut self) -> Option<TurtleStep> {
@@ -170,17 +174,17 @@ impl<'a> Iterator for TurtleProgramIterator<'a> {
 /// Iterator that yields vectors of `TurtleSteps` until the next `TurtleStep::Forward` or until the
 /// underlying iterator starts yielding None. This allows us to do perform a finite number of
 /// drawing actions at a time.
-pub struct TurtleCollectToNextForwardIterator<'a> {
-    iter: TurtleProgramIterator<'a>,
+pub struct TurtleCollectToNextForwardIterator {
+    iter: TurtleProgramIterator,
 }
 
-impl<'a> TurtleCollectToNextForwardIterator<'a> {
-    pub fn new_null_iter() -> TurtleCollectToNextForwardIterator<'a> {
+impl<'a> TurtleCollectToNextForwardIterator {
+    pub fn new_null_iter() -> TurtleCollectToNextForwardIterator {
         TurtleProgramIterator::new(Box::new(NullTurtleProgramIterator)).collect_to_next_forward()
     }
 }
 
-impl<'a> Iterator for TurtleCollectToNextForwardIterator<'a> {
+impl<'a> Iterator for TurtleCollectToNextForwardIterator {
     type Item = Vec<TurtleStep>;
     fn next(&mut self) -> Option<Vec<TurtleStep>> {
         let mut retval: Vec<TurtleStep> = Vec::new();

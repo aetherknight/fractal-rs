@@ -125,6 +125,7 @@ pub trait LindenmayerSystemDrawingParameters<Alphabet> {
 /// or equal to the largest iteration already looked up at the cost of storing every iteration
 /// below the largest iteration computed (the amount of memory used changes depending on
 /// characteristics of the L-System, such as how rapidly the strings grow between each iteration).
+#[derive(Clone)]
 pub struct LindenmayerSystemCachingDecorator<L, A>
 where
     L: LindenmayerSystem<A>,
@@ -193,6 +194,7 @@ where
     }
 }
 
+#[derive(Clone)]
 pub struct LindenmayerSystemTurtleProgram<L, A>
 where
     L: LindenmayerSystem<A> + LindenmayerSystemDrawingParameters<A>,
@@ -217,6 +219,7 @@ where
 
 impl<L, A> TurtleProgram for LindenmayerSystemTurtleProgram<L, A>
 where
+    LindenmayerSystemTurtleProgram<L, A>: Clone,
     L: LindenmayerSystem<A> + LindenmayerSystemDrawingParameters<A> + 'static,
     A: Clone + 'static,
 {
@@ -229,7 +232,7 @@ where
     }
 
     // The lifetimes are needed here to satisfy TurtleProgramIterator's type signature.
-    fn turtle_program_iter(&'_ self) -> TurtleProgramIterator<'_> {
+    fn turtle_program_iter(&self) -> TurtleProgramIterator {
         let sequence = self
             .cacheable_system
             .generate(self.cacheable_system.system.iteration());
@@ -237,25 +240,25 @@ where
 
         TurtleProgramIterator::new(Box::new(LindenmayerSystemTurtleProgramIterator {
             alphabet: PhantomData,
-            program: self,
+            program: (*self).clone(),
             sequence,
             curr_step: 0,
         }))
     }
 }
 
-pub struct LindenmayerSystemTurtleProgramIterator<'a, L, A>
+pub struct LindenmayerSystemTurtleProgramIterator<L, A>
 where
     L: LindenmayerSystem<A> + LindenmayerSystemDrawingParameters<A> + 'static,
     A: Clone + 'static,
 {
     alphabet: PhantomData<A>,
-    program: &'a LindenmayerSystemTurtleProgram<L, A>,
+    program: LindenmayerSystemTurtleProgram<L, A>,
     sequence: Vec<A>,
     curr_step: usize,
 }
 
-impl<'a, L, A> Iterator for LindenmayerSystemTurtleProgramIterator<'a, L, A>
+impl<'a, L, A> Iterator for LindenmayerSystemTurtleProgramIterator<L, A>
 where
     L: LindenmayerSystem<A> + LindenmayerSystemDrawingParameters<A> + 'static,
     A: Clone + 'static,

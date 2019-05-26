@@ -199,7 +199,7 @@ pub struct DoubleBufferedAnimatedWindowHandler<'a> {
     /// "twice".
     turtles: [TurtleState; 2],
     /// Two iterators.
-    iters: [TurtleCollectToNextForwardIterator<'a>; 2],
+    iters: [TurtleCollectToNextForwardIterator; 2],
     lines_per_frame: u64,
     /// Which frame we are rendering. We need to perform the initial steps for the first frame,
     /// and we need perform the initial steps and do one extra move forward for the second frame
