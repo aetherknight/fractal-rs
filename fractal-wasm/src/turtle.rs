@@ -49,18 +49,18 @@ pub fn turtle_to_screen_transform(screen_width: f64, screen_height: f64) -> [[f6
 }
 
 /// A turtle that can draw to an HTML Canvas.
-pub struct CanvasTurtle<'a> {
+pub struct CanvasTurtle {
     state: TurtleState,
-    ctx: &'a CanvasRenderingContext2d,
+    ctx: CanvasRenderingContext2d,
 }
 
-impl<'a> CanvasTurtle<'a> {
-    pub fn new(state: TurtleState, ctx: &'a CanvasRenderingContext2d) -> CanvasTurtle {
+impl CanvasTurtle {
+    pub fn new(state: TurtleState, ctx: CanvasRenderingContext2d) -> CanvasTurtle {
         CanvasTurtle { state, ctx }
     }
 }
 
-impl<'a> Turtle for CanvasTurtle<'a> {
+impl Turtle for CanvasTurtle {
     fn forward(&mut self, distance: f64) {
         let old_pos = self.state.position;
         let new_pos = self.state.position.point_at(Vector {

@@ -23,7 +23,13 @@ const fractal_descriptions = [
     config: [{ name: "Iterations", id: "iterations" }],
     run_config: (canvas, fractal) => event => {
       let iterations = parseInt(event.target.value);
-      fractal.render_dragon(canvas, iterations);
+      animation = fractal.animated_dragon(canvas, iterations);
+      let draw = (ts) => {
+          if (animation.draw_one_move()) {
+              window.requestAnimationFrame(draw);
+          }
+      };
+      window.requestAnimationFrame(draw);
     }
   },
   {

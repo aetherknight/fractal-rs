@@ -19,7 +19,7 @@ use fractal_lib::curves::kochcurve;
 use fractal_lib::curves::levyccurve;
 use fractal_lib::curves::terdragon;
 use fractal_lib::lindenmayer::LindenmayerSystemTurtleProgram;
-use fractal_lib::turtle::{Turtle, TurtleProgram, TurtleState};
+use fractal_lib::turtle::{Turtle, TurtleCollectToNextForwardIterator, TurtleProgram, TurtleState};
 use js_sys::Array;
 use paste;
 use vecmath;
@@ -28,6 +28,64 @@ use wasm_bindgen::JsCast;
 use web_sys::{console, CanvasRenderingContext2d, HtmlCanvasElement};
 
 mod turtle;
+
+/// Represents everything needed to render a turtle a piece at a time to a canvas.
+///
+/// It holds onto a turtle program, which is then used to eventually initialize an iterator over
+/// that program.
+#[wasm_bindgen]
+pub struct TurtleAnimation {
+    turtle: turtle::CanvasTurtle,
+    iter: TurtleCollectToNextForwardIterator,
+}
+
+impl TurtleAnimation {
+    /// Build a TurtleAnimation from a canvas element and a boxed turtle program.
+    ///
+    /// The TurtleProgram is boxed to to avoid generics here.
+    pub fn new(ctx: CanvasRenderingContext2d, program: &dyn TurtleProgram) -> TurtleAnimation {
+        let mut turtle = turtle::CanvasTurtle::new(TurtleState::new(), ctx);
+
+        let init_turtle_steps = program.init_turtle();
+        for action in init_turtle_steps {
+            turtle.perform(action)
+        }
+
+        let iter = program.turtle_program_iter().collect_to_next_forward();
+
+        TurtleAnimation { turtle, iter }
+    }
+}
+
+#[wasm_bindgen]
+impl TurtleAnimation {
+    /// Returns true if there are more moves to make, and false if it can no longer perform a move.
+    pub fn draw_one_move(&mut self) -> bool {
+        if let Some(one_move) = self.iter.next() {
+            console::log_1(&"Rendering one move".into());
+            for action in one_move {
+                self.turtle.perform(action);
+            }
+            true
+        } else {
+            console::log_1(&"No more moves".into());
+            false
+        }
+    }
+}
+
+#[wasm_bindgen]
+pub fn animated_dragon(canvas: &HtmlCanvasElement, iteration: u32) -> TurtleAnimation {
+    let ctx = JsValue::from(canvas.get_context("2d").unwrap().unwrap())
+        .dyn_into::<CanvasRenderingContext2d>()
+        .unwrap();
+    let program = dragon::DragonFractal::new(iteration as u64);
+
+    ctx.clear_rect(0.0, 0.0, canvas.width().into(), canvas.height().into());
+
+
+    TurtleAnimation::new(ctx, &program)
+}
 
 fn render_turtle(canvas: &HtmlCanvasElement, program: &dyn TurtleProgram) {
     // Extract the rendering context from the canvas.
@@ -38,7 +96,7 @@ fn render_turtle(canvas: &HtmlCanvasElement, program: &dyn TurtleProgram) {
     ctx.clear_rect(0.0, 0.0, canvas.width().into(), canvas.height().into());
 
     // set up a turtle to do the work of drawing
-    let mut turtle = turtle::CanvasTurtle::new(TurtleState::new(), &ctx);
+    let mut turtle = turtle::CanvasTurtle::new(TurtleState::new(), ctx);
 
     // run the init_turtle steps
     let init_turtle_steps = program.init_turtle();
