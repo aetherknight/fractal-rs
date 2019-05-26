@@ -69,49 +69,13 @@ impl TurtleAnimation {
             true
         } else {
             console::log_1(&"No more moves".into());
+            self.turtle.up();
             false
         }
     }
 }
 
-#[wasm_bindgen]
-pub fn animated_dragon(canvas: &HtmlCanvasElement, iteration: u32) -> TurtleAnimation {
-    let ctx = JsValue::from(canvas.get_context("2d").unwrap().unwrap())
-        .dyn_into::<CanvasRenderingContext2d>()
-        .unwrap();
-    let program = dragon::DragonFractal::new(iteration as u64);
-
-    ctx.clear_rect(0.0, 0.0, canvas.width().into(), canvas.height().into());
-
-
-    TurtleAnimation::new(ctx, &program)
-}
-
-fn render_turtle(canvas: &HtmlCanvasElement, program: &dyn TurtleProgram) {
-    // Extract the rendering context from the canvas.
-    let ctx = JsValue::from(canvas.get_context("2d").unwrap().unwrap())
-        .dyn_into::<CanvasRenderingContext2d>()
-        .unwrap();
-
-    ctx.clear_rect(0.0, 0.0, canvas.width().into(), canvas.height().into());
-
-    // set up a turtle to do the work of drawing
-    let mut turtle = turtle::CanvasTurtle::new(TurtleState::new(), ctx);
-
-    // run the init_turtle steps
-    let init_turtle_steps = program.init_turtle();
-    for action in init_turtle_steps {
-        turtle.perform(action)
-    }
-
-    // run the program
-    for action in program.turtle_program_iter() {
-        turtle.perform(action)
-    }
-    turtle.up();
-}
-
-macro_rules! render_turtle {
+macro_rules! animated_turtle {
     ($name:ident: $expr:expr) => {
         // Paste is needed to concatenate render_ and the name of the fractal. Rust's own macros
         // don't provide a good way to do this.
@@ -119,38 +83,39 @@ macro_rules! render_turtle {
             // iteration needs to be a u32 for now.. As of 2019/04/28, Firefox 66.0.2 doesn't
             // support BigUint64Array/bigints.
             #[wasm_bindgen]
-            pub fn [<render_ $name>] (
+            pub fn [<animated_ $name>] (
                 canvas: &HtmlCanvasElement,
                 iteration: u32
-            ) -> Result<(), JsValue> {
-                console::log_1(&format!("Rendering {}", stringify!($name)).into());
+            ) -> TurtleAnimation {
+                console::log_1(&format!("Starting animation {}", stringify!($name)).into());
+                let ctx = JsValue::from(canvas.get_context("2d").unwrap().unwrap())
+                    .dyn_into::<CanvasRenderingContext2d>()
+                    .unwrap();
                 let program = $expr;
+                ctx.clear_rect(0.0, 0.0, canvas.width().into(), canvas.height().into());
 
-                render_turtle(&canvas, &program);
-
-                console::log_1(&"Done".into());
-                Ok(())
+                TurtleAnimation::new(ctx, &program)
             }
         }
     };
 }
 
-render_turtle!(
+animated_turtle!(
     cesaro: LindenmayerSystemTurtleProgram::new(cesaro::CesaroFractal::new(iteration as u64))
 );
-render_turtle!(
+animated_turtle!(
     cesarotri: LindenmayerSystemTurtleProgram::new(cesarotri::CesaroTriFractal::new(
         iteration as u64)
     )
 );
-render_turtle!(dragon: dragon::DragonFractal::new(iteration as u64));
-render_turtle!(
+animated_turtle!(dragon: dragon::DragonFractal::new(iteration as u64));
+animated_turtle!(
     kochcurve: LindenmayerSystemTurtleProgram::new(kochcurve::KochCurve::new(iteration as u64))
 );
-render_turtle!(
+animated_turtle!(
     levyccurve: LindenmayerSystemTurtleProgram::new(levyccurve::LevyCCurve::new(iteration as u64))
 );
-render_turtle!(
+animated_turtle!(
     terdragon: LindenmayerSystemTurtleProgram::new(
         terdragon::TerdragonFractal::new(iteration as u64)
     )

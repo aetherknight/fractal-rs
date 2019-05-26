@@ -3,60 +3,54 @@ const fractal_descriptions = [
     id: "cesaro",
     name: "Cesáro Fractal",
     config: [{ name: "Iterations", id: "iterations" }],
-    run_config: (canvas, fractal) => event => {
+    get_animation: (canvas, fractal) => event => {
       let iterations = parseInt(event.target.value);
-      fractal.render_cesaro(canvas, iterations);
+      return fractal.animated_cesaro(canvas, iterations);
     }
   },
   {
     id: "cesarotri",
     name: "Triangle Cesáro Fractal",
     config: [{ name: "Iterations", id: "iterations" }],
-    run_config: (canvas, fractal) => event => {
+    get_animation: (canvas, fractal) => event => {
       let iterations = parseInt(event.target.value);
-      fractal.render_cesarotri(canvas, iterations);
+      return fractal.animated_cesarotri(canvas, iterations);
     }
   },
   {
     id: "dragon",
     name: "Dragon Fractal",
     config: [{ name: "Iterations", id: "iterations" }],
-    run_config: (canvas, fractal) => event => {
+    get_animation: (canvas, fractal) => event => {
       let iterations = parseInt(event.target.value);
-      animation = fractal.animated_dragon(canvas, iterations);
-      let draw = (ts) => {
-          if (animation.draw_one_move()) {
-              window.requestAnimationFrame(draw);
-          }
-      };
-      window.requestAnimationFrame(draw);
+      return fractal.animated_dragon(canvas, iterations);
     }
   },
   {
     id: "kochcurve",
     name: "Koch Curve",
     config: [{ name: "Iterations", id: "iterations" }],
-    run_config: (canvas, fractal) => event => {
+    get_animation: (canvas, fractal) => event => {
       let iterations = parseInt(event.target.value);
-      fractal.render_kochcurve(canvas, iterations);
+      return fractal.animated_kochcurve(canvas, iterations);
     }
   },
   {
     id: "levyccurve",
     name: "Levy C Curve",
     config: [{ name: "Iterations", id: "iterations" }],
-    run_config: (canvas, fractal) => event => {
+    get_animation: (canvas, fractal) => event => {
       let iterations = parseInt(event.target.value);
-      fractal.render_levyccurve(canvas, iterations);
+      return fractal.animated_levyccurve(canvas, iterations);
     }
   },
   {
     id: "terdragon",
     name: "Terdragon Fractal",
     config: [{ name: "Iterations", id: "iterations" }],
-    run_config: (canvas, fractal) => event => {
+    get_animation: (canvas, fractal) => event => {
       let iterations = parseInt(event.target.value);
-      fractal.render_terdragon(canvas, iterations);
+      return fractal.animated_terdragon(canvas, iterations);
     }
   }
 ];
@@ -93,7 +87,8 @@ function setup_configs(canvas, fractal) {
   });
 
   let config_container = document.querySelector("#configs");
-  for (desc of fractal_descriptions) {
+  for (cdesc of fractal_descriptions) {
+    let desc = cdesc; // actually bind the desc to the scope >.<
     // Build the config section for the fractal
     let fractal_config = document.createElement("div");
     fractal_config.className = "config";
@@ -113,8 +108,19 @@ function setup_configs(canvas, fractal) {
 
     // Add it to the page
     config_container.appendChild(fractal_config);
-    // Listen for changes
-    fractal_config.addEventListener("input", desc.run_config(canvas, fractal));
+    // Listen for changes to start/restart the animation
+    fractal_config.addEventListener("input", event => {
+      let animation = desc.get_animation(canvas, fractal)(event);
+      let draw = ts => {
+        if (animation.draw_one_move()) {
+          window.current_frame = window.requestAnimationFrame(draw);
+        }
+      };
+      if (window.current_frame) {
+        window.cancelAnimationFrame(window.current_frame);
+      }
+      window.current_frame = window.requestAnimationFrame(draw);
+    });
   }
   set_visible_config(
     document.querySelector("#fractal-type").selectedOptions[0].value
