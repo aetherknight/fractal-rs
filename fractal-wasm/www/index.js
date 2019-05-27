@@ -6,6 +6,9 @@ const fractal_descriptions = [
     get_animation: (canvas, fractal) => event => {
       let iterations = parseInt(event.target.value);
       return fractal.animated_cesaro(canvas, iterations);
+    },
+    cursor_coords: (canvas, fractal) => event => {
+      return fractal.screen_to_turtle(canvas, event.clientX, event.clientY);
     }
   },
   {
@@ -15,6 +18,9 @@ const fractal_descriptions = [
     get_animation: (canvas, fractal) => event => {
       let iterations = parseInt(event.target.value);
       return fractal.animated_cesarotri(canvas, iterations);
+    },
+    cursor_coords: (canvas, fractal) => event => {
+      return fractal.screen_to_turtle(canvas, event.clientX, event.clientY);
     }
   },
   {
@@ -24,6 +30,9 @@ const fractal_descriptions = [
     get_animation: (canvas, fractal) => event => {
       let iterations = parseInt(event.target.value);
       return fractal.animated_dragon(canvas, iterations);
+    },
+    cursor_coords: (canvas, fractal) => event => {
+      return fractal.screen_to_turtle(canvas, event.clientX, event.clientY);
     }
   },
   {
@@ -33,6 +42,9 @@ const fractal_descriptions = [
     get_animation: (canvas, fractal) => event => {
       let iterations = parseInt(event.target.value);
       return fractal.animated_kochcurve(canvas, iterations);
+    },
+    cursor_coords: (canvas, fractal) => event => {
+      return fractal.screen_to_turtle(canvas, event.clientX, event.clientY);
     }
   },
   {
@@ -42,6 +54,9 @@ const fractal_descriptions = [
     get_animation: (canvas, fractal) => event => {
       let iterations = parseInt(event.target.value);
       return fractal.animated_levyccurve(canvas, iterations);
+    },
+    cursor_coords: (canvas, fractal) => event => {
+      return fractal.screen_to_turtle(canvas, event.clientX, event.clientY);
     }
   },
   {
@@ -51,6 +66,9 @@ const fractal_descriptions = [
     get_animation: (canvas, fractal) => event => {
       let iterations = parseInt(event.target.value);
       return fractal.animated_terdragon(canvas, iterations);
+    },
+    cursor_coords: (canvas, fractal) => event => {
+      return fractal.screen_to_turtle(canvas, event.clientX, event.clientY);
     }
   }
 ];
@@ -59,6 +77,20 @@ const fractal_descriptions = [
  * Config
  **********************************************************/
 
+/**
+ * Determines the currently selected fractal baaed on which option is selected
+ * by the #fractal-type dropdown.
+ */
+function currently_selected_fractal() {
+  let fractal_picker = document.querySelector("#fractal-type");
+  let choice = fractal_picker.selectedOptions[0];
+  return choice.value;
+}
+
+/**
+ * Upddates which configuration element is shown --- assumes that the
+ * configuration elements for each fractals have already been created.
+ */
 function set_visible_config(selected_fractal) {
   console.log("Displaying config for " + selected_fractal);
   let config_panels = document.querySelectorAll(".config");
@@ -71,7 +103,35 @@ function set_visible_config(selected_fractal) {
   }
 }
 
+/**
+ * Returns an event handler that updates the coordinates under the cursor,
+ * using the canvas and currently selected fractal.
+ */
+const update_coords = (canvas, fractal) => event => {
+  document.querySelector("#coords").innerText =
+    "Canvas coords: X: " + event.clientX + ", Y: " + event.clientY;
+
+  let current_fractal = currently_selected_fractal();
+  let desc = fractal_descriptions.find(el => el.id === current_fractal);
+
+  if (desc) {
+    let othercoords = desc.cursor_coords(canvas, fractal)(event);
+    document.querySelector("#fractal-coords").innerText =
+      "Fractal coords: X: " + othercoords[0] + ", Y: " + othercoords[1];
+  } else {
+    console.warn("No fractal selected. current_fractal was " + current_fractal);
+  }
+};
+
+/**
+ * Builds the configuration UI for all of the fractals, and sets up the event
+ * handlers.
+ *
+ * It fills out the entries/options in the #fractal-type dropdown, and
+ * constructs the configuration options for each fractal.
+ */
 function setup_configs(canvas, fractal) {
+  // Build the #fractal-type dropdown.
   let fractal_picker = document.querySelector("#fractal-type");
   for (desc of fractal_descriptions) {
     let option = document.createElement("option");
@@ -79,6 +139,8 @@ function setup_configs(canvas, fractal) {
     option.appendChild(document.createTextNode(desc.name));
     fractal_picker.appendChild(option);
   }
+
+  // Whenever the selection changes, update which configs are visible.
   fractal_picker.addEventListener("input", event => {
     let choice = event.target.selectedOptions[0];
     let selected_fractal = choice.value;
@@ -136,18 +198,7 @@ import("../pkg/fractal_wasm")
     let canvas = document.querySelector("#fractal-canvas");
 
     // Show coordinates within the canvas
-    canvas.addEventListener("pointermove", event => {
-      document.querySelector("#coords").innerText =
-        "Canvas coords: X: " + event.clientX + ", Y: " + event.clientY;
-
-      let othercoords = fractal.screen_to_turtle(
-        canvas,
-        event.clientX,
-        event.clientY
-      );
-      document.querySelector("#turtle-coords").innerText =
-        "Turtle coords: X: " + othercoords[0] + ", Y: " + othercoords[1];
-    });
+    canvas.addEventListener("pointermove", update_coords(canvas, fractal));
 
     setup_configs(canvas, fractal);
   })
