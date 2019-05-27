@@ -50,9 +50,9 @@ pub trait LindenmayerSystem<Alphabet: Clone> {
     /// struct SomeLSystem;
     ///
     /// impl LindenmayerSystem<SomeAlphabet> for SomeLSystem {
-    ///      fn initial(&self) -> Vec<SomeAlphabet> {
-    ///          vec![SomeAlphabet::A, SomeAlphabet::B, SomeAlphabet::C]
-    ///      }
+    ///     fn initial(&self) -> Vec<SomeAlphabet> {
+    ///         vec![SomeAlphabet::A, SomeAlphabet::B, SomeAlphabet::C]
+    ///     }
     ///
     ///     fn apply_rule(&self, l: SomeAlphabet) -> Vec<SomeAlphabet> {
     ///         match l {
