@@ -139,20 +139,23 @@ pub fn screen_to_turtle(canvas: &HtmlCanvasElement, x: f64, y: f64) -> Array {
     Array::of2(&coords[0].into(), &coords[1].into())
 }
 
+fn chaos_game_vat(ctx: &CanvasRenderingContext2d) -> geometry::ViewAreaTransformer {
+    let screen_width = ctx.canvas().unwrap().width() as f64;
+    let screen_height = ctx.canvas().unwrap().height() as f64;
+
+    geometry::ViewAreaTransformer::new(
+        [screen_width, screen_height],
+        geometry::Point { x: -1.0, y: -1.0 },
+        geometry::Point { x: 1.0, y: 1.0 },
+    )
+}
+
 #[wasm_bindgen]
 pub fn screen_to_chaos_game(canvas: &HtmlCanvasElement, x: f64, y: f64) -> Array {
     let ctx = JsValue::from(canvas.get_context("2d").unwrap().unwrap())
         .dyn_into::<CanvasRenderingContext2d>()
         .unwrap();
-    let screen_width = ctx.canvas().unwrap().width() as f64;
-    let screen_height = ctx.canvas().unwrap().height() as f64;
-
-    let vat = geometry::ViewAreaTransformer::new(
-        [screen_width, screen_height],
-        geometry::Point { x: -1.0, y: -1.0 },
-        geometry::Point { x: 1.0, y: 1.0 },
-    );
-    let pos_point = vat.map_pixel_to_point([x, y]);
+    let pos_point = chaos_game_vat(&ctx).map_pixel_to_point([x, y]);
     Array::of2(&pos_point.x.into(), &pos_point.y.into())
 }
 
@@ -175,14 +178,7 @@ impl ChaosGameAnimation {
     }
 
     fn draw_point(&self, point: geometry::Point) {
-        let screen_width = self.ctx.canvas().unwrap().width() as f64;
-        let screen_height = self.ctx.canvas().unwrap().height() as f64;
-        let vat = geometry::ViewAreaTransformer::new(
-            [screen_width, screen_height],
-            geometry::Point { x: -1.0, y: -1.0 },
-            geometry::Point { x: 1.0, y: 1.0 },
-        );
-        let pixel_pos = vat.map_point_to_pixel(point);
+        let pixel_pos = chaos_game_vat(&self.ctx).map_point_to_pixel(point);
         // console::log_1(&format!("pixels: {}, {}", pixel_pos[0], pixel_pos[1]).into());
         self.ctx.set_fill_style(&"black".into());
         self.ctx.fill_rect(pixel_pos[0], pixel_pos[1], 1.0, 1.0);
@@ -205,17 +201,31 @@ impl ChaosGameAnimation {
     }
 }
 
-#[wasm_bindgen]
-pub fn animated_barnsleyfern(canvas: &HtmlCanvasElement) -> ChaosGameAnimation {
-    console::log_1(&format!("Starting animation {}", "barnsleyfern").into());
-    let ctx = JsValue::from(canvas.get_context("2d").unwrap().unwrap())
-        .dyn_into::<CanvasRenderingContext2d>()
-        .unwrap();
-    ChaosGameAnimation::new(
-        ctx,
-        Box::new(barnsleyfern::BarnsleyFern::new(
-            &barnsleyfern::REFERENCE_TRANSFORMS,
-            &barnsleyfern::REFERENCE_WEIGHTS,
-        )),
-    )
+macro_rules! animated_chaos_game {
+    ($name:ident: $expr:expr) => {
+        // Paste is needed to concatenate render_ and the name of the fractal. Rust's own macros
+        // don't provide a good way to do this.
+        paste::item! {
+            // iteration needs to be a u32 for now.. As of 2019/04/28, Firefox 66.0.2 doesn't
+            // support BigUint64Array/bigints.
+            #[wasm_bindgen]
+            pub fn [<animated_ $name>] (canvas: &HtmlCanvasElement) -> ChaosGameAnimation {
+                console::log_1(&format!("Starting animation {}", stringify!($name)).into());
+                let ctx = JsValue::from(canvas.get_context("2d").unwrap().unwrap())
+                    .dyn_into::<CanvasRenderingContext2d>()
+                    .unwrap();
+
+                ctx.clear_rect(0.0, 0.0, canvas.width().into(), canvas.height().into());
+
+                ChaosGameAnimation::new(ctx, Box::new($expr))
+            }
+        }
+    };
 }
+
+animated_chaos_game!(
+    barnsleyfern: barnsleyfern::BarnsleyFern::new(
+        &barnsleyfern::REFERENCE_TRANSFORMS,
+        &barnsleyfern::REFERENCE_WEIGHTS,
+    )
+);

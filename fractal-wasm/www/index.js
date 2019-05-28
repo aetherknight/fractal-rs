@@ -185,16 +185,23 @@ function setup_configs(canvas, fractal) {
     config_container.appendChild(fractal_config);
     // Listen for changes to start/restart the animation
     fractal_config.addEventListener("input", event => {
-      let animation = desc.get_animation(canvas, fractal)(event);
-      let draw = ts => {
-        if (animation.draw_one_frame()) {
-          window.current_frame = window.requestAnimationFrame(draw);
-        }
-      };
+      // Stop any ongoing animation
       if (window.current_frame) {
         window.cancelAnimationFrame(window.current_frame);
       }
-      window.current_frame = window.requestAnimationFrame(draw);
+
+      // Fetch the new animation, and if we actually got one, run the animation.
+      // If we don't have one, don't try to start it, allowing us to stop one
+      // by not returning anything.
+      let animation = desc.get_animation(canvas, fractal)(event);
+      if (animation) {
+        let draw = ts => {
+          if (animation.draw_one_frame()) {
+            window.current_frame = window.requestAnimationFrame(draw);
+          }
+        };
+        window.current_frame = window.requestAnimationFrame(draw);
+      }
     });
   }
   set_visible_config(
