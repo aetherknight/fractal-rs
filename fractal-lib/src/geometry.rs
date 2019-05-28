@@ -223,6 +223,13 @@ impl ViewAreaTransformer {
             y: -(screen_coord[1] * self.scale) + self.top_left.y + (self.offset_factor_y),
         }
     }
+
+    pub fn map_point_to_pixel(&self, point: Point) -> Vec2d {
+        [
+            (point.x - self.top_left.x + self.offset_factor_x) / self.scale,
+            -(point.y - self.top_left.y - self.offset_factor_y) / self.scale,
+        ]
+    }
 }
 
 /// Implements pow for complex numbers.
@@ -570,6 +577,13 @@ mod test {
             1.0 + (1.0 / 3.0),
             0.0000000000001
         );
+
+        // the screen is wider than it is tall, point 1.0 is at 600 (+ 100 offset to center)
+        assert_approx_eq!(vat.map_point_to_pixel(Point{x:1.0, y: 1.0})[0], 700.0, 0.000000000001);
+        assert_approx_eq!(vat.map_point_to_pixel(Point{x:1.0, y: 1.0})[1], 0.0, 0.000000000001);
+
+        assert_approx_eq!(vat.map_point_to_pixel(Point{x:-1.0, y: -1.0})[0], 100.0, 0.000000000001);
+        assert_approx_eq!(vat.map_point_to_pixel(Point{x:-1.0, y: -1.0})[1], 600.0, 0.000000000001);
     }
 
     /// 600x800 -> [(-1,1),(1,-1)], flip y
@@ -601,6 +615,12 @@ mod test {
         assert_approx_eq!(vat.map_pixel_to_point([0.0, 0.0]).x, -1.0, 0.000000000001);
         assert_approx_eq!(vat.map_pixel_to_point([300.0, 0.0]).x, 0.0, 0.000000000001);
         assert_approx_eq!(vat.map_pixel_to_point([600.0, 0.0]).x, 1.0, 0.000000000001);
+
+        assert_approx_eq!(vat.map_point_to_pixel(Point{x:1.0, y: 1.0})[0], 600.0, 0.000000000001);
+        assert_approx_eq!(vat.map_point_to_pixel(Point{x:1.0, y: 1.0})[1], 100.0, 0.000000000001);
+
+        assert_approx_eq!(vat.map_point_to_pixel(Point{x:-1.0, y: -1.0})[0], 000.0, 0.000000000001);
+        assert_approx_eq!(vat.map_point_to_pixel(Point{x:-1.0, y: -1.0})[1], 700.0, 0.000000000001);
     }
 
     /// 3x4 window, and [(3,12),12,3)]
@@ -616,6 +636,12 @@ mod test {
 
         assert_approx_eq!(vat.map_pixel_to_point([0.0, 0.0]).x, 3.0, 0.000000000001);
         assert_approx_eq!(vat.map_pixel_to_point([3.0, 0.0]).x, 12.0, 0.000000000001);
+
+        assert_approx_eq!(vat.map_point_to_pixel(Point{x:3.0, y: 3.0})[0], 0.0, 0.000000000001);
+        assert_approx_eq!(vat.map_point_to_pixel(Point{x:3.0, y: 3.0})[1], 3.5, 0.000000000001);
+
+        assert_approx_eq!(vat.map_point_to_pixel(Point{x:12.0, y: 12.0})[0], 3.0, 0.000000000001);
+        assert_approx_eq!(vat.map_point_to_pixel(Point{x:12.0, y: 12.0})[1], 0.5, 0.000000000001);
     }
 
     /// 3x4 window, and [(3,3),12,12)] can handle rectangle that is not
@@ -632,6 +658,12 @@ mod test {
 
         assert_approx_eq!(vat.map_pixel_to_point([0.0, 0.0]).x, 3.0, 0.000000000001);
         assert_approx_eq!(vat.map_pixel_to_point([3.0, 0.0]).x, 12.0, 0.000000000001);
+
+        assert_approx_eq!(vat.map_point_to_pixel(Point{x:3.0, y: 3.0})[0], 0.0, 0.000000000001);
+        assert_approx_eq!(vat.map_point_to_pixel(Point{x:3.0, y: 3.0})[1], 3.5, 0.000000000001);
+
+        assert_approx_eq!(vat.map_point_to_pixel(Point{x:12.0, y: 12.0})[0], 3.0, 0.000000000001);
+        assert_approx_eq!(vat.map_point_to_pixel(Point{x:12.0, y: 12.0})[1], 0.5, 0.000000000001);
     }
 
     /// 800x600 window, and [(-2,1),1,-1)]

@@ -12,12 +12,15 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+use fractal_lib::chaosgame::barnsleyfern;
+use fractal_lib::chaosgame::ChaosGameMoveIterator;
 use fractal_lib::curves::cesaro;
 use fractal_lib::curves::cesarotri;
 use fractal_lib::curves::dragon;
 use fractal_lib::curves::kochcurve;
 use fractal_lib::curves::levyccurve;
 use fractal_lib::curves::terdragon;
+use fractal_lib::geometry;
 use fractal_lib::lindenmayer::LindenmayerSystemTurtleProgram;
 use fractal_lib::turtle::{Turtle, TurtleCollectToNextForwardIterator, TurtleProgram, TurtleState};
 use js_sys::Array;
@@ -60,7 +63,7 @@ impl TurtleAnimation {
 #[wasm_bindgen]
 impl TurtleAnimation {
     /// Returns true if there are more moves to make, and false if it can no longer perform a move.
-    pub fn draw_one_move(&mut self) -> bool {
+    pub fn draw_one_frame(&mut self) -> bool {
         if let Some(one_move) = self.iter.next() {
             console::log_1(&"Rendering one move".into());
             for action in one_move {
@@ -134,4 +137,85 @@ pub fn screen_to_turtle(canvas: &HtmlCanvasElement, x: f64, y: f64) -> Array {
     ));
     let coords = vecmath::row_mat2x3_transform_pos2(inv_transform, [x, y]);
     Array::of2(&coords[0].into(), &coords[1].into())
+}
+
+#[wasm_bindgen]
+pub fn screen_to_chaos_game(canvas: &HtmlCanvasElement, x: f64, y: f64) -> Array {
+    let ctx = JsValue::from(canvas.get_context("2d").unwrap().unwrap())
+        .dyn_into::<CanvasRenderingContext2d>()
+        .unwrap();
+    let screen_width = ctx.canvas().unwrap().width() as f64;
+    let screen_height = ctx.canvas().unwrap().height() as f64;
+
+    let vat = geometry::ViewAreaTransformer::new(
+        [screen_width, screen_height],
+        geometry::Point { x: -1.0, y: -1.0 },
+        geometry::Point { x: 1.0, y: 1.0 },
+    );
+    let pos_point = vat.map_pixel_to_point([x, y]);
+    Array::of2(&pos_point.x.into(), &pos_point.y.into())
+}
+
+/// Represents everything needed to render a chaos game fractal as an animation.
+#[wasm_bindgen]
+pub struct ChaosGameAnimation {
+    ctx: CanvasRenderingContext2d,
+    iter: Box<ChaosGameMoveIterator>,
+}
+
+impl ChaosGameAnimation {
+    pub fn new(
+        ctx: CanvasRenderingContext2d,
+        chaos_game: Box<ChaosGameMoveIterator>,
+    ) -> ChaosGameAnimation {
+        ChaosGameAnimation {
+            ctx,
+            iter: chaos_game,
+        }
+    }
+
+    fn draw_point(&self, point: geometry::Point) {
+        let screen_width = self.ctx.canvas().unwrap().width() as f64;
+        let screen_height = self.ctx.canvas().unwrap().height() as f64;
+        let vat = geometry::ViewAreaTransformer::new(
+            [screen_width, screen_height],
+            geometry::Point { x: -1.0, y: -1.0 },
+            geometry::Point { x: 1.0, y: 1.0 },
+        );
+        let pixel_pos = vat.map_point_to_pixel(point);
+        // console::log_1(&format!("pixels: {}, {}", pixel_pos[0], pixel_pos[1]).into());
+        self.ctx.set_fill_style(&"black".into());
+        self.ctx.fill_rect(pixel_pos[0], pixel_pos[1], 1.0, 1.0);
+        // self.ctx.stroke();
+    }
+}
+
+#[wasm_bindgen]
+impl ChaosGameAnimation {
+    /// Always returns true
+    pub fn draw_one_frame(&mut self) -> bool {
+        if let Some(next_point) = self.iter.next() {
+            // console::log_1(&format!("{}", next_point).into());
+            self.draw_point(next_point);
+            true
+        } else {
+            console::log_1(&"No more points".into());
+            false
+        }
+    }
+}
+
+#[wasm_bindgen]
+pub fn animated_barnsleyfern(canvas: &HtmlCanvasElement) -> ChaosGameAnimation {
+    console::log_1(&format!("Starting animation {}", "barnsleyfern").into());
+    let ctx = JsValue::from(canvas.get_context("2d").unwrap().unwrap())
+        .dyn_into::<CanvasRenderingContext2d>()
+        .unwrap();
+    ChaosGameAnimation::new(
+        ctx,
+        Box::new(barnsleyfern::BarnsleyFern::new(
+            &barnsleyfern::REFERENCE_TRANSFORMS,
+            &barnsleyfern::REFERENCE_WEIGHTS,
+        )),
+    )
 }

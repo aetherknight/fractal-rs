@@ -1,5 +1,18 @@
 const fractal_descriptions = [
   {
+    id: "barnsleyfern",
+    name: "Barnsley Fern Fractal",
+    config: [{ name: "bogus", id: "bogus" }],
+    get_animation: (canvas, fractal) => event => {
+      if (event.target.value !== "") {
+        return fractal.animated_barnsleyfern(canvas);
+      }
+    },
+    cursor_coords: (canvas, fractal) => event => {
+      return fractal.screen_to_chaos_game(canvas, event.clientX, event.clientY);
+    }
+  },
+  {
     id: "cesaro",
     name: "Cesáro Fractal",
     config: [{ name: "Iterations", id: "iterations" }],
@@ -174,7 +187,7 @@ function setup_configs(canvas, fractal) {
     fractal_config.addEventListener("input", event => {
       let animation = desc.get_animation(canvas, fractal)(event);
       let draw = ts => {
-        if (animation.draw_one_move()) {
+        if (animation.draw_one_frame()) {
           window.current_frame = window.requestAnimationFrame(draw);
         }
       };

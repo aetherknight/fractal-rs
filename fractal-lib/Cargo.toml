@@ -5,6 +5,9 @@ authors = ["William (B.J.) Snow Orvis <aetherknight@gmail.com>"]
 description = "Fractal library"
 edition = "2018"
 
+[features]
+wasm-bindgen = ["rand/wasm-bindgen"]
+
 [dependencies]
 num = "^0.2"
 rand = "^0.6"
