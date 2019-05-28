@@ -24,7 +24,7 @@ use std::sync::Arc;
 use super::pistonrendering;
 use fractal_lib::chaosgame::barnsleyfern;
 use fractal_lib::chaosgame::sierpinski::SierpinskiChaosGame;
-use fractal_lib::chaosgame::ChaosGame;
+use fractal_lib::chaosgame::ChaosGameMoveIterator;
 use fractal_lib::curves::cesaro::CesaroFractal;
 use fractal_lib::curves::cesarotri::CesaroTriFractal;
 use fractal_lib::curves::dragon::DragonFractal;
@@ -80,7 +80,7 @@ pub trait FractalSubcommand {
 
 pub struct ChaosGameCommand<E>
 where
-    E: ChaosGame + Send + Sync,
+    E: ChaosGameMoveIterator,
 {
     name: &'static str,
     description: &'static str,
@@ -89,7 +89,7 @@ where
 
 impl<E> ChaosGameCommand<E>
 where
-    E: ChaosGame + Send + Sync,
+    E: ChaosGameMoveIterator,
 {
     pub fn new(
         name: &'static str,
@@ -106,7 +106,7 @@ where
 
 impl<E> FractalSubcommand for ChaosGameCommand<E>
 where
-    E: ChaosGame + Send + Sync + 'static,
+    E: ChaosGameMoveIterator + 'static,
 {
     fn command(&self) -> clap::App<'static, 'static> {
         clap::SubCommand::with_name(self.name)
@@ -122,9 +122,9 @@ where
     }
 
     fn run(&self, matches: &clap::ArgMatches) -> Result<(), String> {
-        let drawrate = r#try!(extract!(matches, "drawrate"));
+        let drawrate = extract!(matches, "drawrate")?;
 
-        let game = Arc::new((self.ctor)());
+        let game = Box::new((self.ctor)());
         let mut handler = pistonrendering::chaosgame::ChaosGameWindowHandler::new(game, drawrate);
         pistonrendering::run(&mut handler);
 

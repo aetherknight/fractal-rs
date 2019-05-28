@@ -46,6 +46,12 @@ impl Point {
     }
 }
 
+impl Default for Point {
+    fn default() -> Point {
+        Point { x: 0.0, y: 0.0 }
+    }
+}
+
 impl Into<Complex64> for Point {
     fn into(self) -> Complex64 {
         Complex64::new(self.x, self.y)

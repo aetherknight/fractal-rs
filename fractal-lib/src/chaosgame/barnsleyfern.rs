@@ -14,13 +14,11 @@
 
 //! Implementation of the Barnsley Fern.
 
-use std::sync::mpsc::SyncSender;
-
+use super::super::geometry::*;
+use super::{ChaosGameMoveIterator, ChaosGameThreadedGenerator};
 use rand;
 use rand::distributions::{Distribution, WeightedIndex};
-
-use super::super::geometry::*;
-use super::ChaosGame;
+use std::sync::mpsc::SyncSender;
 
 /// The reference affine transforms for the Barnsley Fern.
 pub const REFERENCE_TRANSFORMS: [CartesianAffineTransform; 4] = [
@@ -43,6 +41,7 @@ pub struct BarnsleyFern {
     transforms: [CartesianAffineTransform; 4],
     /// And their probabilistic weights
     weights: [u32; 4],
+    last_point: Point,
 }
 
 impl BarnsleyFern {
@@ -50,11 +49,13 @@ impl BarnsleyFern {
         BarnsleyFern {
             transforms: *transforms,
             weights: *weights,
+            last_point: Point { x: 0.0, y: 0.0 },
         }
     }
 
-    // The lifetime is needed here to satisfy the compiler's use of the box
-    // elsewhere.
+    /// Internal helper for ChaosGameThreadedGenerator.
+    ///
+    /// The lifetime is needed here to satisfy the compiler's use of the box elsewhere.
     fn pick_transform<'a>(&'a self) -> Box<Fn(Point) -> Point + 'a> {
         let dist = WeightedIndex::new(&self.weights).unwrap();
         let mut rng = rand::thread_rng();
@@ -64,7 +65,7 @@ impl BarnsleyFern {
     }
 }
 
-impl ChaosGame for BarnsleyFern {
+impl ChaosGameThreadedGenerator for BarnsleyFern {
     fn generate(&self, channel: &mut SyncSender<Point>) {
         let mut curr_point = Point { x: 0.0, y: 0.0 };
         while let Ok(_) = channel.send(Point {
@@ -73,5 +74,27 @@ impl ChaosGame for BarnsleyFern {
         }) {
             curr_point = self.pick_transform()(curr_point);
         }
+    }
+}
+
+impl Iterator for BarnsleyFern {
+    type Item = Point;
+
+    fn next(&mut self) -> Option<Point> {
+        let dist = WeightedIndex::new(&self.weights).unwrap();
+        let mut rng = rand::thread_rng();
+        let chosen_index = dist.sample(&mut rng);
+
+        self.last_point = self.transforms[chosen_index].transform(self.last_point);
+        Some(Point {
+            x: self.last_point.x / 10.0,
+            y: self.last_point.y / 10.0,
+        })
+    }
+}
+
+impl ChaosGameMoveIterator for BarnsleyFern {
+    fn reset_game(&mut self) {
+        self.last_point = Point { x: 0.0, y: 0.0 };
     }
 }

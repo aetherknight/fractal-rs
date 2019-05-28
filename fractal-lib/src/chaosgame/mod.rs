@@ -19,17 +19,24 @@
 pub mod barnsleyfern;
 pub mod sierpinski;
 
+use super::geometry::Point;
 use std::sync::mpsc::{sync_channel, Receiver, SyncSender};
 use std::sync::Arc;
 use std::thread;
 
-use super::geometry::Point;
+/// A chaos game iterator needs to be an iterator, but it also needs to be able to reset the game
+/// back to an initial state (Eg, when the screen is resized).
+pub trait ChaosGameMoveIterator: Iterator<Item = Point> {
+    fn reset_game(&mut self);
+}
 
-/// A `ChaosGame` implementation with a method that will be run in a separate thread to create a
-/// generator function that yields Points across the channel. The `ChaosGame` should track whatever
-/// parameters it wants or needs to to customize itself, and `generate()` will likely use an RNG to
-/// introduce the random element needed.
-pub trait ChaosGame {
+/// A chaos game specification that uses threads, and can be used with a
+/// `ChaosGameMoveThreadedIterator` to yield `Point`s from a thread, across a channel.
+///
+/// A `ChaosGameThreadedGenerator` implmentation should track whatever parameters it wants or needs
+/// to to customize itself, and `generate()` will likely use an RNG to introduce the random element
+/// needed.
+pub trait ChaosGameThreadedGenerator {
     /// Generator function that should send Points across a buffered channel, possibly forever.
     /// The function should only return if it is done or if the channel indicates that the
     /// remote side has closed/errored.
@@ -39,31 +46,33 @@ pub trait ChaosGame {
 /// Iterator for `ChaosGame`s that uses a thread and `ChaosGame::generate()` to yield Points.
 /// Implemented as its own iterator and not just using the channel Receiver's iterator in order to
 /// join the thread when the iterator goes out of scope.
-pub struct ChaosGameMoveIterator {
+pub struct ChaosGameMoveThreadedIterator {
     rx: Option<Receiver<Point>>,
     worker: Option<thread::JoinHandle<()>>,
 }
 
-impl ChaosGameMoveIterator {
-    /// Construct a new ChaosGameMoveIterator using an instance of a ChaosGame. It will launch a
-    /// thread that calls ChaosGame::generate() and sends the Points it generates to the
+impl ChaosGameMoveThreadedIterator {
+    /// Construct a new ChaosGameMoveThreadedIterator using an instance of a ChaosGame. It will
+    /// launch a thread that calls ChaosGame::generate() and sends the Points it generates to the
     /// iterator using a channel. The ChaosGame must be managed by an Arc in order to share the
     /// ChaosGame with the thread.
-    pub fn new(game: Arc<ChaosGame + Send + Sync>) -> ChaosGameMoveIterator {
+    pub fn new(
+        game: Arc<ChaosGameThreadedGenerator + Send + Sync>,
+    ) -> ChaosGameMoveThreadedIterator {
         let (mut tx, rx) = sync_channel::<Point>(10);
         let worker = thread::spawn(move || {
             game.generate(&mut tx);
             println!("Receiver exited");
         });
 
-        ChaosGameMoveIterator {
+        ChaosGameMoveThreadedIterator {
             rx: Some(rx),
             worker: Some(worker),
         }
     }
 }
 
-impl Iterator for ChaosGameMoveIterator {
+impl Iterator for ChaosGameMoveThreadedIterator {
     type Item = Point;
 
     fn next(&mut self) -> Option<Point> {
@@ -80,7 +89,7 @@ impl Iterator for ChaosGameMoveIterator {
     }
 }
 
-impl Drop for ChaosGameMoveIterator {
+impl Drop for ChaosGameMoveThreadedIterator {
     fn drop(&mut self) {
         println!("Waiting for worker to join");
         drop(self.rx.take()); // drop the receiver to convince the worker thread to exit
