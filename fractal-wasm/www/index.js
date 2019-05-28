@@ -73,6 +73,19 @@ const fractal_descriptions = [
     }
   },
   {
+    id: "sierpinski",
+    name: "Sierpinski Triangle",
+    config: [{ name: "bogus", id: "bogus" }],
+    get_animation: (canvas, fractal) => event => {
+      if (event.target.value !== "") {
+        return fractal.animated_sierpinski(canvas);
+      }
+    },
+    cursor_coords: (canvas, fractal) => event => {
+      return fractal.screen_to_chaos_game(canvas, event.clientX, event.clientY);
+    }
+  },
+  {
     id: "terdragon",
     name: "Terdragon Fractal",
     config: [{ name: "Iterations", id: "iterations" }],

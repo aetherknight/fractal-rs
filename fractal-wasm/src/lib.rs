@@ -13,6 +13,7 @@
 // limitations under the License.
 
 use fractal_lib::chaosgame::barnsleyfern;
+use fractal_lib::chaosgame::sierpinski;
 use fractal_lib::chaosgame::ChaosGameMoveIterator;
 use fractal_lib::curves::cesaro;
 use fractal_lib::curves::cesarotri;
@@ -224,8 +225,11 @@ macro_rules! animated_chaos_game {
 }
 
 animated_chaos_game!(
-    barnsleyfern: barnsleyfern::BarnsleyFern::new(
-        &barnsleyfern::REFERENCE_TRANSFORMS,
-        &barnsleyfern::REFERENCE_WEIGHTS,
-    )
+    barnsleyfern:
+        barnsleyfern::BarnsleyFern::new(
+            &barnsleyfern::REFERENCE_TRANSFORMS,
+            &barnsleyfern::REFERENCE_WEIGHTS,
+        )
 );
+
+animated_chaos_game!(sierpinski: sierpinski::SierpinskiChaosGame::new());
