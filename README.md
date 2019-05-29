@@ -5,7 +5,8 @@ learn more about Rust.
 
 Features include:
 
-* Piston-based turtle graphics renderer for line-drawn curves
+* Web/WASM-based target for rendering fractals on the web
+* Piston-based renderer for rendering fractals on the desktop
 * Ability to animate the drawing of the curves
 * Library support for computing turtle directions using the [Lindenmeyer
   system](https://en.wikipedia.org/wiki/L-system)
