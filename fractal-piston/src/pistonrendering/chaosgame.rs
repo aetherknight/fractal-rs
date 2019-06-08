@@ -17,11 +17,10 @@
 use super::{RenderContext, WhichFrame, WindowHandler};
 use fractal_lib::chaosgame::ChaosGameMoveIterator;
 use fractal_lib::color;
-use fractal_lib::geometry::Point;
+use fractal_lib::geometry::{Point, ViewAreaTransformer};
 use gfx_device_gl;
 use graphics;
 use graphics::math::Vec2d;
-use graphics::Transformed;
 use piston_window;
 
 /// Draw a dot at the given point. (0.0,0.0) is the center of the screen, (1.0,1.0) is near the top
@@ -31,33 +30,17 @@ fn draw_dot(context: graphics::context::Context, gfx: &mut piston_window::G2d, p
     let screen_width = view_size[0];
     let screen_height = view_size[1];
 
-    let originx = screen_width / 2.0f64;
-    let originy = screen_height / 2.0f64;
+    let chaos_vat = ViewAreaTransformer::new(
+        [screen_width, screen_height],
+        Point { x: -1.0, y: -1.0 },
+        Point { x: 1.0, y: 1.0 },
+    );
+    let screen_point = chaos_vat.map_point_to_pixel(point);
 
-    let taller = (screen_height as i64 - screen_width as i64) > 0;
-
-    // use the smaller direction to determine how many pixels are in one unit of
-    // distance here.
-    let one_unit_to_pixels = if taller {
-        (screen_width / 2f64)
-    } else {
-        (screen_height / 2f64)
-    };
-
-    let transform = context
-        .transform
-        .trans(originx, originy)
-        .zoom(one_unit_to_pixels)
-        .flip_v()
-        .trans(0.0, 0.0);
-
-    let delta = 0.5 / one_unit_to_pixels as f64;
-
-    // println!("Drawing {}", point);
     piston_window::Rectangle::new(color::BLACK_F32.0).draw(
-        [point.x - delta, point.y - delta, 2.0 * delta, 2.0 * delta],
+        [screen_point[0], screen_point[1], 1.0, 1.0],
         &graphics::draw_state::DrawState::default(),
-        transform,
+        context.transform,
         gfx,
     );
 }

@@ -16,12 +16,11 @@
 
 use super::{RenderContext, WhichFrame, WindowHandler};
 use fractal_lib::color;
-use fractal_lib::geometry::{Point, Vector};
+use fractal_lib::geometry::{Point, Vector, ViewAreaTransformer};
 use fractal_lib::turtle::{Turtle, TurtleCollectToNextForwardIterator, TurtleProgram, TurtleState};
 use gfx_device_gl;
 use graphics;
 use graphics::math::Vec2d;
-use graphics::Transformed;
 use piston_window;
 use std::fmt;
 
@@ -80,25 +79,27 @@ where
             let screen_width = view_size[0];
             let screen_height = view_size[1];
 
-            let startx = screen_width / 4f64;
-            let starty = screen_height / 2f64;
-            let endx = 3f64 * screen_width / 4f64;
+            // let startx = screen_width / 4f64;
+            // let starty = screen_height / 2f64;
+            // let endx = 3f64 * screen_width / 4f64;
             // let endy = (screen_height / 2) as f64;
 
-            let linesize = (startx - endx).abs() as f64;
+            let turtle_vat = ViewAreaTransformer::new(
+                [screen_width, screen_height],
+                Point { x: -0.5, y: -0.75 },
+                Point { x: 1.5, y: 0.75 },
+            );
+            let old_coords = turtle_vat.map_point_to_pixel(old_pos);
+            let new_coords = turtle_vat.map_point_to_pixel(new_pos);
+            println!(
+                "VAT coords:        {} -- {}, {}",
+                new_pos, new_coords[0], new_coords[1]
+            );
 
-            let transform = self
-                .context
-                .transform
-                .trans(startx, starty)
-                .zoom(linesize)
-                .flip_v()
-                .trans(0.0, 0.0);
-
-            piston_window::Line::new(color::BLACK_F32.0, 0.5 / linesize).draw(
-                [old_pos.x, old_pos.y, new_pos.x, new_pos.y],
+            piston_window::Line::new(color::BLACK_F32.0, 0.5).draw(
+                [old_coords[0], old_coords[1], new_coords[0], new_coords[1]],
                 &graphics::draw_state::DrawState::default(),
-                transform,
+                self.context.transform,
                 self.gfx,
             );
         }
