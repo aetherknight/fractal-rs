@@ -168,13 +168,13 @@ pub fn screen_to_chaos_game(canvas: &HtmlCanvasElement, x: f64, y: f64) -> Array
 #[wasm_bindgen]
 pub struct ChaosGameAnimation {
     ctx: CanvasRenderingContext2d,
-    iter: Box<ChaosGameMoveIterator>,
+    iter: Box<dyn ChaosGameMoveIterator>,
 }
 
 impl ChaosGameAnimation {
     pub fn new(
         ctx: CanvasRenderingContext2d,
-        chaos_game: Box<ChaosGameMoveIterator>,
+        chaos_game: Box<dyn ChaosGameMoveIterator>,
     ) -> ChaosGameAnimation {
         ChaosGameAnimation {
             ctx,
