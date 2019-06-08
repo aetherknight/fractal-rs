@@ -12,41 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-use fractal_lib::geometry::{Point, Vector};
+use fractal_lib::geometry::{Point, Vector, ViewAreaTransformer};
 use fractal_lib::turtle::{Turtle, TurtleState};
 use web_sys::{console, CanvasRenderingContext2d};
-
-pub fn turtle_to_screen_transform(screen_width: f64, screen_height: f64) -> [[f64; 3]; 2] {
-    let startx = screen_width / 4f64;
-    let starty = screen_height / 2f64;
-    let endx = 3f64 * screen_width / 4f64;
-    // let endy = (screen_height / 2) as f64;
-
-    let linesize = (startx - endx).abs() as f64;
-
-    // identity transform.
-    let mut transform: vecmath::Matrix2x3<f64> = [[1f64, 0f64, 0f64], [0f64, 1f64, 0f64]];
-    // translate to startx and starty
-    transform = vecmath::row_mat2x3_mul(transform, [[1f64, 0f64, startx], [0f64, 1f64, starty]]);
-    // zoom in by the linesize
-    transform =
-        vecmath::row_mat2x3_mul(transform, [[linesize, 0f64, 0f64], [0f64, linesize, 0f64]]);
-    // flip vertical
-    transform = vecmath::row_mat2x3_mul(transform, [[1f64, 0f64, 0f64], [0f64, -1f64, 0f64]]);
-
-    // console::log_3(
-    //     &transform[0][0].into(),
-    //     &transform[0][1].into(),
-    //     &transform[0][2].into(),
-    // );
-    // console::log_3(
-    //     &transform[1][0].into(),
-    //     &transform[1][1].into(),
-    //     &transform[1][2].into(),
-    // );
-
-    transform
-}
 
 /// A turtle that can draw to an HTML Canvas.
 pub struct CanvasTurtle {
@@ -71,31 +39,15 @@ impl Turtle for CanvasTurtle {
         if self.state.down {
             let screen_width = self.ctx.canvas().unwrap().width() as f64;
             let screen_height = self.ctx.canvas().unwrap().height() as f64;
-            let transform = turtle_to_screen_transform(screen_width, screen_height);
 
-            // // [[ a, c, e ]]
-            // // [[ b, d, f ]]
-            // // [[ 0, 0, 1 ]]
-            // //
-            // // a - horizontal scaling (1 does nothing)
-            // // b - vertical skewing
-            // // c - horizontal skewing
-            // // d - vertical scaling
-            // // e - horizontal translation
-            // // f - vertical translation
-            // self.ctx
-            //     .set_transform(
-            //         transform[0][0],
-            //         transform[1][0],
-            //         transform[0][1],
-            //         transform[1][1],
-            //         transform[0][2],
-            //         transform[1][2],
-            //     )
-            //     .unwrap();
-            //
-            let old_coords = vecmath::row_mat2x3_transform_pos2(transform, [old_pos.x, old_pos.y]);
-            let new_coords = vecmath::row_mat2x3_transform_pos2(transform, [new_pos.x, new_pos.y]);
+            let turtle_vat = ViewAreaTransformer::new(
+                [screen_width, screen_height],
+                Point { x: -0.5, y: -0.75 },
+                Point { x: 1.5, y: 0.75 },
+            );
+
+            let old_coords = turtle_vat.map_point_to_pixel(old_pos);
+            let new_coords = turtle_vat.map_point_to_pixel(new_pos);
             // console::log_3(&"Line to".into(), &new_pos.x.into(), &new_pos.y.into());
             // console::log_3(
             //     &"old coords".into(),

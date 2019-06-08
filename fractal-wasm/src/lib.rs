@@ -26,7 +26,6 @@ use fractal_lib::lindenmayer::LindenmayerSystemTurtleProgram;
 use fractal_lib::turtle::{Turtle, TurtleCollectToNextForwardIterator, TurtleProgram, TurtleState};
 use js_sys::Array;
 use paste;
-use vecmath;
 use wasm_bindgen::prelude::*;
 use wasm_bindgen::JsCast;
 use web_sys::{console, CanvasRenderingContext2d, HtmlCanvasElement};
@@ -125,19 +124,24 @@ animated_turtle!(
     )
 );
 
+fn turtle_vat(ctx: &CanvasRenderingContext2d) -> geometry::ViewAreaTransformer {
+    let screen_width = ctx.canvas().unwrap().width() as f64;
+    let screen_height = ctx.canvas().unwrap().height() as f64;
+
+    geometry::ViewAreaTransformer::new(
+        [screen_width, screen_height],
+        geometry::Point { x: -0.5, y: -0.75},
+        geometry::Point { x: 1.5, y: 0.75},
+    )
+}
+
 #[wasm_bindgen]
 pub fn screen_to_turtle(canvas: &HtmlCanvasElement, x: f64, y: f64) -> Array {
     let ctx = JsValue::from(canvas.get_context("2d").unwrap().unwrap())
         .dyn_into::<CanvasRenderingContext2d>()
         .unwrap();
-    let screen_width = ctx.canvas().unwrap().width() as f64;
-    let screen_height = ctx.canvas().unwrap().height() as f64;
-    let inv_transform = vecmath::mat2x3_inv(turtle::turtle_to_screen_transform(
-        screen_width,
-        screen_height,
-    ));
-    let coords = vecmath::row_mat2x3_transform_pos2(inv_transform, [x, y]);
-    Array::of2(&coords[0].into(), &coords[1].into())
+    let pos_point = turtle_vat(&ctx).map_pixel_to_point([x,y]);
+    Array::of2(&pos_point.x.into(), &pos_point.y.into())
 }
 
 fn chaos_game_vat(ctx: &CanvasRenderingContext2d) -> geometry::ViewAreaTransformer {
