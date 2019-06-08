@@ -30,7 +30,6 @@ fn main() {
     match result {
         Ok(_) => {}
         Err(e) => {
-            use std;
             use std::io::{stderr, Write};
             writeln!(&mut stderr(), "{}", e).unwrap();
             std::process::exit(1);
