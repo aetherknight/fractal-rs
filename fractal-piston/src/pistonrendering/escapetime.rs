@@ -32,7 +32,7 @@ type FractalImageBuffer = ImageBuffer<Rgba<u8>, Vec<u8>>;
 /// Draws escape time fractals by testing the point that each pixel corresponds to on the complex
 /// plane.
 pub struct EscapeTimeWindowHandler {
-    etsystem: Arc<EscapeTime + Send + Sync>,
+    etsystem: Arc<dyn EscapeTime + Send + Sync>,
     screen_size: Vec2d,
     view_area: [Point; 2],
     vat: Arc<ViewAreaTransformer>,
@@ -44,7 +44,7 @@ pub struct EscapeTimeWindowHandler {
 }
 
 impl EscapeTimeWindowHandler {
-    pub fn new(etsystem: Arc<EscapeTime + Send + Sync>) -> EscapeTimeWindowHandler {
+    pub fn new(etsystem: Arc<dyn EscapeTime + Send + Sync>) -> EscapeTimeWindowHandler {
         let canvas = Arc::new(RwLock::new(FractalImageBuffer::new(800, 600)));
         let view_area_c = etsystem.default_view_area();
         let view_area = [Point::from(view_area_c[0]), Point::from(view_area_c[1])];

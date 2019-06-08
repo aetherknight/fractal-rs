@@ -27,9 +27,9 @@ use std::fmt;
 
 // The lifetimes are needed here to make the boxed window handlers happy.
 pub fn construct_turtle_window_handler<'a>(
-    program: &'a TurtleProgram,
+    program: &'a dyn TurtleProgram,
     animate: u64,
-) -> Box<WindowHandler + 'a> {
+) -> Box<dyn WindowHandler + 'a> {
     match animate {
         0 => Box::new(DoubleBufferedWindowHandler::new(program)),
         _ => Box::new(DoubleBufferedAnimatedWindowHandler::new(program, animate)),
@@ -131,20 +131,20 @@ where
 /// `WindowHandler` that renders an entire turtle program per-frame, and optimizes re-renders by
 /// only rendering twice (once for each buffer).
 pub struct DoubleBufferedWindowHandler<'a> {
-    program: &'a TurtleProgram,
+    program: &'a dyn TurtleProgram,
     /// Whether we need to re-render for double-buffered frames.
     redraw: [bool; 2],
 }
 
 impl<'a> DoubleBufferedWindowHandler<'a> {
-    pub fn new(program: &TurtleProgram) -> DoubleBufferedWindowHandler {
+    pub fn new(program: &dyn TurtleProgram) -> DoubleBufferedWindowHandler {
         DoubleBufferedWindowHandler {
             program,
             redraw: [true; 2],
         }
     }
 
-    fn turtledraw(program: &TurtleProgram, turtle: &mut Turtle) {
+    fn turtledraw(program: &dyn TurtleProgram, turtle: &mut dyn Turtle) {
         let init_turtle_steps = program.init_turtle();
 
         for action in init_turtle_steps {
@@ -194,7 +194,7 @@ impl<'a> WindowHandler for DoubleBufferedWindowHandler<'a> {
 /// `WindowHandler` that animates the drawing of the curve by only adding a few line segments per
 /// frame.
 pub struct DoubleBufferedAnimatedWindowHandler<'a> {
-    program: &'a TurtleProgram,
+    program: &'a dyn TurtleProgram,
     /// stored turtle state for each turtle. double-buffered means we need to animate the curve
     /// "twice".
     turtles: [TurtleState; 2],
@@ -222,7 +222,7 @@ impl<'a> DoubleBufferedAnimatedWindowHandler<'a> {
     ///
     /// `lines_per_frame` specifies how many line segments the turtle should draw per frame.
     pub fn new(
-        program: &'a TurtleProgram,
+        program: &'a dyn TurtleProgram,
         lines_per_frame: u64,
     ) -> DoubleBufferedAnimatedWindowHandler<'a> {
         DoubleBufferedAnimatedWindowHandler {

@@ -63,14 +63,17 @@ fn draw_dot(context: graphics::context::Context, gfx: &mut piston_window::G2d, p
 }
 
 pub struct ChaosGameWindowHandler {
-    iter: Box<ChaosGameMoveIterator>,
+    iter: Box<dyn ChaosGameMoveIterator>,
     which_frame: WhichFrame,
     dots_per_frame: u64,
     last_moves: Vec<Point>,
 }
 
 impl ChaosGameWindowHandler {
-    pub fn new(game: Box<ChaosGameMoveIterator>, dots_per_frame: u64) -> ChaosGameWindowHandler {
+    pub fn new(
+        game: Box<dyn ChaosGameMoveIterator>,
+        dots_per_frame: u64,
+    ) -> ChaosGameWindowHandler {
         ChaosGameWindowHandler {
             iter: game,
             which_frame: WhichFrame::FirstFrame,

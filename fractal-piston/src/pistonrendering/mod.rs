@@ -71,7 +71,7 @@ pub trait WindowHandler {
 }
 
 /// Runs a `WindowHandler` in a `PistonWindow`.
-pub fn run(window_handler: &mut WindowHandler) {
+pub fn run(window_handler: &mut dyn WindowHandler) {
     println!("Use the mouse to select an area to zoom in on");
     println!("Press backspace to reset the view back to the initial view");
     println!("Press esc to exit");
