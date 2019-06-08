@@ -146,11 +146,11 @@ impl Iterator for NullTurtleProgramIterator {
 /// can potentially outlive the lifetime the TurtleProgram it is created from. This means the
 /// TurtleProgram probably needs to clone/copy itself and move that copy into the iterator.
 pub struct TurtleProgramIterator {
-    iter: Box<Iterator<Item = TurtleStep>>,
+    iter: Box<dyn Iterator<Item = TurtleStep>>,
 }
 
 impl<'a> TurtleProgramIterator {
-    pub fn new(iter: Box<Iterator<Item = TurtleStep>>) -> TurtleProgramIterator {
+    pub fn new(iter: Box<dyn Iterator<Item = TurtleStep>>) -> TurtleProgramIterator {
         TurtleProgramIterator { iter }
     }
 
