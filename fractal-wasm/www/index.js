@@ -8,8 +8,8 @@ const fractal_descriptions = [
         return fractal.animated_barnsleyfern(canvas);
       }
     },
-    cursor_coords: (canvas, fractal) => event => {
-      return fractal.screen_to_chaos_game(canvas, event.clientX, event.clientY);
+    cursor_coords: (canvas, fractal) => (x, y) => {
+      return fractal.screen_to_chaos_game(canvas, x, y);
     }
   },
   {
@@ -20,8 +20,8 @@ const fractal_descriptions = [
       let iterations = parseInt(event.target.value);
       return fractal.animated_cesaro(canvas, iterations);
     },
-    cursor_coords: (canvas, fractal) => event => {
-      return fractal.screen_to_turtle(canvas, event.clientX, event.clientY);
+    cursor_coords: (canvas, fractal) => (x, y) => {
+      return fractal.screen_to_turtle(canvas, x, y);
     }
   },
   {
@@ -32,8 +32,8 @@ const fractal_descriptions = [
       let iterations = parseInt(event.target.value);
       return fractal.animated_cesarotri(canvas, iterations);
     },
-    cursor_coords: (canvas, fractal) => event => {
-      return fractal.screen_to_turtle(canvas, event.clientX, event.clientY);
+    cursor_coords: (canvas, fractal) => (x, y) => {
+      return fractal.screen_to_turtle(canvas, x, y);
     }
   },
   {
@@ -44,8 +44,8 @@ const fractal_descriptions = [
       let iterations = parseInt(event.target.value);
       return fractal.animated_dragon(canvas, iterations);
     },
-    cursor_coords: (canvas, fractal) => event => {
-      return fractal.screen_to_turtle(canvas, event.clientX, event.clientY);
+    cursor_coords: (canvas, fractal) => (x, y) => {
+      return fractal.screen_to_turtle(canvas, x, y);
     }
   },
   {
@@ -56,8 +56,8 @@ const fractal_descriptions = [
       let iterations = parseInt(event.target.value);
       return fractal.animated_kochcurve(canvas, iterations);
     },
-    cursor_coords: (canvas, fractal) => event => {
-      return fractal.screen_to_turtle(canvas, event.clientX, event.clientY);
+    cursor_coords: (canvas, fractal) => (x, y) => {
+      return fractal.screen_to_turtle(canvas, x, y);
     }
   },
   {
@@ -68,8 +68,8 @@ const fractal_descriptions = [
       let iterations = parseInt(event.target.value);
       return fractal.animated_levyccurve(canvas, iterations);
     },
-    cursor_coords: (canvas, fractal) => event => {
-      return fractal.screen_to_turtle(canvas, event.clientX, event.clientY);
+    cursor_coords: (canvas, fractal) => (x, y) => {
+      return fractal.screen_to_turtle(canvas, x, y);
     }
   },
   {
@@ -81,8 +81,8 @@ const fractal_descriptions = [
         return fractal.animated_sierpinski(canvas);
       }
     },
-    cursor_coords: (canvas, fractal) => event => {
-      return fractal.screen_to_chaos_game(canvas, event.clientX, event.clientY);
+    cursor_coords: (canvas, fractal) => (x, y) => {
+      return fractal.screen_to_chaos_game(canvas, x, y);
     }
   },
   {
@@ -93,8 +93,8 @@ const fractal_descriptions = [
       let iterations = parseInt(event.target.value);
       return fractal.animated_terdragon(canvas, iterations);
     },
-    cursor_coords: (canvas, fractal) => event => {
-      return fractal.screen_to_turtle(canvas, event.clientX, event.clientY);
+    cursor_coords: (canvas, fractal) => (x, y) => {
+      return fractal.screen_to_turtle(canvas, x, y);
     }
   }
 ];
@@ -134,14 +134,17 @@ function set_visible_config(selected_fractal) {
  * using the canvas and currently selected fractal.
  */
 const update_coords = (canvas, fractal) => event => {
+  let x = event.clientX - canvas.offsetLeft;
+  let y = event.clientY - canvas.offsetTop;
+
   document.querySelector("#coords").innerText =
-    "Canvas coords: X: " + event.clientX + ", Y: " + event.clientY;
+    "Canvas coords: X: " + x + ", Y: " + y;
 
   let current_fractal = currently_selected_fractal();
   let desc = fractal_descriptions.find(el => el.id === current_fractal);
 
   if (desc) {
-    let othercoords = desc.cursor_coords(canvas, fractal)(event);
+    let othercoords = desc.cursor_coords(canvas, fractal)(x, y);
     document.querySelector("#fractal-coords").innerText =
       "Fractal coords: X: " + othercoords[0] + ", Y: " + othercoords[1];
   } else {
