@@ -45,7 +45,8 @@ pub struct TurtleAnimation {
 impl TurtleAnimation {
     /// Build a TurtleAnimation from a canvas element and a boxed turtle program.
     ///
-    /// The TurtleProgram is boxed to to avoid generics here.
+    /// The TurtleProgram is copied and boxed (via its `turtle_program_iter`) to to avoid
+    /// TurtleAnimation being generic.
     pub fn new(ctx: CanvasRenderingContext2d, program: &dyn TurtleProgram) -> TurtleAnimation {
         let mut turtle = turtle::CanvasTurtle::new(TurtleState::new(), ctx);
 
@@ -78,13 +79,41 @@ impl TurtleAnimation {
     }
 }
 
+/// Macro that generates a function for constructing a TurtleAnimation for a particular kind of
+/// turtle-based curve.
+///
+/// It takes a name identifier, a colon, and then expression that should evaluate to a
+/// TurtleProgram. The expression may use `iteration` in order to configure the TurtleProgram.
+///
+/// For example:
+/// ```rust,ignore
+/// animated_turtle!(dragon: dragon::DragonFractal::new(iteration as u64));
+/// ```
+///
+/// Will create a function with signature:
+///
+/// ```rust, ignore
+/// #[wasm_bindgen]
+/// pub fn animated_dragon(canvas: &HtmlCanvaselement, iteration: u32) -> TurtleAnimation;
+/// ```
+///
+/// It will blank out the screen, start the TurtleAnimation, and then return it. The caller may
+/// then call `draw_one_frame` on future frames/ticks to update/animate the canvas.
+///
+/// Note: `iteration` is a u32 in the function signature (and not a u64) because as of 2019/06/08,
+/// wasm-bindgen uses BigUint64Array to help pass around 64-bit unsigned integers, but
+/// BigUint64Array has not yet been standardized/ Firefox 67 does not yet support BigUint64Array or
+/// bigints.
 macro_rules! animated_turtle {
     ($name:ident: $expr:expr) => {
         // Paste is needed to concatenate render_ and the name of the fractal. Rust's own macros
         // don't provide a good way to do this.
         paste::item! {
-            // iteration needs to be a u32 for now.. As of 2019/04/28, Firefox 66.0.2 doesn't
-            // support BigUint64Array/bigints.
+            /// Blanks the canvas and constructs a `TurtleAnimation` that represents the given
+            /// curve, and then returns the `TurtleAnimation`, allowing the call to render
+            /// additional frames.
+            ///
+            /// The iteration specifies which iteration of the TurtleProgram it will draw.
             #[wasm_bindgen]
             pub fn [<animated_ $name>] (
                 canvas: &HtmlCanvasElement,
@@ -124,29 +153,22 @@ animated_turtle!(
     )
 );
 
-fn turtle_vat(ctx: &CanvasRenderingContext2d) -> geometry::ViewAreaTransformer {
-    let screen_width = ctx.canvas().unwrap().width() as f64;
-    let screen_height = ctx.canvas().unwrap().height() as f64;
-
-    geometry::ViewAreaTransformer::new(
-        [screen_width, screen_height],
-        geometry::Point { x: -0.5, y: -0.75},
-        geometry::Point { x: 1.5, y: 0.75},
-    )
-}
-
+/// Translates a pixel-coordinate on the Canvas into the coordinate system used by the turtle
+/// curves. See turtle::turtle_vat for more information on the coordinate system for turtle curves.
 #[wasm_bindgen]
 pub fn screen_to_turtle(canvas: &HtmlCanvasElement, x: f64, y: f64) -> Array {
-    let ctx = JsValue::from(canvas.get_context("2d").unwrap().unwrap())
-        .dyn_into::<CanvasRenderingContext2d>()
-        .unwrap();
-    let pos_point = turtle_vat(&ctx).map_pixel_to_point([x,y]);
+    let pos_point = turtle::turtle_vat(canvas).map_pixel_to_point([x,y]);
     Array::of2(&pos_point.x.into(), &pos_point.y.into())
 }
 
-fn chaos_game_vat(ctx: &CanvasRenderingContext2d) -> geometry::ViewAreaTransformer {
-    let screen_width = ctx.canvas().unwrap().width() as f64;
-    let screen_height = ctx.canvas().unwrap().height() as f64;
+/// Constructs a ViewAreaTransformer for converting between a canvas pixel-coordinate and the
+/// coordinate system used by Chaos Games.
+///
+/// The ChaosGame fractals expect a view area that covers between -1.0 and 1.0 on the X axis, as
+/// well as -1.0 to 1.0 on the Y axis, with positive values going up and right.
+fn chaos_game_vat(canvas: &HtmlCanvasElement) -> geometry::ViewAreaTransformer {
+    let screen_width = canvas.width() as f64;
+    let screen_height = canvas.height() as f64;
 
     geometry::ViewAreaTransformer::new(
         [screen_width, screen_height],
@@ -155,12 +177,11 @@ fn chaos_game_vat(ctx: &CanvasRenderingContext2d) -> geometry::ViewAreaTransform
     )
 }
 
+/// Translates a pixel-coordinate on the Canvas into the coordinate system used by a chaos game.
+/// See chaos_game_vat for more information on the coordinate system for chaos games.
 #[wasm_bindgen]
 pub fn screen_to_chaos_game(canvas: &HtmlCanvasElement, x: f64, y: f64) -> Array {
-    let ctx = JsValue::from(canvas.get_context("2d").unwrap().unwrap())
-        .dyn_into::<CanvasRenderingContext2d>()
-        .unwrap();
-    let pos_point = chaos_game_vat(&ctx).map_pixel_to_point([x, y]);
+    let pos_point = chaos_game_vat(canvas).map_pixel_to_point([x, y]);
     Array::of2(&pos_point.x.into(), &pos_point.y.into())
 }
 
@@ -183,7 +204,8 @@ impl ChaosGameAnimation {
     }
 
     fn draw_point(&self, point: geometry::Point) {
-        let pixel_pos = chaos_game_vat(&self.ctx).map_point_to_pixel(point);
+        let canvas = self.ctx.canvas().unwrap();
+        let pixel_pos = chaos_game_vat(&canvas).map_point_to_pixel(point);
         // console::log_1(&format!("pixels: {}, {}", pixel_pos[0], pixel_pos[1]).into());
         self.ctx.set_fill_style(&"black".into());
         self.ctx.fill_rect(pixel_pos[0], pixel_pos[1], 1.0, 1.0);
@@ -206,6 +228,26 @@ impl ChaosGameAnimation {
     }
 }
 
+/// Macro that generates a function for constructing (and starting) a ChaosGameAnimation for a
+/// particular kind of ChaosGame.
+///
+/// It takes a name identifier, a colon, and then expression that should evaluate to a
+/// a ChaosGame.
+///
+/// For example:
+/// ```rust,ignore
+/// animated_chaos_game!(sierpinski: sierpinski::SierpinskiChaosGame::new());
+/// ```
+///
+/// Will create a function with signature:
+///
+/// ```rust,ignore
+/// #[wasm_bindgen]
+/// pub fn animated_sierpinski(canvas: &HtmlCanvaselement) -> ChaosGameAnimation;
+/// ```
+///
+/// It will blank out the screen, start the ChaosGameAnimation, and then return it. The caller may
+/// then call `draw_one_frame` on future frames/ticks to update/animate the canvas.
 macro_rules! animated_chaos_game {
     ($name:ident: $expr:expr) => {
         // Paste is needed to concatenate render_ and the name of the fractal. Rust's own macros

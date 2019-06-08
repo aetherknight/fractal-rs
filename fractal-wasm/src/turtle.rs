@@ -14,7 +14,24 @@
 //
 use fractal_lib::geometry::{Point, Vector, ViewAreaTransformer};
 use fractal_lib::turtle::{Turtle, TurtleState};
-use web_sys::{console, CanvasRenderingContext2d};
+use web_sys::{CanvasRenderingContext2d, HtmlCanvasElement};
+
+/// Constructs a ViewAreaTransformer for converting between a canvas pixel-coordinate and the
+/// coordinate system used by Turtle curves.
+///
+/// The Turtle curves expect a view area that has positive values going up and to the right, and
+/// that center on both (0.0, 0.0) and (1.0, 0.0). to achieve this, the we need a view area from
+/// -0.5 to 1.5 on the X axis, and -0.75 and 0.75 on the Y axis.
+pub fn turtle_vat(canvas: &HtmlCanvasElement) -> ViewAreaTransformer {
+    let screen_width = canvas.width() as f64;
+    let screen_height = canvas.height() as f64;
+
+    ViewAreaTransformer::new(
+        [screen_width, screen_height],
+        Point { x: -0.5, y: -0.75 },
+        Point { x: 1.5, y: 0.75 },
+    )
+}
 
 /// A turtle that can draw to an HTML Canvas.
 pub struct CanvasTurtle {
@@ -37,14 +54,7 @@ impl Turtle for CanvasTurtle {
         });
 
         if self.state.down {
-            let screen_width = self.ctx.canvas().unwrap().width() as f64;
-            let screen_height = self.ctx.canvas().unwrap().height() as f64;
-
-            let turtle_vat = ViewAreaTransformer::new(
-                [screen_width, screen_height],
-                Point { x: -0.5, y: -0.75 },
-                Point { x: 1.5, y: 0.75 },
-            );
+            let turtle_vat = turtle_vat(&self.ctx.canvas().unwrap());
 
             let old_coords = turtle_vat.map_point_to_pixel(old_pos);
             let new_coords = turtle_vat.map_point_to_pixel(new_pos);
