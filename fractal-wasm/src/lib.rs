@@ -12,6 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+//! Exports the various fractal curves so that they can be called and animated/rendered from
+//! JavaScript in a browser.
+
 use fractal_lib::chaosgame::barnsleyfern;
 use fractal_lib::chaosgame::sierpinski;
 use fractal_lib::chaosgame::ChaosGameMoveIterator;
@@ -157,7 +160,7 @@ animated_turtle!(
 /// curves. See turtle::turtle_vat for more information on the coordinate system for turtle curves.
 #[wasm_bindgen]
 pub fn screen_to_turtle(canvas: &HtmlCanvasElement, x: f64, y: f64) -> Array {
-    let pos_point = turtle::turtle_vat(canvas).map_pixel_to_point([x,y]);
+    let pos_point = turtle::turtle_vat(canvas).map_pixel_to_point([x, y]);
     Array::of2(&pos_point.x.into(), &pos_point.y.into())
 }
 
