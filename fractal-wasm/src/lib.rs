@@ -15,23 +15,29 @@
 //! Exports the various fractal curves so that they can be called and animated/rendered from
 //! JavaScript in a browser.
 
+use console_error_panic_hook;
 use fractal_lib::chaosgame::barnsleyfern;
 use fractal_lib::chaosgame::sierpinski;
 use fractal_lib::chaosgame::ChaosGameMoveIterator;
+use fractal_lib::color;
 use fractal_lib::curves::cesaro;
 use fractal_lib::curves::cesarotri;
 use fractal_lib::curves::dragon;
 use fractal_lib::curves::kochcurve;
 use fractal_lib::curves::levyccurve;
 use fractal_lib::curves::terdragon;
+use fractal_lib::escapetime::mandelbrot::Mandelbrot;
+use fractal_lib::escapetime::EscapeTime;
 use fractal_lib::geometry;
 use fractal_lib::lindenmayer::LindenmayerSystemTurtleProgram;
 use fractal_lib::turtle::{Turtle, TurtleCollectToNextForwardIterator, TurtleProgram, TurtleState};
 use js_sys::Array;
+use num::complex::Complex64;
 use paste;
+use std::cmp;
 use wasm_bindgen::prelude::*;
-use wasm_bindgen::JsCast;
-use web_sys::{console, CanvasRenderingContext2d, HtmlCanvasElement};
+use wasm_bindgen::{Clamped, JsCast};
+use web_sys::{console, CanvasRenderingContext2d, HtmlCanvasElement, ImageData};
 
 mod turtle;
 
@@ -256,8 +262,6 @@ macro_rules! animated_chaos_game {
         // Paste is needed to concatenate render_ and the name of the fractal. Rust's own macros
         // don't provide a good way to do this.
         paste::item! {
-            // iteration needs to be a u32 for now.. As of 2019/04/28, Firefox 66.0.2 doesn't
-            // support BigUint64Array/bigints.
             #[wasm_bindgen]
             pub fn [<animated_ $name>] (canvas: &HtmlCanvasElement) -> ChaosGameAnimation {
                 console::log_1(&format!("Starting animation {}", stringify!($name)).into());
@@ -282,3 +286,132 @@ animated_chaos_game!(
 );
 
 animated_chaos_game!(sierpinski: sierpinski::SierpinskiChaosGame::new());
+
+#[wasm_bindgen]
+pub struct EscapeTimeAnimation {
+    /// The rendering context.
+    ctx: CanvasRenderingContext2d,
+
+    /// Which EscapeTime system is being animated. Boxed to encapsulate/avoid generics.
+    etsystem: Box<dyn EscapeTime>,
+
+    /// The current part of the fractal we're viewing.
+    view_area: [geometry::Point; 2],
+}
+
+impl EscapeTimeAnimation {
+    pub fn new(
+        ctx: CanvasRenderingContext2d,
+        etsystem: Box<dyn EscapeTime>,
+    ) -> EscapeTimeAnimation {
+        let view_area_c = etsystem.default_view_area();
+        let view_area = [
+            geometry::Point::from(view_area_c[0]),
+            geometry::Point::from(view_area_c[1]),
+        ];
+        EscapeTimeAnimation {
+            ctx,
+            etsystem,
+            view_area,
+        }
+    }
+
+    fn render(&self) {
+        let screen_width = self.ctx.canvas().unwrap().width();
+        let screen_height = self.ctx.canvas().unwrap().height();
+        let vat = geometry::ViewAreaTransformer::new(
+            [screen_width.into(), screen_height.into()],
+            self.view_area[0],
+            self.view_area[1],
+        );
+        console::log_1(&format!("View area: {:?}", self.view_area).into());
+        console::log_1(&format!("pixel 0,0 maps to {}", vat.map_pixel_to_point([0.0, 0.0])).into());
+        console::log_1(
+            &format!(
+                "pixel {},{} maps to {}",
+                screen_width as u32,
+                screen_height as u32,
+                vat.map_pixel_to_point([screen_width.into(), screen_height.into()])
+            )
+            .into(),
+        );
+
+        console::log_1(&format!("build color range").into());
+        let colors = color::color_range_linear(
+            color::BLACK_U8,
+            color::WHITE_U8,
+            cmp::min(self.etsystem.max_iterations(), 50) as usize,
+        );
+
+        console::log_1(&format!("build image pixels").into());
+        let mut image_pixels = (0..screen_height)
+            .map(|y| {
+                (0..screen_width)
+                    .map(|x| {
+                        let c: Complex64 =
+                            vat.map_pixel_to_point([f64::from(x), f64::from(y)]).into();
+                        let (attracted, time) = self.etsystem.test_point(c);
+                        if attracted {
+                            color::AEBLUE_U8.0.iter()
+                        } else {
+                            colors[cmp::min(time, 50 - 1) as usize].0.iter()
+                        }
+                    })
+                    .flatten()
+                    .collect::<Vec<&u8>>()
+            })
+            .flatten()
+            .map(|b| *b)
+            .collect::<Vec<u8>>();;
+
+        // Construct a Clamped Uint8 Array
+        console::log_1(&format!("build clamped image array").into());
+        let clamped_image_array = Clamped(image_pixels.as_mut_slice());
+
+        // Create an ImageData from the array
+        console::log_1(&format!("Create Image Data").into());
+        let image = ImageData::new_with_u8_clamped_array_and_sh(
+            clamped_image_array,
+            screen_width,
+            screen_height,
+        )
+        .unwrap();
+
+        console::log_1(&format!("Put Image Data").into());
+        self.ctx.put_image_data(&image, 0.0, 0.0).unwrap();
+    }
+}
+
+#[wasm_bindgen]
+impl EscapeTimeAnimation {
+    pub fn draw_one_frame(&mut self) -> bool {
+        false
+    }
+}
+
+macro_rules! animated_escape_time {
+    ($name:ident: $expr:expr) => {
+        // Paste is needed to concatenate render_ and the name of the fractal. Rust's own macros
+        // don't provide a good way to do this.
+        paste::item! {
+            #[wasm_bindgen]
+            pub fn [<animated_ $name>] (
+                canvas: &HtmlCanvasElement, max_terations: u32, power: u32
+            ) -> EscapeTimeAnimation {
+                console_error_panic_hook::set_once();
+                console::log_1(&format!("Starting animation {}", stringify!($name)).into());
+                let ctx = JsValue::from(canvas.get_context("2d").unwrap().unwrap())
+                    .dyn_into::<CanvasRenderingContext2d>()
+                    .unwrap();
+
+                ctx.clear_rect(0.0, 0.0, canvas.width().into(), canvas.height().into());
+
+                let eta = EscapeTimeAnimation::new(ctx, Box::new($expr));
+                eta.render();
+                eta
+            }
+        }
+    };
+}
+
+animated_escape_time!(mandelbrot: Mandelbrot::new(max_terations as u64, power as u64));

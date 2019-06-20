@@ -73,6 +73,26 @@ const fractal_descriptions = [
     }
   },
   {
+    id: "mandelbrot",
+    name: "Mandelbrot Fractal",
+    config: [
+      { name: "Max Iterations", id: "max-iterations", default: 100 },
+      { name: "Power", id: "power", default: 2 }
+    ],
+    get_animation: (canvas, fractal) => event => {
+      if (event.target.value !== "") {
+        let max_iterations = parseInt(
+          document.querySelector("#mandelbrot-max-iterations").value
+        );
+        let power = parseInt(document.querySelector("#mandelbrot-power").value);
+        return fractal.animated_mandelbrot(canvas, max_iterations, power);
+      }
+    },
+    cursor_coords: (canvas, fractal) => (x, y) => {
+      return fractal.screen_to_chaos_game(canvas, x, y);
+    }
+  },
+  {
     id: "sierpinski",
     name: "Sierpinski Triangle",
     config: [{ name: "bogus", id: "bogus" }],
@@ -194,6 +214,9 @@ function setup_configs(canvas, fractal) {
       // Add an Input
       let config_input = document.createElement("input");
       config_input.id = desc.id + "-" + config_option.id;
+      if (config_option.default) {
+        config_input.value = config_option.default;
+      }
       fractal_config.appendChild(config_input);
     }
 
