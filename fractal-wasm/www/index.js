@@ -2,11 +2,9 @@ const fractal_descriptions = [
   {
     id: "barnsleyfern",
     name: "Barnsley Fern Fractal",
-    config: [{ name: "bogus", id: "bogus" }],
+    config: [],
     get_animation: (canvas, fractal) => event => {
-      if (event.target.value !== "") {
-        return fractal.animated_barnsleyfern(canvas);
-      }
+      return fractal.animated_barnsleyfern(canvas);
     },
     cursor_coords: (canvas, fractal) => (x, y) => {
       return fractal.screen_to_chaos_game(canvas, x, y);
@@ -17,7 +15,9 @@ const fractal_descriptions = [
     name: "Cesáro Fractal",
     config: [{ name: "Iterations", id: "iterations" }],
     get_animation: (canvas, fractal) => event => {
-      let iterations = parseInt(event.target.value);
+      let iterations = parseInt(
+        document.querySelector("#cesaro-iterations").value
+      );
       return fractal.animated_cesaro(canvas, iterations);
     },
     cursor_coords: (canvas, fractal) => (x, y) => {
@@ -29,7 +29,9 @@ const fractal_descriptions = [
     name: "Triangle Cesáro Fractal",
     config: [{ name: "Iterations", id: "iterations" }],
     get_animation: (canvas, fractal) => event => {
-      let iterations = parseInt(event.target.value);
+      let iterations = parseInt(
+        document.querySelector("#cesarotri-iterations").value
+      );
       return fractal.animated_cesarotri(canvas, iterations);
     },
     cursor_coords: (canvas, fractal) => (x, y) => {
@@ -41,7 +43,9 @@ const fractal_descriptions = [
     name: "Dragon Fractal",
     config: [{ name: "Iterations", id: "iterations" }],
     get_animation: (canvas, fractal) => event => {
-      let iterations = parseInt(event.target.value);
+      let iterations = parseInt(
+        document.querySelector("#dragon-iterations").value
+      );
       return fractal.animated_dragon(canvas, iterations);
     },
     cursor_coords: (canvas, fractal) => (x, y) => {
@@ -53,7 +57,9 @@ const fractal_descriptions = [
     name: "Koch Curve",
     config: [{ name: "Iterations", id: "iterations" }],
     get_animation: (canvas, fractal) => event => {
-      let iterations = parseInt(event.target.value);
+      let iterations = parseInt(
+        document.querySelector("#kochcurve-iterations").value
+      );
       return fractal.animated_kochcurve(canvas, iterations);
     },
     cursor_coords: (canvas, fractal) => (x, y) => {
@@ -65,7 +71,9 @@ const fractal_descriptions = [
     name: "Levy C Curve",
     config: [{ name: "Iterations", id: "iterations" }],
     get_animation: (canvas, fractal) => event => {
-      let iterations = parseInt(event.target.value);
+      let iterations = parseInt(
+        document.querySelector("#levyccurve-iterations").value
+      );
       return fractal.animated_levyccurve(canvas, iterations);
     },
     cursor_coords: (canvas, fractal) => (x, y) => {
@@ -80,13 +88,11 @@ const fractal_descriptions = [
       { name: "Power", id: "power", default: 2 }
     ],
     get_animation: (canvas, fractal) => event => {
-      if (event.target.value !== "") {
-        let max_iterations = parseInt(
-          document.querySelector("#mandelbrot-max-iterations").value
-        );
-        let power = parseInt(document.querySelector("#mandelbrot-power").value);
-        return fractal.animated_mandelbrot(canvas, max_iterations, power);
-      }
+      let max_iterations = parseInt(
+        document.querySelector("#mandelbrot-max-iterations").value
+      );
+      let power = parseInt(document.querySelector("#mandelbrot-power").value);
+      return fractal.animated_mandelbrot(canvas, max_iterations, power);
     },
     cursor_coords: (canvas, fractal) => (x, y) => {
       return fractal.screen_to_chaos_game(canvas, x, y);
@@ -95,11 +101,9 @@ const fractal_descriptions = [
   {
     id: "sierpinski",
     name: "Sierpinski Triangle",
-    config: [{ name: "bogus", id: "bogus" }],
+    config: [],
     get_animation: (canvas, fractal) => event => {
-      if (event.target.value !== "") {
-        return fractal.animated_sierpinski(canvas);
-      }
+      return fractal.animated_sierpinski(canvas);
     },
     cursor_coords: (canvas, fractal) => (x, y) => {
       return fractal.screen_to_chaos_game(canvas, x, y);
@@ -110,7 +114,9 @@ const fractal_descriptions = [
     name: "Terdragon Fractal",
     config: [{ name: "Iterations", id: "iterations" }],
     get_animation: (canvas, fractal) => event => {
-      let iterations = parseInt(event.target.value);
+      let iterations = parseInt(
+        document.querySelector("#terdragon-iterations").value
+      );
       return fractal.animated_terdragon(canvas, iterations);
     },
     cursor_coords: (canvas, fractal) => (x, y) => {
@@ -220,10 +226,14 @@ function setup_configs(canvas, fractal) {
       fractal_config.appendChild(config_input);
     }
 
-    // Add it to the page
-    config_container.appendChild(fractal_config);
+    // Add a button to start/restart the animation
+    let button = document.createElement("button");
+    button.title = "Run";
+    button.textContent = "Run";
+    fractal_config.appendChild(button);
+
     // Listen for changes to start/restart the animation
-    fractal_config.addEventListener("input", event => {
+    button.addEventListener("click", event => {
       // Stop any ongoing animation
       if (window.current_frame) {
         window.cancelAnimationFrame(window.current_frame);
@@ -242,6 +252,9 @@ function setup_configs(canvas, fractal) {
         window.current_frame = window.requestAnimationFrame(draw);
       }
     });
+
+    // Add it to the page
+    config_container.appendChild(fractal_config);
   }
   set_visible_config(
     document.querySelector("#fractal-type").selectedOptions[0].value
