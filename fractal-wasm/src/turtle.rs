@@ -25,8 +25,8 @@ use web_sys::{console, CanvasRenderingContext2d, HtmlCanvasElement};
 /// that center on both (0.0, 0.0) and (1.0, 0.0). to achieve this, the we need a view area from
 /// -0.5 to 1.5 on the X axis, and -0.75 and 0.75 on the Y axis.
 fn turtle_vat(canvas: &HtmlCanvasElement) -> ViewAreaTransformer {
-    let screen_width = canvas.width() as f64;
-    let screen_height = canvas.height() as f64;
+    let screen_width = f64::from(canvas.width());
+    let screen_height = f64::from(canvas.height());
 
     ViewAreaTransformer::new(
         [screen_width, screen_height],

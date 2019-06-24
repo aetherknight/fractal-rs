@@ -24,8 +24,8 @@ use web_sys::{console, CanvasRenderingContext2d, HtmlCanvasElement};
 /// The ChaosGame fractals expect a view area that covers between -1.0 and 1.0 on the X axis, as
 /// well as -1.0 to 1.0 on the Y axis, with positive values going up and right.
 fn chaos_game_vat(canvas: &HtmlCanvasElement) -> geometry::ViewAreaTransformer {
-    let screen_width = canvas.width() as f64;
-    let screen_height = canvas.height() as f64;
+    let screen_width = f64::from(canvas.width());
+    let screen_height = f64::from(canvas.height());
 
     geometry::ViewAreaTransformer::new(
         [screen_width, screen_height],

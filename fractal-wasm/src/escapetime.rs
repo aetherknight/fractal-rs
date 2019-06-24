@@ -71,14 +71,14 @@ impl EscapeTimeAnimation {
             .into(),
         );
 
-        console::log_1(&format!("build color range").into());
+        console::log_1(&"build color range".into());
         let colors = color::color_range_linear(
             color::BLACK_U8,
             color::WHITE_U8,
             cmp::min(self.etsystem.max_iterations(), 50) as usize,
         );
 
-        console::log_1(&format!("build image pixels").into());
+        console::log_1(&"build image pixels".into());
         let mut image_pixels = (0..screen_height)
             .map(|y| {
                 (0..screen_width)
@@ -96,15 +96,15 @@ impl EscapeTimeAnimation {
                     .collect::<Vec<&u8>>()
             })
             .flatten()
-            .map(|b| *b)
+            .cloned()
             .collect::<Vec<u8>>();;
 
         // Construct a Clamped Uint8 Array
-        console::log_1(&format!("build clamped image array").into());
+        console::log_1(&"build clamped image array".into());
         let clamped_image_array = Clamped(image_pixels.as_mut_slice());
 
         // Create an ImageData from the array
-        console::log_1(&format!("Create Image Data").into());
+        console::log_1(&"Create Image Data".into());
         let image = ImageData::new_with_u8_clamped_array_and_sh(
             clamped_image_array,
             screen_width,
@@ -112,7 +112,7 @@ impl EscapeTimeAnimation {
         )
         .unwrap();
 
-        console::log_1(&format!("Put Image Data").into());
+        console::log_1(&"Put Image Data".into());
         self.ctx.put_image_data(&image, 0.0, 0.0).unwrap();
     }
 }

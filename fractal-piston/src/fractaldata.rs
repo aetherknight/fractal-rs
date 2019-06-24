@@ -84,7 +84,7 @@ where
 {
     name: &'static str,
     description: &'static str,
-    ctor: Box<Fn() -> E>,
+    ctor: Box<dyn Fn() -> E>,
 }
 
 impl<E> ChaosGameCommand<E>
@@ -94,7 +94,7 @@ where
     pub fn new(
         name: &'static str,
         description: &'static str,
-        ctor: Box<Fn() -> E>,
+        ctor: Box<dyn Fn() -> E>,
     ) -> ChaosGameCommand<E> {
         ChaosGameCommand {
             name,
@@ -138,7 +138,7 @@ where
 {
     name: &'static str,
     description: &'static str,
-    ctor: Box<Fn(u64, u64) -> E>,
+    ctor: Box<dyn Fn(u64, u64) -> E>,
 }
 
 impl<E> EscapeTimeCommand<E>
@@ -148,7 +148,7 @@ where
     pub fn new(
         name: &'static str,
         description: &'static str,
-        ctor: Box<Fn(u64, u64) -> E>,
+        ctor: Box<dyn Fn(u64, u64) -> E>,
     ) -> EscapeTimeCommand<E> {
         EscapeTimeCommand {
             name,
@@ -208,7 +208,7 @@ where
 {
     name: &'static str,
     description: &'static str,
-    ctor: Box<Fn(u64) -> E>,
+    ctor: Box<dyn Fn(u64) -> E>,
 }
 
 impl<E> TurtleCommand<E>
@@ -218,7 +218,7 @@ where
     pub fn new(
         name: &'static str,
         description: &'static str,
-        ctor: Box<Fn(u64) -> E>,
+        ctor: Box<dyn Fn(u64) -> E>,
     ) -> TurtleCommand<E> {
         TurtleCommand {
             name,

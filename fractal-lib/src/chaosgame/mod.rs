@@ -57,7 +57,7 @@ impl ChaosGameMoveThreadedIterator {
     /// iterator using a channel. The ChaosGame must be managed by an Arc in order to share the
     /// ChaosGame with the thread.
     pub fn new(
-        game: Arc<ChaosGameThreadedGenerator + Send + Sync>,
+        game: Arc<dyn ChaosGameThreadedGenerator + Send + Sync>,
     ) -> ChaosGameMoveThreadedIterator {
         let (mut tx, rx) = sync_channel::<Point>(10);
         let worker = thread::spawn(move || {

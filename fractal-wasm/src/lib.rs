@@ -54,7 +54,7 @@ mod turtle;
 ///
 /// For example:
 /// ```rust,ignore
-/// animated_turtle!(dragon: dragon::DragonFractal::new(iteration as u64));
+/// animated_turtle!(dragon: dragon::DragonFractal::new(u64::from(iteration)));
 /// ```
 ///
 /// Will create a function with signature:
@@ -100,24 +100,23 @@ macro_rules! animated_turtle {
 }
 
 animated_turtle!(
-    cesaro: LindenmayerSystemTurtleProgram::new(cesaro::CesaroFractal::new(iteration as u64))
+    cesaro: LindenmayerSystemTurtleProgram::new(cesaro::CesaroFractal::new(u64::from(iteration)))
 );
 animated_turtle!(
-    cesarotri: LindenmayerSystemTurtleProgram::new(cesarotri::CesaroTriFractal::new(
-        iteration as u64)
-    )
+    cesarotri:
+        LindenmayerSystemTurtleProgram::new(cesarotri::CesaroTriFractal::new(u64::from(iteration)))
 );
-animated_turtle!(dragon: dragon::DragonFractal::new(iteration as u64));
+animated_turtle!(dragon: dragon::DragonFractal::new(u64::from(iteration)));
 animated_turtle!(
-    kochcurve: LindenmayerSystemTurtleProgram::new(kochcurve::KochCurve::new(iteration as u64))
-);
-animated_turtle!(
-    levyccurve: LindenmayerSystemTurtleProgram::new(levyccurve::LevyCCurve::new(iteration as u64))
+    kochcurve: LindenmayerSystemTurtleProgram::new(kochcurve::KochCurve::new(u64::from(iteration)))
 );
 animated_turtle!(
-    terdragon: LindenmayerSystemTurtleProgram::new(
-        terdragon::TerdragonFractal::new(iteration as u64)
-    )
+    levyccurve:
+        LindenmayerSystemTurtleProgram::new(levyccurve::LevyCCurve::new(u64::from(iteration)))
+);
+animated_turtle!(
+    terdragon:
+        LindenmayerSystemTurtleProgram::new(terdragon::TerdragonFractal::new(u64::from(iteration)))
 );
 
 /// Macro that generates a function for constructing (and starting) a ChaosGameAnimation for a
@@ -179,7 +178,7 @@ macro_rules! animated_escape_time {
         paste::item! {
             #[wasm_bindgen]
             pub fn [<animated_ $name>] (
-                canvas: &HtmlCanvasElement, max_terations: u32, power: u32
+                canvas: &HtmlCanvasElement, max_iterations: u32, power: u32
             ) -> escapetime::EscapeTimeAnimation {
                 console_error_panic_hook::set_once();
                 console::log_1(&format!("Starting animation {}", stringify!($name)).into());
@@ -189,14 +188,15 @@ macro_rules! animated_escape_time {
 
                 ctx.clear_rect(0.0, 0.0, canvas.width().into(), canvas.height().into());
 
-                let eta = escapetime::EscapeTimeAnimation::new(ctx, Box::new($expr));
-                eta
+                escapetime::EscapeTimeAnimation::new(ctx, Box::new($expr))
             }
         }
     };
 }
 
-animated_escape_time!(burningmandel: BurningMandel::new(max_terations as u64, power as u64));
-animated_escape_time!(burningship: BurningShip::new(max_terations as u64, power as u64));
-animated_escape_time!(mandelbrot: Mandelbrot::new(max_terations as u64, power as u64));
-animated_escape_time!(roadrunner: RoadRunner::new(max_terations as u64, power as u64));
+animated_escape_time!(
+    burningmandel: BurningMandel::new(u64::from(max_iterations), u64::from(power))
+);
+animated_escape_time!(burningship: BurningShip::new(u64::from(max_iterations), u64::from(power)));
+animated_escape_time!(mandelbrot: Mandelbrot::new(u64::from(max_iterations), u64::from(power)));
+animated_escape_time!(roadrunner: RoadRunner::new(u64::from(max_iterations), u64::from(power)));

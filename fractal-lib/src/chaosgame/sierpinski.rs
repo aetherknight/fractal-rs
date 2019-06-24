@@ -20,7 +20,7 @@ use rand;
 use rand::distributions::{Distribution, Uniform};
 use std::sync::mpsc::SyncSender;
 
-#[derive(Clone)]
+#[derive(Clone, Default)]
 pub struct SierpinskiChaosGame {
     vertices: [Point; 3],
     curr_point: Point,

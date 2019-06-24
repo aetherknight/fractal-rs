@@ -56,7 +56,7 @@ impl BarnsleyFern {
     /// Internal helper for ChaosGameThreadedGenerator.
     ///
     /// The lifetime is needed here to satisfy the compiler's use of the box elsewhere.
-    fn pick_transform<'a>(&'a self) -> Box<Fn(Point) -> Point + 'a> {
+    fn pick_transform<'a>(&'a self) -> Box<dyn Fn(Point) -> Point + 'a> {
         let dist = WeightedIndex::new(&self.weights).unwrap();
         let mut rng = rand::thread_rng();
         let chosen_index = dist.sample(&mut rng);
