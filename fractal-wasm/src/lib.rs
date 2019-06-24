@@ -46,6 +46,11 @@ mod chaosgame;
 mod escapetime;
 mod turtle;
 
+#[wasm_bindgen(start)]
+pub fn start() {
+    console_error_panic_hook::set_once();
+}
+
 /// Macro that generates a function for constructing a TurtleAnimation for a particular kind of
 /// turtle-based curve.
 ///
@@ -180,7 +185,6 @@ macro_rules! animated_escape_time {
             pub fn [<animated_ $name>] (
                 canvas: &HtmlCanvasElement, max_iterations: u32, power: u32
             ) -> escapetime::EscapeTimeAnimation {
-                console_error_panic_hook::set_once();
                 console::log_1(&format!("Starting animation {}", stringify!($name)).into());
                 let ctx = JsValue::from(canvas.get_context("2d").unwrap().unwrap())
                     .dyn_into::<CanvasRenderingContext2d>()
