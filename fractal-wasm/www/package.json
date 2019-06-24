@@ -1,4 +1,6 @@
 {
+  "author": "William (B.J.) Snow Orvis <aetherknight@gmail.com>",
+  "license": "Apache-2.0",
   "scripts": {
     "build:prod": "webpack --config webpack.config.js --mode=production",
     "build:dev": "webpack --config webpack.config.js --mode=development",
