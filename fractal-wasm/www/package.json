@@ -1,7 +1,8 @@
 {
   "scripts": {
-    "build": "webpack --config webpack.config.js",
-    "serve": "webpack-dev-server"
+    "build:prod": "webpack --config webpack.config.js --mode=production",
+    "build:dev": "webpack --config webpack.config.js --mode=development",
+    "start:dev": "webpack-dev-server --mode=development"
   },
   "devDependencies": {
     "@wasm-tool/wasm-pack-plugin": "0.4.2",
