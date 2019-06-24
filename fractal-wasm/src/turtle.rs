@@ -159,4 +159,8 @@ impl TurtleAnimation {
         let pos_point = turtle_vat(&canvas).map_pixel_to_point([x, y]);
         Array::of2(&pos_point.x.into(), &pos_point.y.into())
     }
+
+    pub fn zoom(&mut self, _x1: f64, _y1: f64, _x2: f64, _y2: f64) -> bool {
+        false
+    }
 }

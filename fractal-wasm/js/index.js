@@ -182,9 +182,9 @@ function set_visible_config(selected_fractal) {
  * Returns an event handler that updates the coordinates under the cursor,
  * using the canvas and the most recently/currently rendered fractal.
  */
-const update_coords = canvas => event => {
-  let x = event.clientX - canvas.offsetLeft;
-  let y = event.clientY - canvas.offsetTop;
+const update_coords = event => {
+  let x = event.clientX - event.target.offsetLeft;
+  let y = event.clientY - event.target.offsetTop;
 
   document.querySelector("#coords").innerText =
     "Canvas coords: X: " + x + ", Y: " + y;
@@ -197,6 +197,32 @@ const update_coords = canvas => event => {
     document.querySelector("#fractal-coords").innerText =
       "Fractal coords: No fractal being rendered";
   }
+};
+
+const start_selection = event => {
+  let down_x = event.clientX - event.target.offsetLeft;
+  let down_y = event.clientY - event.target.offsetTop;
+
+  let finish_selection = event => {
+    let up_x = event.clientX - event.target.offsetLeft;
+    let up_y = event.clientY - event.target.offsetTop;
+
+    event.target.removeEventListener("pointerup", finish_selection);
+
+    if (window.current_animation) {
+      let redraw = window.current_animation.zoom(down_x, down_y, up_x, up_y);
+      if (redraw) {
+        let draw = ts => {
+          if (window.current_animation.draw_one_frame()) {
+            window.current_frame = window.requestAnimationFrame(draw);
+          }
+        };
+        window.current_frame = window.requestAnimationFrame(draw);
+      }
+    }
+  };
+
+  event.target.addEventListener("pointerup", finish_selection);
 };
 
 /**
@@ -329,7 +355,8 @@ import("../pkg/fractal_wasm")
     let canvas = document.querySelector("#fractal-canvas");
 
     // Show coordinates within the canvas
-    canvas.addEventListener("pointermove", update_coords(canvas));
+    canvas.addEventListener("pointermove", update_coords);
+    canvas.addEventListener("pointerdown", start_selection);
 
     setup_configs(canvas, fractal);
   })

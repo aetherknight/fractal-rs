@@ -136,4 +136,25 @@ impl EscapeTimeAnimation {
         let pos_point = vat.map_pixel_to_point([x, y]);
         Array::of2(&pos_point.x.into(), &pos_point.y.into())
     }
+
+    pub fn zoom(&mut self, x1: f64, y1: f64, x2: f64, y2: f64) -> bool {
+        let screen_width = self.ctx.canvas().unwrap().width();
+        let screen_height = self.ctx.canvas().unwrap().height();
+
+        // get the vat for the current view area
+        let vat = geometry::ViewAreaTransformer::new(
+            [screen_width.into(), screen_height.into()],
+            self.view_area[0],
+            self.view_area[1],
+        );
+
+        // compute the new view area in the fractal's coordinate system
+        let tlp = vat.map_pixel_to_point([x1, y1]);
+        let brp = vat.map_pixel_to_point([x2, y2]);
+
+        // update
+        self.view_area = [tlp, brp];
+
+        true
+    }
 }

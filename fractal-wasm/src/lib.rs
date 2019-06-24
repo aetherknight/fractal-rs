@@ -22,6 +22,7 @@
 //! trait FractalAnimation {
 //!     fn draw_one_frame(&mut self) -> bool;
 //!     fn pixel_to_coordinate(&self, x: f64, y: f64) -> Array;
+//!     fn zoom(&mut self, x1, y1, x2, y2) -> bool;
 //! }
 //! ```
 
