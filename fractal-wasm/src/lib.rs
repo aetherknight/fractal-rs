@@ -14,6 +14,16 @@
 
 //! Exports the various fractal curves so that they can be called and animated/rendered from
 //! JavaScript in a browser.
+//!
+//! Each fractal type has its own factory function that returns an object that implements the
+//! following interface/protocol (although traits don't map to JS):
+//!
+//! ```
+//! trait FractalAnimation {
+//!     fn draw_one_frame(&mut self) -> bool;
+//!     fn pixel_to_coordinate(&self, x: f64, y: f64) -> Array;
+//! }
+//! ```
 
 use console_error_panic_hook;
 use fractal_lib::chaosgame::barnsleyfern;
@@ -86,6 +96,16 @@ impl TurtleAnimation {
             self.turtle.up();
             false
         }
+    }
+
+    /// Translates a pixel-coordinate on the Canvas into the coordinate system used by the turtle
+    /// curves.
+    ///
+    /// See turtle::turtle_vat for more information on the coordinate system for turtle curves.
+    pub fn pixel_to_coordinate(&self, x: f64, y: f64) -> Array {
+        let canvas = self.turtle.ctx.canvas().unwrap();
+        let pos_point = turtle::turtle_vat(&canvas).map_pixel_to_point([x, y]);
+        Array::of2(&pos_point.x.into(), &pos_point.y.into())
     }
 }
 
@@ -163,14 +183,6 @@ animated_turtle!(
     )
 );
 
-/// Translates a pixel-coordinate on the Canvas into the coordinate system used by the turtle
-/// curves. See turtle::turtle_vat for more information on the coordinate system for turtle curves.
-#[wasm_bindgen]
-pub fn screen_to_turtle(canvas: &HtmlCanvasElement, x: f64, y: f64) -> Array {
-    let pos_point = turtle::turtle_vat(canvas).map_pixel_to_point([x, y]);
-    Array::of2(&pos_point.x.into(), &pos_point.y.into())
-}
-
 /// Constructs a ViewAreaTransformer for converting between a canvas pixel-coordinate and the
 /// coordinate system used by Chaos Games.
 ///
@@ -185,14 +197,6 @@ fn chaos_game_vat(canvas: &HtmlCanvasElement) -> geometry::ViewAreaTransformer {
         geometry::Point { x: -1.0, y: -1.0 },
         geometry::Point { x: 1.0, y: 1.0 },
     )
-}
-
-/// Translates a pixel-coordinate on the Canvas into the coordinate system used by a chaos game.
-/// See chaos_game_vat for more information on the coordinate system for chaos games.
-#[wasm_bindgen]
-pub fn screen_to_chaos_game(canvas: &HtmlCanvasElement, x: f64, y: f64) -> Array {
-    let pos_point = chaos_game_vat(canvas).map_pixel_to_point([x, y]);
-    Array::of2(&pos_point.x.into(), &pos_point.y.into())
 }
 
 /// Represents everything needed to render a chaos game fractal as an animation.
@@ -225,7 +229,10 @@ impl ChaosGameAnimation {
 
 #[wasm_bindgen]
 impl ChaosGameAnimation {
-    /// Always returns true
+    /// Draws one point of the chaos game animation.
+    ///
+    /// Should always return true, unless the underlying chaos game's iterator ends for some
+    /// reason.
     pub fn draw_one_frame(&mut self) -> bool {
         if let Some(next_point) = self.iter.next() {
             // console::log_1(&format!("{}", next_point).into());
@@ -235,6 +242,16 @@ impl ChaosGameAnimation {
             console::log_1(&"No more points".into());
             false
         }
+    }
+
+    /// Translates a pixel-coordinate on the Canvas into the coordinate system used by a chaos
+    /// game.
+    ///
+    /// See chaos_game_vat for more information on the coordinate system for chaos games.
+    pub fn pixel_to_coordinate(&self, x: f64, y: f64) -> Array {
+        let canvas = self.ctx.canvas().unwrap();
+        let pos_point = chaos_game_vat(&canvas).map_pixel_to_point([x, y]);
+        Array::of2(&pos_point.x.into(), &pos_point.y.into())
     }
 }
 
@@ -387,6 +404,19 @@ impl EscapeTimeAnimation {
 impl EscapeTimeAnimation {
     pub fn draw_one_frame(&mut self) -> bool {
         false
+    }
+
+    pub fn pixel_to_coordinate(&self, x: f64, y: f64) -> Array {
+        let screen_width = self.ctx.canvas().unwrap().width();
+        let screen_height = self.ctx.canvas().unwrap().height();
+
+        let vat = geometry::ViewAreaTransformer::new(
+            [screen_width.into(), screen_height.into()],
+            self.view_area[0],
+            self.view_area[1],
+        );
+        let pos_point = vat.map_pixel_to_point([x, y]);
+        Array::of2(&pos_point.x.into(), &pos_point.y.into())
     }
 }
 

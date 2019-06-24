@@ -3,11 +3,8 @@ const fractal_descriptions = [
     id: "barnsleyfern",
     name: "Barnsley Fern Fractal",
     config: [],
-    get_animation: (canvas, fractal) => event => {
-      return fractal.animated_barnsleyfern(canvas);
-    },
-    cursor_coords: (canvas, fractal) => (x, y) => {
-      return fractal.screen_to_chaos_game(canvas, x, y);
+    get_animation: (canvas, fractal_mod) => event => {
+      return fractal_mod.animated_barnsleyfern(canvas);
     }
   },
   {
@@ -17,15 +14,14 @@ const fractal_descriptions = [
       { name: "Max Iterations", id: "max-iterations", default: 100 },
       { name: "Power", id: "power", default: 2 }
     ],
-    get_animation: (canvas, fractal) => event => {
+    get_animation: (canvas, fractal_mod) => event => {
       let max_iterations = parseInt(
         document.querySelector("#burningmandel-max-iterations").value
       );
-      let power = parseInt(document.querySelector("#burningmandel-power").value);
-      return fractal.animated_burningmandel(canvas, max_iterations, power);
-    },
-    cursor_coords: (canvas, fractal) => (x, y) => {
-      return fractal.screen_to_chaos_game(canvas, x, y);
+      let power = parseInt(
+        document.querySelector("#burningmandel-power").value
+      );
+      return fractal_mod.animated_burningmandel(canvas, max_iterations, power);
     }
   },
   {
@@ -35,85 +31,67 @@ const fractal_descriptions = [
       { name: "Max Iterations", id: "max-iterations", default: 100 },
       { name: "Power", id: "power", default: 2 }
     ],
-    get_animation: (canvas, fractal) => event => {
+    get_animation: (canvas, fractal_mod) => event => {
       let max_iterations = parseInt(
         document.querySelector("#burningship-max-iterations").value
       );
       let power = parseInt(document.querySelector("#burningship-power").value);
-      return fractal.animated_burningship(canvas, max_iterations, power);
-    },
-    cursor_coords: (canvas, fractal) => (x, y) => {
-      return fractal.screen_to_chaos_game(canvas, x, y);
+      return fractal_mod.animated_burningship(canvas, max_iterations, power);
     }
   },
   {
     id: "cesaro",
     name: "Cesáro Fractal",
     config: [{ name: "Iterations", id: "iterations" }],
-    get_animation: (canvas, fractal) => event => {
+    get_animation: (canvas, fractal_mod) => event => {
       let iterations = parseInt(
         document.querySelector("#cesaro-iterations").value
       );
-      return fractal.animated_cesaro(canvas, iterations);
-    },
-    cursor_coords: (canvas, fractal) => (x, y) => {
-      return fractal.screen_to_turtle(canvas, x, y);
+      return fractal_mod.animated_cesaro(canvas, iterations);
     }
   },
   {
     id: "cesarotri",
     name: "Triangle Cesáro Fractal",
     config: [{ name: "Iterations", id: "iterations" }],
-    get_animation: (canvas, fractal) => event => {
+    get_animation: (canvas, fractal_mod) => event => {
       let iterations = parseInt(
         document.querySelector("#cesarotri-iterations").value
       );
-      return fractal.animated_cesarotri(canvas, iterations);
-    },
-    cursor_coords: (canvas, fractal) => (x, y) => {
-      return fractal.screen_to_turtle(canvas, x, y);
+      return fractal_mod.animated_cesarotri(canvas, iterations);
     }
   },
   {
     id: "dragon",
     name: "Dragon Fractal",
     config: [{ name: "Iterations", id: "iterations" }],
-    get_animation: (canvas, fractal) => event => {
+    get_animation: (canvas, fractal_mod) => event => {
       let iterations = parseInt(
         document.querySelector("#dragon-iterations").value
       );
-      return fractal.animated_dragon(canvas, iterations);
-    },
-    cursor_coords: (canvas, fractal) => (x, y) => {
-      return fractal.screen_to_turtle(canvas, x, y);
+      return fractal_mod.animated_dragon(canvas, iterations);
     }
   },
   {
     id: "kochcurve",
     name: "Koch Curve",
     config: [{ name: "Iterations", id: "iterations" }],
-    get_animation: (canvas, fractal) => event => {
+    get_animation: (canvas, fractal_mod) => event => {
       let iterations = parseInt(
         document.querySelector("#kochcurve-iterations").value
       );
-      return fractal.animated_kochcurve(canvas, iterations);
-    },
-    cursor_coords: (canvas, fractal) => (x, y) => {
-      return fractal.screen_to_turtle(canvas, x, y);
+      return fractal_mod.animated_kochcurve(canvas, iterations);
     }
   },
   {
     id: "levyccurve",
     name: "Levy C Curve",
     config: [{ name: "Iterations", id: "iterations" }],
-    get_animation: (canvas, fractal) => event => {
+    get_animation: (canvas, fractal_mod) => event => {
       let iterations = parseInt(
         document.querySelector("#levyccurve-iterations").value
       );
-      return fractal.animated_levyccurve(canvas, iterations);
-    },
-    cursor_coords: (canvas, fractal) => (x, y) => {
-      return fractal.screen_to_turtle(canvas, x, y);
+      return fractal_mod.animated_levyccurve(canvas, iterations);
     }
   },
   {
@@ -123,15 +101,12 @@ const fractal_descriptions = [
       { name: "Max Iterations", id: "max-iterations", default: 100 },
       { name: "Power", id: "power", default: 2 }
     ],
-    get_animation: (canvas, fractal) => event => {
+    get_animation: (canvas, fractal_mod) => event => {
       let max_iterations = parseInt(
         document.querySelector("#mandelbrot-max-iterations").value
       );
       let power = parseInt(document.querySelector("#mandelbrot-power").value);
-      return fractal.animated_mandelbrot(canvas, max_iterations, power);
-    },
-    cursor_coords: (canvas, fractal) => (x, y) => {
-      return fractal.screen_to_chaos_game(canvas, x, y);
+      return fractal_mod.animated_mandelbrot(canvas, max_iterations, power);
     }
   },
   {
@@ -141,40 +116,31 @@ const fractal_descriptions = [
       { name: "Max Iterations", id: "max-iterations", default: 100 },
       { name: "Power", id: "power", default: 2 }
     ],
-    get_animation: (canvas, fractal) => event => {
+    get_animation: (canvas, fractal_mod) => event => {
       let max_iterations = parseInt(
         document.querySelector("#roadrunner-max-iterations").value
       );
       let power = parseInt(document.querySelector("#roadrunner-power").value);
-      return fractal.animated_roadrunner(canvas, max_iterations, power);
-    },
-    cursor_coords: (canvas, fractal) => (x, y) => {
-      return fractal.screen_to_chaos_game(canvas, x, y);
+      return fractal_mod.animated_roadrunner(canvas, max_iterations, power);
     }
   },
   {
     id: "sierpinski",
     name: "Sierpinski Triangle",
     config: [],
-    get_animation: (canvas, fractal) => event => {
-      return fractal.animated_sierpinski(canvas);
-    },
-    cursor_coords: (canvas, fractal) => (x, y) => {
-      return fractal.screen_to_chaos_game(canvas, x, y);
+    get_animation: (canvas, fractal_mod) => event => {
+      return fractal_mod.animated_sierpinski(canvas);
     }
   },
   {
     id: "terdragon",
     name: "Terdragon Fractal",
     config: [{ name: "Iterations", id: "iterations" }],
-    get_animation: (canvas, fractal) => event => {
+    get_animation: (canvas, fractal_mod) => event => {
       let iterations = parseInt(
         document.querySelector("#terdragon-iterations").value
       );
-      return fractal.animated_terdragon(canvas, iterations);
-    },
-    cursor_coords: (canvas, fractal) => (x, y) => {
-      return fractal.screen_to_turtle(canvas, x, y);
+      return fractal_mod.animated_terdragon(canvas, iterations);
     }
   }
 ];
@@ -182,16 +148,6 @@ const fractal_descriptions = [
 /**********************************************************
  * Config
  **********************************************************/
-
-/**
- * Determines the currently selected fractal based on which option is selected
- * by the #fractal-type dropdown.
- */
-function currently_selected_fractal() {
-  let fractal_picker = document.querySelector("#fractal-type");
-  let choice = fractal_picker.selectedOptions[0];
-  return choice.value;
-}
 
 /**
  * Upddates which configuration element is shown --- assumes that the
@@ -211,24 +167,22 @@ function set_visible_config(selected_fractal) {
 
 /**
  * Returns an event handler that updates the coordinates under the cursor,
- * using the canvas and currently selected fractal.
+ * using the canvas and the most recently/currently rendered fractal.
  */
-const update_coords = (canvas, fractal) => event => {
+const update_coords = canvas => event => {
   let x = event.clientX - canvas.offsetLeft;
   let y = event.clientY - canvas.offsetTop;
 
   document.querySelector("#coords").innerText =
     "Canvas coords: X: " + x + ", Y: " + y;
 
-  let current_fractal = currently_selected_fractal();
-  let desc = fractal_descriptions.find(el => el.id === current_fractal);
-
-  if (desc) {
-    let othercoords = desc.cursor_coords(canvas, fractal)(x, y);
+  if (window.current_animation) {
+    let othercoords = window.current_animation.pixel_to_coordinate(x, y);
     document.querySelector("#fractal-coords").innerText =
       "Fractal coords: X: " + othercoords[0] + ", Y: " + othercoords[1];
   } else {
-    console.warn("No fractal selected. current_fractal was " + current_fractal);
+    document.querySelector("#fractal-coords").innerText =
+      "Fractal coords: No fractal being rendered";
   }
 };
 
@@ -298,6 +252,10 @@ function setup_configs(canvas, fractal) {
       // by not returning anything.
       let animation = desc.get_animation(canvas, fractal)(event);
       if (animation) {
+        // Store a global reference to the current animation -- we need it to
+        // calculate the current coordinates.
+        window.current_animation = animation;
+
         let draw = ts => {
           if (animation.draw_one_frame()) {
             window.current_frame = window.requestAnimationFrame(draw);
@@ -324,7 +282,7 @@ import("../pkg/fractal_wasm")
     let canvas = document.querySelector("#fractal-canvas");
 
     // Show coordinates within the canvas
-    canvas.addEventListener("pointermove", update_coords(canvas, fractal));
+    canvas.addEventListener("pointermove", update_coords(canvas));
 
     setup_configs(canvas, fractal);
   })

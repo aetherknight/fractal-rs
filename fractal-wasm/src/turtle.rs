@@ -36,7 +36,7 @@ pub fn turtle_vat(canvas: &HtmlCanvasElement) -> ViewAreaTransformer {
 /// A turtle that can draw to an HTML Canvas.
 pub struct CanvasTurtle {
     state: TurtleState,
-    ctx: CanvasRenderingContext2d,
+    pub ctx: CanvasRenderingContext2d,
 }
 
 impl CanvasTurtle {
