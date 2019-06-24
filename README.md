@@ -154,5 +154,5 @@ A few rules about contributed code:
 
 ## License
 
-Copyright (c) 2015-2016 William (B.J.) Snow Orvis. Licensed under the Apache
+Copyright (c) 2015-2019 William (B.J.) Snow Orvis. Licensed under the Apache
 License, Version 2.0. See [LICENSE](LICENSE) for details.
