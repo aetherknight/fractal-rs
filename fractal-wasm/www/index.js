@@ -1,7 +1,8 @@
 const fractal_descriptions = [
   {
     id: "barnsleyfern",
-    name: "Barnsley Fern Fractal",
+    name: "Barnsley Fern",
+    category: "Chaos Games",
     config: [],
     get_animation: (canvas, fractal_mod) => event => {
       return fractal_mod.animated_barnsleyfern(canvas);
@@ -9,7 +10,8 @@ const fractal_descriptions = [
   },
   {
     id: "burningmandel",
-    name: "Burning Mandel Fractal",
+    name: "Burning Mandel",
+    category: "Escape Time Fractals",
     config: [
       { name: "Max Iterations", id: "max-iterations", default: 100 },
       { name: "Power", id: "power", default: 2 }
@@ -26,7 +28,8 @@ const fractal_descriptions = [
   },
   {
     id: "burningship",
-    name: "Burning Ship Fractal",
+    name: "Burning Ship",
+    category: "Escape Time Fractals",
     config: [
       { name: "Max Iterations", id: "max-iterations", default: 100 },
       { name: "Power", id: "power", default: 2 }
@@ -41,7 +44,8 @@ const fractal_descriptions = [
   },
   {
     id: "cesaro",
-    name: "Cesáro Fractal",
+    name: "Cesáro Curve",
+    category: "Lindenmayer Curves",
     config: [{ name: "Iterations", id: "iterations" }],
     get_animation: (canvas, fractal_mod) => event => {
       let iterations = parseInt(
@@ -52,7 +56,8 @@ const fractal_descriptions = [
   },
   {
     id: "cesarotri",
-    name: "Triangle Cesáro Fractal",
+    name: "Triangle Cesáro Curve",
+    category: "Lindenmayer Curves",
     config: [{ name: "Iterations", id: "iterations" }],
     get_animation: (canvas, fractal_mod) => event => {
       let iterations = parseInt(
@@ -63,7 +68,8 @@ const fractal_descriptions = [
   },
   {
     id: "dragon",
-    name: "Dragon Fractal",
+    name: "Dragon",
+    category: "Other Curves",
     config: [{ name: "Iterations", id: "iterations" }],
     get_animation: (canvas, fractal_mod) => event => {
       let iterations = parseInt(
@@ -75,6 +81,7 @@ const fractal_descriptions = [
   {
     id: "kochcurve",
     name: "Koch Curve",
+    category: "Lindenmayer Curves",
     config: [{ name: "Iterations", id: "iterations" }],
     get_animation: (canvas, fractal_mod) => event => {
       let iterations = parseInt(
@@ -86,6 +93,7 @@ const fractal_descriptions = [
   {
     id: "levyccurve",
     name: "Levy C Curve",
+    category: "Lindenmayer Curves",
     config: [{ name: "Iterations", id: "iterations" }],
     get_animation: (canvas, fractal_mod) => event => {
       let iterations = parseInt(
@@ -96,7 +104,8 @@ const fractal_descriptions = [
   },
   {
     id: "mandelbrot",
-    name: "Mandelbrot Fractal",
+    name: "Mandelbrot",
+    category: "Escape Time Fractals",
     config: [
       { name: "Max Iterations", id: "max-iterations", default: 100 },
       { name: "Power", id: "power", default: 2 }
@@ -111,7 +120,8 @@ const fractal_descriptions = [
   },
   {
     id: "roadrunner",
-    name: "Roadrunner Fractal (burningship variation)",
+    name: "Roadrunner",
+    category: "Escape Time Fractals",
     config: [
       { name: "Max Iterations", id: "max-iterations", default: 100 },
       { name: "Power", id: "power", default: 2 }
@@ -127,6 +137,7 @@ const fractal_descriptions = [
   {
     id: "sierpinski",
     name: "Sierpinski Triangle",
+    category: "Chaos Games",
     config: [],
     get_animation: (canvas, fractal_mod) => event => {
       return fractal_mod.animated_sierpinski(canvas);
@@ -134,7 +145,8 @@ const fractal_descriptions = [
   },
   {
     id: "terdragon",
-    name: "Terdragon Fractal",
+    name: "Terdragon",
+    category: "Lindenmayer Curves",
     config: [{ name: "Iterations", id: "iterations" }],
     get_animation: (canvas, fractal_mod) => event => {
       let iterations = parseInt(
@@ -196,11 +208,34 @@ const update_coords = canvas => event => {
 function setup_configs(canvas, fractal) {
   // Build the #fractal-type dropdown.
   let fractal_picker = document.querySelector("#fractal-type");
-  for (desc of fractal_descriptions) {
-    let option = document.createElement("option");
-    option.value = desc.id;
-    option.appendChild(document.createTextNode(desc.name));
-    fractal_picker.appendChild(option);
+
+  // Group the descriptions by category, to build a fancier dropdown with option groups
+  const fractal_descriptions_by_category = fractal_descriptions.reduce(
+    (acc, desc) => {
+      if (acc.has(desc.category)) {
+        acc.get(desc.category).push(desc);
+      } else {
+        acc.set(desc.category, [desc]);
+      }
+      return acc;
+    },
+    new Map()
+  );
+
+  // Build the dropdown
+  for (category of [...fractal_descriptions_by_category.keys()].sort()) {
+    console.log(category);
+    let optgroup = document.createElement("optgroup");
+    optgroup.label = category;
+
+    for (desc of fractal_descriptions_by_category.get(category)) {
+      let option = document.createElement("option");
+      option.value = desc.id;
+      option.appendChild(document.createTextNode(desc.name));
+      optgroup.appendChild(option);
+    }
+
+    fractal_picker.appendChild(optgroup);
   }
 
   // Whenever the selection changes, update which configs are visible.
