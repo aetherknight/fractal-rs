@@ -13,16 +13,12 @@ const fractal_descriptions = [
     name: "Burning Mandel",
     category: "Escape Time Fractals",
     config: [
-      { name: "Max Iterations", id: "max-iterations", default: 100 },
-      { name: "Power", id: "power", default: 2 }
+      { name: "Max Iterations", id: "max-iterations", default: 100, min: 1 },
+      { name: "Power", id: "power", default: 2, min: 1 }
     ],
     get_animation: (canvas, fractal_mod) => event => {
-      let max_iterations = parseInt(
-        document.querySelector("#burningmandel-max-iterations").value
-      );
-      let power = parseInt(
-        document.querySelector("#burningmandel-power").value
-      );
+      let max_iterations = get_int("#burningmandel-max-iterations");
+      let power = get_int("#burningmandel-power");
       return fractal_mod.animated_burningmandel(canvas, max_iterations, power);
     }
   },
@@ -31,14 +27,12 @@ const fractal_descriptions = [
     name: "Burning Ship",
     category: "Escape Time Fractals",
     config: [
-      { name: "Max Iterations", id: "max-iterations", default: 100 },
-      { name: "Power", id: "power", default: 2 }
+      { name: "Max Iterations", id: "max-iterations", default: 100, min: 1 },
+      { name: "Power", id: "power", default: 2, min: 1 }
     ],
     get_animation: (canvas, fractal_mod) => event => {
-      let max_iterations = parseInt(
-        document.querySelector("#burningship-max-iterations").value
-      );
-      let power = parseInt(document.querySelector("#burningship-power").value);
+      let max_iterations = get_int("#burningship-max-iterations");
+      let power = get_int("#burningship-power");
       return fractal_mod.animated_burningship(canvas, max_iterations, power);
     }
   },
@@ -46,11 +40,9 @@ const fractal_descriptions = [
     id: "cesaro",
     name: "Cesáro Curve",
     category: "Lindenmayer Curves",
-    config: [{ name: "Iterations", id: "iterations" }],
+    config: [{ name: "Iterations", id: "iterations", min: 0 }],
     get_animation: (canvas, fractal_mod) => event => {
-      let iterations = parseInt(
-        document.querySelector("#cesaro-iterations").value
-      );
+      let iterations = get_int("#cesaro-iterations");
       return fractal_mod.animated_cesaro(canvas, iterations);
     }
   },
@@ -58,11 +50,9 @@ const fractal_descriptions = [
     id: "cesarotri",
     name: "Triangle Cesáro Curve",
     category: "Lindenmayer Curves",
-    config: [{ name: "Iterations", id: "iterations" }],
+    config: [{ name: "Iterations", id: "iterations", min: 0 }],
     get_animation: (canvas, fractal_mod) => event => {
-      let iterations = parseInt(
-        document.querySelector("#cesarotri-iterations").value
-      );
+      let iterations = get_int("#cesarotri-iterations");
       return fractal_mod.animated_cesarotri(canvas, iterations);
     }
   },
@@ -70,11 +60,9 @@ const fractal_descriptions = [
     id: "dragon",
     name: "Dragon",
     category: "Other Curves",
-    config: [{ name: "Iterations", id: "iterations" }],
+    config: [{ name: "Iterations", id: "iterations", min: 0 }],
     get_animation: (canvas, fractal_mod) => event => {
-      let iterations = parseInt(
-        document.querySelector("#dragon-iterations").value
-      );
+      let iterations = get_int("#dragon-iterations");
       return fractal_mod.animated_dragon(canvas, iterations);
     }
   },
@@ -82,11 +70,9 @@ const fractal_descriptions = [
     id: "kochcurve",
     name: "Koch Curve",
     category: "Lindenmayer Curves",
-    config: [{ name: "Iterations", id: "iterations" }],
+    config: [{ name: "Iterations", id: "iterations", min: 0 }],
     get_animation: (canvas, fractal_mod) => event => {
-      let iterations = parseInt(
-        document.querySelector("#kochcurve-iterations").value
-      );
+      let iterations = get_int("#kochcurve-iterations");
       return fractal_mod.animated_kochcurve(canvas, iterations);
     }
   },
@@ -94,11 +80,9 @@ const fractal_descriptions = [
     id: "levyccurve",
     name: "Levy C Curve",
     category: "Lindenmayer Curves",
-    config: [{ name: "Iterations", id: "iterations" }],
+    config: [{ name: "Iterations", id: "iterations", min: 0 }],
     get_animation: (canvas, fractal_mod) => event => {
-      let iterations = parseInt(
-        document.querySelector("#levyccurve-iterations").value
-      );
+      let iterations = get_int("#levyccurve-iterations");
       return fractal_mod.animated_levyccurve(canvas, iterations);
     }
   },
@@ -107,14 +91,12 @@ const fractal_descriptions = [
     name: "Mandelbrot",
     category: "Escape Time Fractals",
     config: [
-      { name: "Max Iterations", id: "max-iterations", default: 100 },
-      { name: "Power", id: "power", default: 2 }
+      { name: "Max Iterations", id: "max-iterations", default: 100, min: 1 },
+      { name: "Power", id: "power", default: 2, min: 1 }
     ],
     get_animation: (canvas, fractal_mod) => event => {
-      let max_iterations = parseInt(
-        document.querySelector("#mandelbrot-max-iterations").value
-      );
-      let power = parseInt(document.querySelector("#mandelbrot-power").value);
+      let max_iterations = get_int("#mandelbrot-max-iterations");
+      let power = get_int("#mandelbrot-power");
       return fractal_mod.animated_mandelbrot(canvas, max_iterations, power);
     }
   },
@@ -123,14 +105,12 @@ const fractal_descriptions = [
     name: "Roadrunner",
     category: "Escape Time Fractals",
     config: [
-      { name: "Max Iterations", id: "max-iterations", default: 100 },
-      { name: "Power", id: "power", default: 2 }
+      { name: "Max Iterations", id: "max-iterations", default: 100, min: 1 },
+      { name: "Power", id: "power", default: 2, min: 1 }
     ],
     get_animation: (canvas, fractal_mod) => event => {
-      let max_iterations = parseInt(
-        document.querySelector("#roadrunner-max-iterations").value
-      );
-      let power = parseInt(document.querySelector("#roadrunner-power").value);
+      let max_iterations = get_int("#roadrunner-max-iterations");
+      let power = get_int("#roadrunner-power");
       return fractal_mod.animated_roadrunner(canvas, max_iterations, power);
     }
   },
@@ -147,11 +127,9 @@ const fractal_descriptions = [
     id: "terdragon",
     name: "Terdragon",
     category: "Lindenmayer Curves",
-    config: [{ name: "Iterations", id: "iterations" }],
+    config: [{ name: "Iterations", id: "iterations", min: 0 }],
     get_animation: (canvas, fractal_mod) => event => {
-      let iterations = parseInt(
-        document.querySelector("#terdragon-iterations").value
-      );
+      let iterations = get_int("#terdragon-iterations");
       return fractal_mod.animated_terdragon(canvas, iterations);
     }
   }
@@ -160,6 +138,15 @@ const fractal_descriptions = [
 /**********************************************************
  * Config
  **********************************************************/
+
+function get_int(selector) {
+  const input = document.querySelector(selector);
+  if (input.checkValidity()) {
+    return parseInt(input.value);
+  } else {
+    throw `${selector} isn't valid`;
+  }
+}
 
 /**
  * Upddates which configuration element is shown --- assumes that the
@@ -265,8 +252,16 @@ function setup_configs(canvas, fractal) {
       // Add an Input
       let config_input = document.createElement("input");
       config_input.id = desc.id + "-" + config_option.id;
-      if (config_option.default) {
+      config_input.type = "number";
+      config_input.required = true;
+      if (config_option.default !== undefined) {
         config_input.value = config_option.default;
+      }
+      if (config_option.min !== undefined) {
+        config_input.min = config_option.min;
+      }
+      if (config_option.max !== undefined) {
+        config_input.max = config_option.max;
       }
       config_div.appendChild(config_input);
       fractal_config.appendChild(config_div);
