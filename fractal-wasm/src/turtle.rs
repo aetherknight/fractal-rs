@@ -13,8 +13,10 @@
 // limitations under the License.
 //
 use fractal_lib::geometry::{Point, Vector, ViewAreaTransformer};
-use fractal_lib::turtle::{Turtle, TurtleState};
-use web_sys::{CanvasRenderingContext2d, HtmlCanvasElement};
+use fractal_lib::turtle::{Turtle, TurtleCollectToNextForwardIterator, TurtleProgram, TurtleState};
+use js_sys::Array;
+use wasm_bindgen::prelude::*;
+use web_sys::{console, CanvasRenderingContext2d, HtmlCanvasElement};
 
 /// Constructs a ViewAreaTransformer for converting between a canvas pixel-coordinate and the
 /// coordinate system used by Turtle curves.
@@ -22,7 +24,7 @@ use web_sys::{CanvasRenderingContext2d, HtmlCanvasElement};
 /// The Turtle curves expect a view area that has positive values going up and to the right, and
 /// that center on both (0.0, 0.0) and (1.0, 0.0). to achieve this, the we need a view area from
 /// -0.5 to 1.5 on the X axis, and -0.75 and 0.75 on the Y axis.
-pub fn turtle_vat(canvas: &HtmlCanvasElement) -> ViewAreaTransformer {
+fn turtle_vat(canvas: &HtmlCanvasElement) -> ViewAreaTransformer {
     let screen_width = canvas.width() as f64;
     let screen_height = canvas.height() as f64;
 
@@ -34,7 +36,7 @@ pub fn turtle_vat(canvas: &HtmlCanvasElement) -> ViewAreaTransformer {
 }
 
 /// A turtle that can draw to an HTML Canvas.
-pub struct CanvasTurtle {
+struct CanvasTurtle {
     state: TurtleState,
     pub ctx: CanvasRenderingContext2d,
 }
@@ -99,5 +101,62 @@ impl Turtle for CanvasTurtle {
 
     fn up(&mut self) {
         self.state.down = false;
+    }
+}
+
+/// Represents everything needed to render a turtle a piece at a time to a canvas.
+///
+/// It holds onto a turtle program, which is then used to eventually initialize an iterator over
+/// that program.
+#[wasm_bindgen]
+pub struct TurtleAnimation {
+    turtle: CanvasTurtle,
+    iter: TurtleCollectToNextForwardIterator,
+}
+
+impl TurtleAnimation {
+    /// Build a TurtleAnimation from a canvas element and a boxed turtle program.
+    ///
+    /// The TurtleProgram is copied and boxed (via its `turtle_program_iter`) to to avoid
+    /// TurtleAnimation being generic.
+    pub fn new(ctx: CanvasRenderingContext2d, program: &dyn TurtleProgram) -> TurtleAnimation {
+        let mut turtle = CanvasTurtle::new(TurtleState::new(), ctx);
+
+        let init_turtle_steps = program.init_turtle();
+        for action in init_turtle_steps {
+            turtle.perform(action)
+        }
+
+        let iter = program.turtle_program_iter().collect_to_next_forward();
+
+        TurtleAnimation { turtle, iter }
+    }
+}
+
+#[wasm_bindgen]
+impl TurtleAnimation {
+    /// Returns true if there are more moves to make, and false if it can no longer perform a move.
+    pub fn draw_one_frame(&mut self) -> bool {
+        if let Some(one_move) = self.iter.next() {
+            console::log_1(&"Rendering one move".into());
+            for action in one_move {
+                self.turtle.perform(action);
+            }
+            true
+        } else {
+            console::log_1(&"No more moves".into());
+            self.turtle.up();
+            false
+        }
+    }
+
+    /// Translates a pixel-coordinate on the Canvas into the coordinate system used by the turtle
+    /// curves.
+    ///
+    /// See turtle::turtle_vat for more information on the coordinate system for turtle curves.
+    pub fn pixel_to_coordinate(&self, x: f64, y: f64) -> Array {
+        let canvas = self.turtle.ctx.canvas().unwrap();
+        let pos_point = turtle_vat(&canvas).map_pixel_to_point([x, y]);
+        Array::of2(&pos_point.x.into(), &pos_point.y.into())
     }
 }

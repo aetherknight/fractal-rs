@@ -28,8 +28,6 @@
 use console_error_panic_hook;
 use fractal_lib::chaosgame::barnsleyfern;
 use fractal_lib::chaosgame::sierpinski;
-use fractal_lib::chaosgame::ChaosGameMoveIterator;
-use fractal_lib::color;
 use fractal_lib::curves::cesaro;
 use fractal_lib::curves::cesarotri;
 use fractal_lib::curves::dragon;
@@ -38,76 +36,15 @@ use fractal_lib::curves::levyccurve;
 use fractal_lib::curves::terdragon;
 use fractal_lib::escapetime::burningship::{BurningMandel, BurningShip, RoadRunner};
 use fractal_lib::escapetime::mandelbrot::Mandelbrot;
-use fractal_lib::escapetime::EscapeTime;
-use fractal_lib::geometry;
 use fractal_lib::lindenmayer::LindenmayerSystemTurtleProgram;
-use fractal_lib::turtle::{Turtle, TurtleCollectToNextForwardIterator, TurtleProgram, TurtleState};
-use js_sys::Array;
-use num::complex::Complex64;
 use paste;
-use std::cmp;
 use wasm_bindgen::prelude::*;
-use wasm_bindgen::{Clamped, JsCast};
-use web_sys::{console, CanvasRenderingContext2d, HtmlCanvasElement, ImageData};
+use wasm_bindgen::JsCast;
+use web_sys::{console, CanvasRenderingContext2d, HtmlCanvasElement};
 
+mod chaosgame;
+mod escapetime;
 mod turtle;
-
-/// Represents everything needed to render a turtle a piece at a time to a canvas.
-///
-/// It holds onto a turtle program, which is then used to eventually initialize an iterator over
-/// that program.
-#[wasm_bindgen]
-pub struct TurtleAnimation {
-    turtle: turtle::CanvasTurtle,
-    iter: TurtleCollectToNextForwardIterator,
-}
-
-impl TurtleAnimation {
-    /// Build a TurtleAnimation from a canvas element and a boxed turtle program.
-    ///
-    /// The TurtleProgram is copied and boxed (via its `turtle_program_iter`) to to avoid
-    /// TurtleAnimation being generic.
-    pub fn new(ctx: CanvasRenderingContext2d, program: &dyn TurtleProgram) -> TurtleAnimation {
-        let mut turtle = turtle::CanvasTurtle::new(TurtleState::new(), ctx);
-
-        let init_turtle_steps = program.init_turtle();
-        for action in init_turtle_steps {
-            turtle.perform(action)
-        }
-
-        let iter = program.turtle_program_iter().collect_to_next_forward();
-
-        TurtleAnimation { turtle, iter }
-    }
-}
-
-#[wasm_bindgen]
-impl TurtleAnimation {
-    /// Returns true if there are more moves to make, and false if it can no longer perform a move.
-    pub fn draw_one_frame(&mut self) -> bool {
-        if let Some(one_move) = self.iter.next() {
-            console::log_1(&"Rendering one move".into());
-            for action in one_move {
-                self.turtle.perform(action);
-            }
-            true
-        } else {
-            console::log_1(&"No more moves".into());
-            self.turtle.up();
-            false
-        }
-    }
-
-    /// Translates a pixel-coordinate on the Canvas into the coordinate system used by the turtle
-    /// curves.
-    ///
-    /// See turtle::turtle_vat for more information on the coordinate system for turtle curves.
-    pub fn pixel_to_coordinate(&self, x: f64, y: f64) -> Array {
-        let canvas = self.turtle.ctx.canvas().unwrap();
-        let pos_point = turtle::turtle_vat(&canvas).map_pixel_to_point([x, y]);
-        Array::of2(&pos_point.x.into(), &pos_point.y.into())
-    }
-}
 
 /// Macro that generates a function for constructing a TurtleAnimation for a particular kind of
 /// turtle-based curve.
@@ -124,7 +61,7 @@ impl TurtleAnimation {
 ///
 /// ```rust, ignore
 /// #[wasm_bindgen]
-/// pub fn animated_dragon(canvas: &HtmlCanvaselement, iteration: u32) -> TurtleAnimation;
+/// pub fn animated_dragon(canvas: &HtmlCanvaselement, iteration: u32) -> turtle::TurtleAnimation;
 /// ```
 ///
 /// It will blank out the screen, start the TurtleAnimation, and then return it. The caller may
@@ -148,7 +85,7 @@ macro_rules! animated_turtle {
             pub fn [<animated_ $name>] (
                 canvas: &HtmlCanvasElement,
                 iteration: u32
-            ) -> TurtleAnimation {
+            ) -> turtle::TurtleAnimation {
                 console::log_1(&format!("Starting animation {}", stringify!($name)).into());
                 let ctx = JsValue::from(canvas.get_context("2d").unwrap().unwrap())
                     .dyn_into::<CanvasRenderingContext2d>()
@@ -156,7 +93,7 @@ macro_rules! animated_turtle {
                 let program = $expr;
                 ctx.clear_rect(0.0, 0.0, canvas.width().into(), canvas.height().into());
 
-                TurtleAnimation::new(ctx, &program)
+                turtle::TurtleAnimation::new(ctx, &program)
             }
         }
     };
@@ -182,78 +119,6 @@ animated_turtle!(
         terdragon::TerdragonFractal::new(iteration as u64)
     )
 );
-
-/// Constructs a ViewAreaTransformer for converting between a canvas pixel-coordinate and the
-/// coordinate system used by Chaos Games.
-///
-/// The ChaosGame fractals expect a view area that covers between -1.0 and 1.0 on the X axis, as
-/// well as -1.0 to 1.0 on the Y axis, with positive values going up and right.
-fn chaos_game_vat(canvas: &HtmlCanvasElement) -> geometry::ViewAreaTransformer {
-    let screen_width = canvas.width() as f64;
-    let screen_height = canvas.height() as f64;
-
-    geometry::ViewAreaTransformer::new(
-        [screen_width, screen_height],
-        geometry::Point { x: -1.0, y: -1.0 },
-        geometry::Point { x: 1.0, y: 1.0 },
-    )
-}
-
-/// Represents everything needed to render a chaos game fractal as an animation.
-#[wasm_bindgen]
-pub struct ChaosGameAnimation {
-    ctx: CanvasRenderingContext2d,
-    iter: Box<dyn ChaosGameMoveIterator>,
-}
-
-impl ChaosGameAnimation {
-    pub fn new(
-        ctx: CanvasRenderingContext2d,
-        chaos_game: Box<dyn ChaosGameMoveIterator>,
-    ) -> ChaosGameAnimation {
-        ChaosGameAnimation {
-            ctx,
-            iter: chaos_game,
-        }
-    }
-
-    fn draw_point(&self, point: geometry::Point) {
-        let canvas = self.ctx.canvas().unwrap();
-        let pixel_pos = chaos_game_vat(&canvas).map_point_to_pixel(point);
-        // console::log_1(&format!("pixels: {}, {}", pixel_pos[0], pixel_pos[1]).into());
-        self.ctx.set_fill_style(&"black".into());
-        self.ctx.fill_rect(pixel_pos[0], pixel_pos[1], 1.0, 1.0);
-        // self.ctx.stroke();
-    }
-}
-
-#[wasm_bindgen]
-impl ChaosGameAnimation {
-    /// Draws one point of the chaos game animation.
-    ///
-    /// Should always return true, unless the underlying chaos game's iterator ends for some
-    /// reason.
-    pub fn draw_one_frame(&mut self) -> bool {
-        if let Some(next_point) = self.iter.next() {
-            // console::log_1(&format!("{}", next_point).into());
-            self.draw_point(next_point);
-            true
-        } else {
-            console::log_1(&"No more points".into());
-            false
-        }
-    }
-
-    /// Translates a pixel-coordinate on the Canvas into the coordinate system used by a chaos
-    /// game.
-    ///
-    /// See chaos_game_vat for more information on the coordinate system for chaos games.
-    pub fn pixel_to_coordinate(&self, x: f64, y: f64) -> Array {
-        let canvas = self.ctx.canvas().unwrap();
-        let pos_point = chaos_game_vat(&canvas).map_pixel_to_point([x, y]);
-        Array::of2(&pos_point.x.into(), &pos_point.y.into())
-    }
-}
 
 /// Macro that generates a function for constructing (and starting) a ChaosGameAnimation for a
 /// particular kind of ChaosGame.
@@ -281,7 +146,9 @@ macro_rules! animated_chaos_game {
         // don't provide a good way to do this.
         paste::item! {
             #[wasm_bindgen]
-            pub fn [<animated_ $name>] (canvas: &HtmlCanvasElement) -> ChaosGameAnimation {
+            pub fn [<animated_ $name>] (
+                canvas: &HtmlCanvasElement
+            ) -> chaosgame::ChaosGameAnimation {
                 console::log_1(&format!("Starting animation {}", stringify!($name)).into());
                 let ctx = JsValue::from(canvas.get_context("2d").unwrap().unwrap())
                     .dyn_into::<CanvasRenderingContext2d>()
@@ -289,7 +156,7 @@ macro_rules! animated_chaos_game {
 
                 ctx.clear_rect(0.0, 0.0, canvas.width().into(), canvas.height().into());
 
-                ChaosGameAnimation::new(ctx, Box::new($expr))
+                chaosgame::ChaosGameAnimation::new(ctx, Box::new($expr))
             }
         }
     };
@@ -305,121 +172,6 @@ animated_chaos_game!(
 
 animated_chaos_game!(sierpinski: sierpinski::SierpinskiChaosGame::new());
 
-#[wasm_bindgen]
-pub struct EscapeTimeAnimation {
-    /// The rendering context.
-    ctx: CanvasRenderingContext2d,
-
-    /// Which EscapeTime system is being animated. Boxed to encapsulate/avoid generics.
-    etsystem: Box<dyn EscapeTime>,
-
-    /// The current part of the fractal we're viewing.
-    view_area: [geometry::Point; 2],
-}
-
-impl EscapeTimeAnimation {
-    pub fn new(
-        ctx: CanvasRenderingContext2d,
-        etsystem: Box<dyn EscapeTime>,
-    ) -> EscapeTimeAnimation {
-        let view_area_c = etsystem.default_view_area();
-        let view_area = [
-            geometry::Point::from(view_area_c[0]),
-            geometry::Point::from(view_area_c[1]),
-        ];
-        EscapeTimeAnimation {
-            ctx,
-            etsystem,
-            view_area,
-        }
-    }
-
-    fn render(&self) {
-        let screen_width = self.ctx.canvas().unwrap().width();
-        let screen_height = self.ctx.canvas().unwrap().height();
-        let vat = geometry::ViewAreaTransformer::new(
-            [screen_width.into(), screen_height.into()],
-            self.view_area[0],
-            self.view_area[1],
-        );
-        console::log_1(&format!("View area: {:?}", self.view_area).into());
-        console::log_1(&format!("pixel 0,0 maps to {}", vat.map_pixel_to_point([0.0, 0.0])).into());
-        console::log_1(
-            &format!(
-                "pixel {},{} maps to {}",
-                screen_width as u32,
-                screen_height as u32,
-                vat.map_pixel_to_point([screen_width.into(), screen_height.into()])
-            )
-            .into(),
-        );
-
-        console::log_1(&format!("build color range").into());
-        let colors = color::color_range_linear(
-            color::BLACK_U8,
-            color::WHITE_U8,
-            cmp::min(self.etsystem.max_iterations(), 50) as usize,
-        );
-
-        console::log_1(&format!("build image pixels").into());
-        let mut image_pixels = (0..screen_height)
-            .map(|y| {
-                (0..screen_width)
-                    .map(|x| {
-                        let c: Complex64 =
-                            vat.map_pixel_to_point([f64::from(x), f64::from(y)]).into();
-                        let (attracted, time) = self.etsystem.test_point(c);
-                        if attracted {
-                            color::AEBLUE_U8.0.iter()
-                        } else {
-                            colors[cmp::min(time, 50 - 1) as usize].0.iter()
-                        }
-                    })
-                    .flatten()
-                    .collect::<Vec<&u8>>()
-            })
-            .flatten()
-            .map(|b| *b)
-            .collect::<Vec<u8>>();;
-
-        // Construct a Clamped Uint8 Array
-        console::log_1(&format!("build clamped image array").into());
-        let clamped_image_array = Clamped(image_pixels.as_mut_slice());
-
-        // Create an ImageData from the array
-        console::log_1(&format!("Create Image Data").into());
-        let image = ImageData::new_with_u8_clamped_array_and_sh(
-            clamped_image_array,
-            screen_width,
-            screen_height,
-        )
-        .unwrap();
-
-        console::log_1(&format!("Put Image Data").into());
-        self.ctx.put_image_data(&image, 0.0, 0.0).unwrap();
-    }
-}
-
-#[wasm_bindgen]
-impl EscapeTimeAnimation {
-    pub fn draw_one_frame(&mut self) -> bool {
-        false
-    }
-
-    pub fn pixel_to_coordinate(&self, x: f64, y: f64) -> Array {
-        let screen_width = self.ctx.canvas().unwrap().width();
-        let screen_height = self.ctx.canvas().unwrap().height();
-
-        let vat = geometry::ViewAreaTransformer::new(
-            [screen_width.into(), screen_height.into()],
-            self.view_area[0],
-            self.view_area[1],
-        );
-        let pos_point = vat.map_pixel_to_point([x, y]);
-        Array::of2(&pos_point.x.into(), &pos_point.y.into())
-    }
-}
-
 macro_rules! animated_escape_time {
     ($name:ident: $expr:expr) => {
         // Paste is needed to concatenate render_ and the name of the fractal. Rust's own macros
@@ -428,7 +180,7 @@ macro_rules! animated_escape_time {
             #[wasm_bindgen]
             pub fn [<animated_ $name>] (
                 canvas: &HtmlCanvasElement, max_terations: u32, power: u32
-            ) -> EscapeTimeAnimation {
+            ) -> escapetime::EscapeTimeAnimation {
                 console_error_panic_hook::set_once();
                 console::log_1(&format!("Starting animation {}", stringify!($name)).into());
                 let ctx = JsValue::from(canvas.get_context("2d").unwrap().unwrap())
@@ -437,8 +189,7 @@ macro_rules! animated_escape_time {
 
                 ctx.clear_rect(0.0, 0.0, canvas.width().into(), canvas.height().into());
 
-                let eta = EscapeTimeAnimation::new(ctx, Box::new($expr));
-                eta.render();
+                let eta = escapetime::EscapeTimeAnimation::new(ctx, Box::new($expr));
                 eta
             }
         }
