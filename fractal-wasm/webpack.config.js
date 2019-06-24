@@ -5,15 +5,17 @@ const WasmPackPlugin = require("@wasm-tool/wasm-pack-plugin");
 
 let config = (module.exports = (env, argv) => {
   return {
-    entry: "./index.js",
+    entry: path.resolve(__dirname, "js", "index.js"),
     output: {
       path: path.resolve(__dirname, "dist", argv.mode),
       filename: "index.js"
     },
     // mode: "development",
     plugins: [
-      new HtmlWebpackPlugin({ template: "index.html" }),
-      new WasmPackPlugin({ crateDirectory: path.resolve(__dirname, "..") })
+      new HtmlWebpackPlugin({
+        template: path.resolve(__dirname, "static", "index.html")
+      }),
+      new WasmPackPlugin({ crateDirectory: __dirname })
     ]
   };
 });
