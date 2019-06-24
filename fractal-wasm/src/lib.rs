@@ -26,6 +26,7 @@ use fractal_lib::curves::dragon;
 use fractal_lib::curves::kochcurve;
 use fractal_lib::curves::levyccurve;
 use fractal_lib::curves::terdragon;
+use fractal_lib::escapetime::burningship::{BurningMandel, BurningShip, RoadRunner};
 use fractal_lib::escapetime::mandelbrot::Mandelbrot;
 use fractal_lib::escapetime::EscapeTime;
 use fractal_lib::geometry;
@@ -414,4 +415,7 @@ macro_rules! animated_escape_time {
     };
 }
 
+animated_escape_time!(burningmandel: BurningMandel::new(max_terations as u64, power as u64));
+animated_escape_time!(burningship: BurningShip::new(max_terations as u64, power as u64));
 animated_escape_time!(mandelbrot: Mandelbrot::new(max_terations as u64, power as u64));
+animated_escape_time!(roadrunner: RoadRunner::new(max_terations as u64, power as u64));

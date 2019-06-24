@@ -11,6 +11,42 @@ const fractal_descriptions = [
     }
   },
   {
+    id: "burningmandel",
+    name: "Burning Mandel Fractal",
+    config: [
+      { name: "Max Iterations", id: "max-iterations", default: 100 },
+      { name: "Power", id: "power", default: 2 }
+    ],
+    get_animation: (canvas, fractal) => event => {
+      let max_iterations = parseInt(
+        document.querySelector("#burningmandel-max-iterations").value
+      );
+      let power = parseInt(document.querySelector("#burningmandel-power").value);
+      return fractal.animated_burningmandel(canvas, max_iterations, power);
+    },
+    cursor_coords: (canvas, fractal) => (x, y) => {
+      return fractal.screen_to_chaos_game(canvas, x, y);
+    }
+  },
+  {
+    id: "burningship",
+    name: "Burning Ship Fractal",
+    config: [
+      { name: "Max Iterations", id: "max-iterations", default: 100 },
+      { name: "Power", id: "power", default: 2 }
+    ],
+    get_animation: (canvas, fractal) => event => {
+      let max_iterations = parseInt(
+        document.querySelector("#burningship-max-iterations").value
+      );
+      let power = parseInt(document.querySelector("#burningship-power").value);
+      return fractal.animated_burningship(canvas, max_iterations, power);
+    },
+    cursor_coords: (canvas, fractal) => (x, y) => {
+      return fractal.screen_to_chaos_game(canvas, x, y);
+    }
+  },
+  {
     id: "cesaro",
     name: "Cesáro Fractal",
     config: [{ name: "Iterations", id: "iterations" }],
@@ -99,6 +135,24 @@ const fractal_descriptions = [
     }
   },
   {
+    id: "roadrunner",
+    name: "Roadrunner Fractal (burningship variation)",
+    config: [
+      { name: "Max Iterations", id: "max-iterations", default: 100 },
+      { name: "Power", id: "power", default: 2 }
+    ],
+    get_animation: (canvas, fractal) => event => {
+      let max_iterations = parseInt(
+        document.querySelector("#roadrunner-max-iterations").value
+      );
+      let power = parseInt(document.querySelector("#roadrunner-power").value);
+      return fractal.animated_roadrunner(canvas, max_iterations, power);
+    },
+    cursor_coords: (canvas, fractal) => (x, y) => {
+      return fractal.screen_to_chaos_game(canvas, x, y);
+    }
+  },
+  {
     id: "sierpinski",
     name: "Sierpinski Triangle",
     config: [],
@@ -130,7 +184,7 @@ const fractal_descriptions = [
  **********************************************************/
 
 /**
- * Determines the currently selected fractal baaed on which option is selected
+ * Determines the currently selected fractal based on which option is selected
  * by the #fractal-type dropdown.
  */
 function currently_selected_fractal() {
