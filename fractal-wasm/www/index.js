@@ -246,6 +246,7 @@ function setup_configs(canvas, fractal) {
     set_visible_config(selected_fractal);
   });
 
+  // Build the UI for each fractal
   let config_container = document.querySelector("#configs");
   for (cdesc of fractal_descriptions) {
     let desc = cdesc; // actually bind the desc to the scope >.<
@@ -254,11 +255,12 @@ function setup_configs(canvas, fractal) {
     fractal_config.className = "config";
     fractal_config.id = desc.id + "-config";
     for (config_option of desc.config) {
+      let config_div = document.createElement("div");
       // Add a label
       let config_label = document.createElement("label");
       config_label.htmlFor = desc.id + "-" + config_option.id;
       config_label.appendChild(document.createTextNode(config_option.name));
-      fractal_config.appendChild(config_label);
+      config_div.appendChild(config_label);
 
       // Add an Input
       let config_input = document.createElement("input");
@@ -266,7 +268,8 @@ function setup_configs(canvas, fractal) {
       if (config_option.default) {
         config_input.value = config_option.default;
       }
-      fractal_config.appendChild(config_input);
+      config_div.appendChild(config_input);
+      fractal_config.appendChild(config_div);
     }
 
     // Add a button to start/restart the animation
