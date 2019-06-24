@@ -1,18 +1,26 @@
 # fractal-rs
 
-A Rust application (and library) for exploring a variety of fractals and to
-learn more about Rust.
+A Rust application (and library) for exploring a variety of fractals and for me
+to learn more about Rust and its ecosystem.
 
-Features include:
+It now contains a shared library that contains general purpose code and
+definitions for various kinds of fractals (`fractal-lib`), a piston-based
+renderer that can be run from the command line (`fractal-postion`), and a
+WASM-based target for rendering fractals in web browsers (`fractal-wasm`).
 
-* Web/WASM-based target for rendering fractals on the web
-* Piston-based renderer for rendering fractals on the desktop
-* Ability to animate the drawing of the curves
-* Library support for computing turtle directions using the [Lindenmeyer
-  system](https://en.wikipedia.org/wiki/L-system)
+
+## Subprojects
+
+### `fractal-lib`
+
+The shared library contains definitions for all of the supported fractals, plus
+some core code/interfaces for implementing turtle programs (the frontends then
+implement turtles that can run these programs), and [Lindenmeyer
+systems](https://en.wikipedia.org/wiki/L-system). It also contains modules to
+support colors and geometry used by some of the fractals.
+
 * Curves supported:
-    * [Cesàro square fractal (torn
-      fractal)](http://mathworld.wolfram.com/CesaroFractal.html)
+    * [Cesàro square fractal (torn fractal)](http://mathworld.wolfram.com/CesaroFractal.html)
     * Cesàro triangle fractal (with angles calculated to prevent overlapping
       line segments)
     * [Dragon curve](https://en.wikipedia.org/wiki/Dragon_curve)
@@ -31,10 +39,108 @@ Features include:
       with generalized support for some [related power
       sets](https://theory.org/fracdyn/burningship/symmetry.html)
 
+### `fractal-wasm`
+
+TODO: link to a hosted page for `fractal-wasm`.
+
+
+### `fractal-piston`
+
+A minimalistic piston-based UI that can be run from the command line.
+
+#### Usage
+
+Fetch the git repository, and then use cargo to build it:
+
+```sh
+git clone https://github.com/aetherknight/fractal-rs.git
+cd fractal-rs
+cargo build
+```
+To run the application, you can use `cargo run` or call the binary directly
+(Eg, if you use `cargo install` to install the program). For command usage
+information, try:
+
+```sh
+cargo run -- help
+```
+
+For example, to open a window and draw iteration 4 of the Cesàro square fractal:
+
+```sh
+cargo run -- cesaro 4
+```
+
+You can exit by closing the window or pressing the `esc` key.
+
+To draw the animation of a curve faster, you can use the `--drawrate` option.
+You must specify the number of line segments (or points) that should be drawn
+per frame as well, such as `1` for one line per frame (usually the defualt).
+The following will animate iteration 11 of the dragon fractal at a rate of 10
+line segments per frame:
+
+```sh
+cargo run -- dragon 11 --drawrate 10
+```
+
+Note that for most fractals the iteration number results in an exponential
+increase in computation, so if you want to explore a higher
+iteration/generation of a curve, you may want to start with a low iteration
+number and increment your way up.
+
+#### Exploring Fractals
+
+The fractal program includes the following subcommands:
+
+| Subcommand | Description |
+| ---------- | ----------- |
+| `barnsleyfern [--drawrate MPF]` | Draws the Barnsley Fern fractal using a chaos game with affine transforms. |
+| `burningmandel MAX_IT POWER` | Draws a variation of the burning ship fractal |
+| `burningship MAX_IT POWER` | Draws the burning ship fractal |
+| `cesaro [--drawrate MPF] ITER` | Draws a square Césaro fractal |
+| `cestarotri [--drawrate MPF] ITER` | Draws a triangle Césaro fractal |
+| `dragon [--drawrate MPF] ITER` | Draws a dragon curve fractal |
+| `kochcurve [--drawrate MPF] ITER` | Draws a Koch snowflake curve |
+| `levyccurve [--drawrate MPF] ITER` | Draws a Levy C Curve |
+| `mandelbrot MAX_IT POWER` | Draws the mandelbrot fractal |
+| `roadrunner MAX_IT POWER` | Draws a variation of the burning ship fractal |
+| `sierpinski [--drawrate MPF]` | Draws a Sierpinski triangle using a chaos game and 3 randomly chosen points on the screen |
+| `terdragon [--drawrate MPF] ITER` | Draws a terdragon curve |
+
+Where the arguments have the following meaning:
+
+| Argument | Description |
+| -------- | ----------- |
+| `ITER` | The iteration of the curve to draw |
+| `MPF` | The number of lines or points to draw per frame [default: 1] |
+| `MAX_IT` | The maximum number of iterations of the escape time function before deciding the fracal has escaped |
+| `POWER` | The exponent used in the escape time function (positive integer) |
+
+The chaos game and turtle-drawn curves are not particularly interactive. If you
+resize the screen, they will redraw themselves (the Sierpinski triangle will
+pick 3 new random points as vertices for the triangle).
+
+The escape-time fractals (`burningmandel`, `burningship`, `mandelbrot`, and
+`roadrunner`) support a greater degree of interactivity:
+
+* You can select an area of the fractal to zoom in on using a cursor/mouse
+* Resizing the window will keep the current view instead of resetting to the
+  initial zoom/view
+* backspace (delete) will reset the view area back to the initial/default view
+  of the fractal
+* Arrow keys can be used to move the view area around
+
+
+## Future ideas
+
 Some future ideas (in no particular order):
 
 * Option to automatically profile and adjust how much can be animated per-frame
   based on system performance for curves and chaos games.
+    * The native/piston based rendered automatically scales up the number of
+      threads it uses for the scape time fractal renders, but the curves and
+      chaos games require manually choosing how lines or points to draw per
+      frame.
 * Display information about the current fractal.
 * Greater interactivity, maybe a UI for choosing and configuring which fractal
   to display, or arrow keys to increment/decrement the iteration number.
@@ -44,89 +150,19 @@ Some future ideas (in no particular order):
   compiling them in, or support some sort of configuration format for
   specifying parameters.
 * Other kinds of fractals like Julia/Fatou sets, etc.
-* Explore using threading and channels to construct a generic iterator of turtle
-  program steps (simulating coroutines). This might allow for more programming
-  styles within a TurtleProgram instead of having to create custom iterators
-  for each TurtleProgram implementation that have to track state/program
-  counter for the program. It would also be a great exercise in multi-threading.
-* Explore using a multi-threaded approach to render escape time fractals, which
-  are highly parallelizable, and could also show the results in real time.
+* Explore using generators for turtle programs once generators are stable in
+  Rust to simplify the keeping of turtle state.
+* Explore using threads+channels for turtle programs, allowing for
+  coroutine-like behavior and avoid having to box+wrap an underlying iterator.
+  However, this would likely require different implementations for native
+  (piston) implementations vs web/WASM.
+* `fractal-wasm`: Offload the rendering of escape-time fractals from the main
+  thread, and/or look into parallelizing its rendering. This may become more
+  feasible once OffscreenCanvas is more widely supported by browsers (it has
+  Chrome support and experimental Firefox support at the time of this writing).
+  (WebGL might be another option, but would be more an exercise in WebGL than
+  an exercise in WASM).
 
-
-## Usage
-
-Fetch the git repository, and then use cargo to build it:
-
-```sh
-git clone https://github.com/aetherknight/fractal-rs.git
-cd fractal-rs
-cargo build
-```
-
-To run the application, you can use `cargo run` or call the binary directly
-(Eg, if you use `cargo install` to install the program). Resizing the window
-will dynamically resize the curve as well. You can exit by pressing the `esc`
-key.
-
-For command usage information, try:
-```sh
-cargo run -- help
-```
-
-To open a window and draw iteration 4 of the Cesàro square fractal:
-
-```sh
-cargo run -- cesaro 4
-```
-
-To animate the drawing of a curve, you can use the `--drawrate` option. You must
-specify the number of line segments that should be drawn per frame as well,
-such as `1` for one line per frame. The following will animate iteration 11 of
-the dragon fractal at a rate of 10 line segments per frame:
-
-```sh
-cargo run -- dragon 11 --drawrate 10 
-```
-
-
-### Exploring Fractals
-The fractal program has a the following subcommands:
-
-| Subcommand | Description |
-| ---------- | ----------- |
-| barnsleyfern&nbsp;[--drawrate&nbsp;&lt;MPF&gt;] | Draws the Barnsley Fern fractal using a chaos game with affine transforms. |
-| burningmandel&nbsp;&lt;MAX_IT&gt;&nbsp;&lt;POWER&gt; | Draws a variation of the burning ship fractal
-| burningship&nbsp;&lt;MAX_IT&gt;&nbsp;&lt;POWER&gt; | Draws the burning ship fractal
-| cesaro&nbsp;[--drawrate&nbsp;&lt;MPF&gt;] | Draws a square Césaro fractal
-| cestarotri&nbsp;[--drawrate&nbsp;&lt;MPF&gt;] | Draws a triangle Césaro fractal
-| dragon&nbsp;[--drawrate&nbsp;&lt;MPF&gt;] | Draws a dragon curve fractal
-| kochcurve&nbsp;[--drawrate&nbsp;&lt;MPF&gt;] | Draws a Koch snowflake curve
-| levyccurve&nbsp;[--drawrate&nbsp;&lt;MPF&gt;] | Draws a Levy C Curve
-| mandelbrot&nbsp;&lt;MAX_IT&gt;&nbsp;&lt;POWER&gt; | Draws the mandelbrot fractal
-| roadrunner&nbsp;&lt;MAX_IT&gt;&nbsp;&lt;POWER&gt; | Draws a variation of the burning ship fractal
-| sierpinski&nbsp;[--drawrate&nbsp;&lt;MPF&gt;] | Draws a Sierpinski triangle using a chaos game and 3 randomly chosen points on the screen
-| terdragon&nbsp;[--drawrate&nbsp;&lt;MPF&gt;] | Draws a terdragon curve
-
-The subcommands arguments have the following explanations
-
-| Argument | Description |
-| -------- | ----------- |
-| MPF | The number of points to draw per frame [default: 1]
-| MAX_IT | The maximum number of iterations of the escape time function before deciding the fracal has escaped
-| POWER | The exponent used in the escape time function (positive integer)
-
-
-### Notes
-Note that for most fractals the iteration number results in an exponential
-increase in computation, so if you want to explore a higher
-iteration/generation of a curve, you may want to start with a low iteration
-number and increment your way up. (At the moment, the dragon fractal tends to
-take more than a few seconds to draw iterations above 15 my laptop when it
-draws the entire curve in a single frame).
-
-At present, the other parameters that make up one of the curves --- such as the
-coordinate space, the L-system used to determine the drawing steps, or the
-angles chosen --- require changing the source code.
 
 ## Contributing
 
@@ -139,17 +175,16 @@ angles chosen --- require changing the source code.
 
 A few rules about contributed code:
 
-* In general, contributions should work on the current stable release of Rust.
-  If you want to use a nightly Rust feature, we should discuss the approach
-  (eg, can it be made optional, does it provide a huge performance improvement,
-  etc.).
+* Contributions should work on the current stable release of Rust. If you want
+  to use a nightly Rust feature, we should discuss the approach (eg, can it be
+  made optional, does it provide a huge performance improvement, etc.).
 * Use [rustfmt](https://github.com/rust-lang-nursery/rustfmt) to format your
   code before committing.
+* Keep all `use` statements together and let `rustfmt` keep them sorted.
+* Take care of compiler and clippy lints before merging.
 * Write tests where it makes sense to do so (ie, test behaviors and
-  functionality that could change as a side-effect of some other change), but
-  do not fret about it.
-* Try to keep the `use` statements lexicographically sorted, with std and crate
-  modules grouped together, and local modules grouped together after them.
+  functionality that could change as a side-effect of some other change, and
+  test highly numeric code), but do not fret about it.
 
 
 ## License
