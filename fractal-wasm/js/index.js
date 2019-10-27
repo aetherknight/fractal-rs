@@ -169,7 +169,7 @@ function get_int(selector) {
 function set_visible_config(selected_fractal) {
   console.log("Displaying config for " + selected_fractal);
   let config_panels = document.querySelectorAll(".config");
-  for (panel of config_panels) {
+  for (const panel of config_panels) {
     if (panel.id === selected_fractal + "-config") {
       panel.style.display = "block";
     } else {
@@ -250,12 +250,12 @@ function setup_configs(canvas, fractal) {
   );
 
   // Build the dropdown
-  for (category of [...fractal_descriptions_by_category.keys()].sort()) {
+  for (const category of [...fractal_descriptions_by_category.keys()].sort()) {
     console.log(category);
     let optgroup = document.createElement("optgroup");
     optgroup.label = category;
 
-    for (desc of fractal_descriptions_by_category.get(category)) {
+    for (const desc of fractal_descriptions_by_category.get(category)) {
       let option = document.createElement("option");
       option.value = desc.id;
       option.appendChild(document.createTextNode(desc.name));
@@ -275,13 +275,13 @@ function setup_configs(canvas, fractal) {
 
   // Build the UI for each fractal
   let config_container = document.querySelector("#configs");
-  for (cdesc of fractal_descriptions) {
+  for (const cdesc of fractal_descriptions) {
     let desc = cdesc; // actually bind the desc to the scope >.<
     // Build the config section for the fractal
     let fractal_config = document.createElement("div");
     fractal_config.className = "config";
     fractal_config.id = desc.id + "-config";
-    for (config_option of desc.config) {
+    for (const config_option of desc.config) {
       let config_div = document.createElement("div");
       // Add a label
       let config_label = document.createElement("label");
