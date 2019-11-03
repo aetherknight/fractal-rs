@@ -54,7 +54,7 @@ const fractal_descriptions = [
     id: "cesaro",
     name: "Cesáro Curve",
     category: "Lindenmayer Curves",
-    config: [{ name: "Iterations", id: "iterations", min: 0 }],
+    config: [{ name: "Iterations", id: "iterations", default: 0, min: 0 }],
     get_animation: (canvas, fractal_mod) => event => {
       let iterations = get_int("#cesaro-iterations");
       return fractal_mod.animated_cesaro(canvas, iterations);
@@ -64,7 +64,7 @@ const fractal_descriptions = [
     id: "cesarotri",
     name: "Triangle Cesáro Curve",
     category: "Lindenmayer Curves",
-    config: [{ name: "Iterations", id: "iterations", min: 0 }],
+    config: [{ name: "Iterations", id: "iterations", default: 0, min: 0 }],
     get_animation: (canvas, fractal_mod) => event => {
       let iterations = get_int("#cesarotri-iterations");
       return fractal_mod.animated_cesarotri(canvas, iterations);
@@ -74,7 +74,7 @@ const fractal_descriptions = [
     id: "dragon",
     name: "Dragon",
     category: "Other Curves",
-    config: [{ name: "Iterations", id: "iterations", min: 0 }],
+    config: [{ name: "Iterations", id: "iterations", default: 0, min: 0 }],
     get_animation: (canvas, fractal_mod) => event => {
       let iterations = get_int("#dragon-iterations");
       return fractal_mod.animated_dragon(canvas, iterations);
@@ -84,7 +84,7 @@ const fractal_descriptions = [
     id: "kochcurve",
     name: "Koch Curve",
     category: "Lindenmayer Curves",
-    config: [{ name: "Iterations", id: "iterations", min: 0 }],
+    config: [{ name: "Iterations", id: "iterations", default: 0, min: 0 }],
     get_animation: (canvas, fractal_mod) => event => {
       let iterations = get_int("#kochcurve-iterations");
       return fractal_mod.animated_kochcurve(canvas, iterations);
@@ -94,7 +94,7 @@ const fractal_descriptions = [
     id: "levyccurve",
     name: "Levy C Curve",
     category: "Lindenmayer Curves",
-    config: [{ name: "Iterations", id: "iterations", min: 0 }],
+    config: [{ name: "Iterations", id: "iterations", default: 0, min: 0 }],
     get_animation: (canvas, fractal_mod) => event => {
       let iterations = get_int("#levyccurve-iterations");
       return fractal_mod.animated_levyccurve(canvas, iterations);
@@ -141,7 +141,7 @@ const fractal_descriptions = [
     id: "terdragon",
     name: "Terdragon",
     category: "Lindenmayer Curves",
-    config: [{ name: "Iterations", id: "iterations", min: 0 }],
+    config: [{ name: "Iterations", id: "iterations", default: 0, min: 0 }],
     get_animation: (canvas, fractal_mod) => event => {
       let iterations = get_int("#terdragon-iterations");
       return fractal_mod.animated_terdragon(canvas, iterations);
@@ -278,9 +278,12 @@ function setup_configs(canvas, fractal) {
   for (const cdesc of fractal_descriptions) {
     let desc = cdesc; // actually bind the desc to the scope >.<
     // Build the config section for the fractal
-    let fractal_config = document.createElement("div");
+    let fractal_config = document.createElement("form");
     fractal_config.className = "config";
     fractal_config.id = desc.id + "-config";
+
+    let button = document.createElement("button");
+
     for (const config_option of desc.config) {
       let config_div = document.createElement("div");
       // Add a label
@@ -303,18 +306,29 @@ function setup_configs(canvas, fractal) {
       if (config_option.max !== undefined) {
         config_input.max = config_option.max;
       }
+      config_input.addEventListener("input", event => {
+        config_input.checkValidity();
+        if (config_input.reportValidity()) {
+          button.disabled = false;
+        } else {
+          button.disabled = true;
+        }
+      });
+      config_input.addEventListener("invalid", event => {});
       config_div.appendChild(config_input);
       fractal_config.appendChild(config_div);
     }
 
-    // Add a button to start/restart the animation
-    let button = document.createElement("button");
+    // Add the button to start/restart the animation
     button.title = "Run";
     button.textContent = "Run";
+    // button.disabled = true;
+
     fractal_config.appendChild(button);
 
     // Listen for changes to start/restart the animation
     button.addEventListener("click", event => {
+      event.preventDefault();
       // Stop any ongoing animation
       if (window.current_frame) {
         window.cancelAnimationFrame(window.current_frame);
