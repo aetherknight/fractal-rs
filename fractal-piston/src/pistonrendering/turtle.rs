@@ -20,6 +20,7 @@ use fractal_lib::geometry::{Point, Vector, ViewAreaTransformer};
 use fractal_lib::turtle::{Turtle, TurtleCollectToNextForwardIterator, TurtleProgram, TurtleState};
 use graphics;
 use graphics::math::Vec2d;
+use log;
 use piston_window;
 use std::fmt;
 
@@ -90,9 +91,11 @@ where
             );
             let old_coords = turtle_vat.map_point_to_pixel(old_pos);
             let new_coords = turtle_vat.map_point_to_pixel(new_pos);
-            println!(
+            log::debug!(
                 "VAT coords:        {} -- {}, {}",
-                new_pos, new_coords[0], new_coords[1]
+                new_pos,
+                new_coords[0],
+                new_coords[1]
             );
 
             piston_window::Line::new(color::BLACK_F32.0, 0.5).draw(
@@ -177,7 +180,7 @@ impl<'a> WindowHandler for DoubleBufferedWindowHandler<'a> {
     fn render_frame(&mut self, render_context: &mut RenderContext, frame_num: u32) {
         let redraw = self.redraw[(frame_num % 2) as usize];
         if redraw {
-            println!("Redrawing frame {}", frame_num % 2);
+            log::debug!("Redrawing frame {}", frame_num % 2);
             piston_window::clear(color::WHITE_F32.0, render_context.gfx);
 
             let mut state = TurtleState::new();
@@ -185,7 +188,7 @@ impl<'a> WindowHandler for DoubleBufferedWindowHandler<'a> {
                 PistonTurtle::new(&mut state, render_context.context, render_context.gfx);
             DoubleBufferedWindowHandler::turtledraw(self.program, &mut turtle);
 
-            println!("Done redrawing frame");
+            log::debug!("Done redrawing frame");
             self.redraw[(frame_num % 2) as usize] = false;
         }
     }

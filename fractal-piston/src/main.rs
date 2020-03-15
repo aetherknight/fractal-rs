@@ -24,7 +24,24 @@ fn main() {
         .about("Renders fractals in another window.");
     app = fractaldata::add_subcommands(app);
 
+    app = app.arg(
+        clap::Arg::with_name("loglevel")
+            .takes_value(true)
+            .help("Choose log level")
+            .long("loglevel")
+            .value_name("LEVEL")
+            .default_value("INFO"),
+    );
+
     let matches = app.get_matches();
+    simple_logger::init_with_level(
+        matches
+            .value_of("loglevel")
+            .map(|s| fractaldata::parse_arg::<log::Level>("loglevel", s))
+            .unwrap().unwrap(),
+    )
+    .unwrap();
+
     let result = fractaldata::run_subcommand(&matches);
 
     match result {

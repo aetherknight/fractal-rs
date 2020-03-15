@@ -14,6 +14,7 @@
 
 //! Implementation of a 2-D Sierpinski triangle as a `ChaosGame`.
 
+use log;
 use super::super::geometry::*;
 use super::{ChaosGameMoveIterator, ChaosGameThreadedGenerator};
 use rand;
@@ -115,6 +116,7 @@ impl Iterator for SierpinskiChaosGame {
             x: (self.curr_point.x + target_point.x) / 2.0,
             y: (self.curr_point.y + target_point.y) / 2.0,
         };
+        log::debug!("Next Point: {:?}", self.curr_point);
         Some(self.curr_point)
     }
 }
@@ -123,5 +125,8 @@ impl ChaosGameMoveIterator for SierpinskiChaosGame {
     fn reset_game(&mut self) {
         self.vertices = Self::gen_vertices();
         self.curr_point = Self::center_point(&self.vertices);
+
+        log::debug!("New vertices: {:?}", self.vertices);
+        log::debug!("Starting point: {:?}", self.curr_point);
     }
 }

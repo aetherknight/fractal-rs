@@ -14,6 +14,7 @@
 
 //! Computations and abstractions needed for rendering a dragon fractal.
 
+use log;
 use std::f64::consts::PI;
 use std::f64::consts::SQRT_2;
 
@@ -133,13 +134,13 @@ impl Iterator for DragonFractalTurtleProgramIterator {
         }
         if self.move_next {
             self.move_next = false;
-            println!("curr_step:{}, Forward", self.curr_step);
+            log::debug!("curr_step: {}, Forward", self.curr_step);
             Some(TurtleStep::Forward(
                 1.0 / (self.dragon.lines_between_endpoints() as f64),
             ))
         } else {
             let turn = DragonFractal::turn_after_step(self.curr_step);
-            println!("curr_step:{}, {:?}", self.curr_step, turn);
+            log::debug!("curr_step :{}, {:?}", self.curr_step, turn);
             self.move_next = true;
             self.curr_step += 1;
             match turn {

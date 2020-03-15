@@ -56,7 +56,7 @@ macro_rules! extract {
 }
 
 /// Method to help with parsing a command line argument into some other type.
-fn parse_arg<T>(opt_name: &str, opt_val: &str) -> Result<T, String>
+pub fn parse_arg<T>(opt_name: &str, opt_val: &str) -> Result<T, String>
 where
     T: std::str::FromStr,
     <T as std::str::FromStr>::Err: std::fmt::Display,

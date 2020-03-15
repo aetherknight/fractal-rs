@@ -34,11 +34,11 @@
 //!             if notifier.should_i_stop() {
 //!                 break;
 //!             }
-//!             println!("{}: do some work for index {}", name, i);
+//!             log::debug!("{}: do some work for index {}", name, i);
 //!         }
 //!     });
 //! handles.wait();
-//! println!("Done!")
+//! log::debug!("Done!")
 //! ```
 
 use num_cpus;
@@ -140,7 +140,7 @@ impl ThreadedWorkMultiplexerBuilder {
                 let (time_delta, _) = measure_time(|| {
                     thread_code(i, total_threads, &notifier, thread_name.as_ref());
                 });
-                println!("{} finished in {}", thread_name, time_delta);
+                log::debug!("{} finished in {}", thread_name, time_delta);
             });
             if let Ok(handle) = res {
                 thread_sync.push(Some((tx, handle)));
@@ -169,10 +169,10 @@ impl ThreadedWorkMultiplexerHandles {
                 let thread_name = handle.thread().name().unwrap_or("UNKNOWN").to_string();
                 match handle.join() {
                     Ok(_) => {
-                        println!("Joined {}", thread_name);
+                        log::trace!("Joined {}", thread_name);
                     }
                     Err(_) => {
-                        println!("{} panicked while it ran", thread_name);
+                        log::error!("{} panicked while it ran", thread_name);
                     }
                 }
             }
@@ -189,10 +189,10 @@ impl ThreadedWorkMultiplexerHandles {
                 let thread_name = handle.thread().name().unwrap_or("UNKNOWN").to_string();
                 match handle.join() {
                     Ok(_) => {
-                        println!("Joined {}", thread_name);
+                        log::debug!("Joined {}", thread_name);
                     }
                     Err(_) => {
-                        println!("{} panicked while it ran", thread_name);
+                        log::error!("{} panicked while it ran", thread_name);
                     }
                 }
             }

@@ -56,20 +56,20 @@ pub trait WindowHandler {
 
     /// Optional: used to indicate that the user selected an area of the window to zoom in on.
     fn zoom(&mut self, rect: [Vec2d; 2]) {
-        println!("Selected: {:?}, {:?}", rect[0], rect[1]);
+        log::info!("Selected: {:?}, {:?}", rect[0], rect[1]);
     }
 
     /// Optional: used to indicate that the user wants to revert to the default view.
     fn reset_view(&mut self) {
-        println!("Reset zoom");
+        log::info!("Reset zoom");
     }
 }
 
 /// Runs a `WindowHandler` in a `PistonWindow`.
 pub fn run(window_handler: &mut dyn WindowHandler) {
-    println!("Use the mouse to select an area to zoom in on");
-    println!("Press backspace to reset the view back to the initial view");
-    println!("Press esc to exit");
+    log::info!("Use the mouse to select an area to zoom in on");
+    log::info!("Press backspace to reset the view back to the initial view");
+    log::info!("Press esc to exit");
 
     let mut window: PistonWindow = WindowSettings::new("Fractal", [800, 600])
         .exit_on_esc(true)
@@ -88,14 +88,14 @@ pub fn run(window_handler: &mut dyn WindowHandler) {
             #[allow(clippy::identity_conversion)]
             let size: Vec2d = [f64::from(uvec[0]), f64::from(uvec[1])];
             if size != old_size {
-                println!("resized");
+                log::debug!("resized");
                 old_size = size;
                 window_handler.window_resized(size, &mut window);
             }
         }
         window.draw_2d(&e, |context, gfx, _device| {
             frame_num += 1;
-            // println!("Render frame {}, window: {:?}", frame_num, size);
+            // log::debug!("Render frame {}, window: {:?}", frame_num, size);
             let mut render_context = RenderContext { context, gfx };
             window_handler.render_frame(&mut render_context, frame_num);
         });
@@ -109,18 +109,18 @@ pub fn run(window_handler: &mut dyn WindowHandler) {
                     if let MouseButton::Left = mbutton {
                         // mouse down
                         mouse_down_pos = Some(mouse_pos);
-                        println!("Pressed mouse left: {:?}", mouse_down_pos.as_ref().unwrap());
+                        log::debug!("Pressed mouse left: {:?}", mouse_down_pos.as_ref().unwrap());
                     }
                 }
                 Button::Keyboard(key) => {
                     match key {
                         Key::Backspace => {
                             // "backspace" key down
-                            println!("reset zoom");
+                            log::debug!("reset zoom");
                             window_handler.reset_view();
                         }
                         Key::Minus => {
-                            println!("zoom out");
+                            log::debug!("zoom out");
                             // make the current screen's dimension become 50% the new view
                             let halves = [old_size[0] / 2.0, old_size[1] / 2.0];
                             let new_top_left = [-halves[0], -halves[1]];
@@ -129,7 +129,7 @@ pub fn run(window_handler: &mut dyn WindowHandler) {
                             window_handler.zoom([new_top_left, new_bot_right]);
                         }
                         Key::Equals => {
-                            println!("zoom in");
+                            log::debug!("zoom in");
                             // zoom in so that 50% of the current view is the new view
                             let quarters = [old_size[0] / 4.0, old_size[1] / 4.0];
                             let new_top_left = [quarters[0], quarters[1]];
@@ -139,7 +139,7 @@ pub fn run(window_handler: &mut dyn WindowHandler) {
                             window_handler.zoom([new_top_left, new_bot_right]);
                         }
                         Key::Up => {
-                            println!("up");
+                            log::debug!("up");
                             // scroll up by 25%
                             let move_up = old_size[1] * 0.25;
                             let new_top_left = [0.0, -move_up];
@@ -148,6 +148,7 @@ pub fn run(window_handler: &mut dyn WindowHandler) {
                             window_handler.zoom([new_top_left, new_bot_right]);
                         }
                         Key::Down => {
+                            log::debug!("down");
                             let move_down = old_size[1] * 0.25;
                             let new_top_left = [0.0, move_down];
                             let new_bot_right = [old_size[0], old_size[1] + move_down];
@@ -155,6 +156,7 @@ pub fn run(window_handler: &mut dyn WindowHandler) {
                             window_handler.zoom([new_top_left, new_bot_right]);
                         }
                         Key::Right => {
+                            log::debug!("right");
                             let move_right = old_size[0] * 0.25;
                             let new_top_left = [move_right, 0.0];
                             let new_bot_right = [old_size[0] + move_right, old_size[1]];
@@ -162,6 +164,7 @@ pub fn run(window_handler: &mut dyn WindowHandler) {
                             window_handler.zoom([new_top_left, new_bot_right]);
                         }
                         Key::Left => {
+                            log::debug!("left");
                             let move_left = old_size[0] * 0.25;
                             let new_top_left = [-move_left, 0.0];
                             let new_bot_right = [old_size[0] - move_left, old_size[1]];
@@ -178,7 +181,7 @@ pub fn run(window_handler: &mut dyn WindowHandler) {
             // mouse up
             if button == Button::Mouse(MouseButton::Left) {
                 let p2 = mouse_pos;
-                println!("Released mouse left: {:?}", p2);
+                log::debug!("Released mouse left: {:?}", p2);
                 if let Some(p1) = mouse_down_pos {
                     let top_left = [p1[0].min(p2[0]), p1[1].min(p2[1])];
                     let bot_right = [p1[0].max(p2[0]), p1[1].max(p2[1])];

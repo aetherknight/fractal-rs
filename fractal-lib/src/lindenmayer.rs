@@ -22,6 +22,7 @@
 
 use crate::geometry::Point;
 use crate::turtle::*;
+use log;
 use std::cell::RefCell;
 use std::marker::PhantomData;
 
@@ -173,12 +174,12 @@ where
             let cache = self.iteration_cache.borrow_mut();
             let val = cache.get(iteration as usize);
             if val.is_some() {
-                println!("found {}", iteration);
+                log::debug!("found {}", iteration);
                 return val.unwrap().clone();
             }
         } // end borrow of the cache
         {
-            println!("generating {}", iteration);
+            log::debug!("generating {}", iteration);
             let curr = match iteration {
                 0 => self.system.initial(), // terminating case
                 _ => {
@@ -236,7 +237,7 @@ where
         let sequence = self
             .cacheable_system
             .generate(self.cacheable_system.system.iteration());
-        println!("Done");
+        log::debug!("Done");
 
         TurtleProgramIterator::new(Box::new(LindenmayerSystemTurtleProgramIterator {
             alphabet: PhantomData,

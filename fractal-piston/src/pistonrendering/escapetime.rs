@@ -21,6 +21,7 @@ use fractal_lib::color;
 use fractal_lib::escapetime::EscapeTime;
 use fractal_lib::geometry::{Point, ViewAreaTransformer};
 use graphics::math::Vec2d;
+use log;
 use num::complex::Complex64;
 use piston_window;
 use std::cmp;
@@ -71,12 +72,12 @@ impl EscapeTimeWindowHandler {
             self.view_area[0],
             self.view_area[1],
         ));
-        println!("view area: {:?}", self.view_area);
-        println!(
+        log::debug!("view area: {:?}", self.view_area);
+        log::debug!(
             "pixel 0,0 maps to {}",
             self.vat.map_pixel_to_point([0.0, 0.0])
         );
-        println!(
+        log::debug!(
             "pixel {},{} maps to {}",
             self.screen_size[0] as u32,
             self.screen_size[1] as u32,
@@ -114,7 +115,7 @@ impl EscapeTimeWindowHandler {
                         .map(|(_, val)| val);
                     for x in sequence {
                         if notifier.should_i_stop() {
-                            println!("{}: Remote side disconnected", name);
+                            log::debug!("{}: Remote side disconnected", name);
                             break;
                         }
                         let y_colors = ((tl[1] as u32)..(br[1] as u32))

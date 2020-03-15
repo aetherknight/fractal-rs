@@ -20,6 +20,7 @@ pub mod barnsleyfern;
 pub mod sierpinski;
 
 use super::geometry::Point;
+use log;
 use std::sync::mpsc::{sync_channel, Receiver, SyncSender};
 use std::sync::Arc;
 use std::thread;
@@ -62,7 +63,7 @@ impl ChaosGameMoveThreadedIterator {
         let (mut tx, rx) = sync_channel::<Point>(10);
         let worker = thread::spawn(move || {
             game.generate(&mut tx);
-            println!("Receiver exited");
+            log::debug!("Receiver exited");
         });
 
         ChaosGameMoveThreadedIterator {
@@ -80,7 +81,7 @@ impl Iterator for ChaosGameMoveThreadedIterator {
             Some(ref rx) => match rx.recv() {
                 Ok(result) => Some(result),
                 Err(e) => {
-                    println!("Remote generator exited: {}", e.to_string());
+                    log::debug!("Remote generator exited: {}", e.to_string());
                     None
                 }
             },
@@ -91,12 +92,12 @@ impl Iterator for ChaosGameMoveThreadedIterator {
 
 impl Drop for ChaosGameMoveThreadedIterator {
     fn drop(&mut self) {
-        println!("Waiting for worker to join");
+        log::debug!("Waiting for worker to join");
         drop(self.rx.take()); // drop the receiver to convince the worker thread to exit
         match self.worker.take().unwrap().join() {
-            Ok(_) => println!("Worker exited normally"),
+            Ok(_) => log::debug!("Worker exited normally"),
             Err(e) => {
-                println!("Worker exited abnormally.");
+                log::debug!("Worker exited abnormally.");
                 panic!(e);
             }
         }
