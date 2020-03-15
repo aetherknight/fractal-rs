@@ -20,7 +20,6 @@ use ::image::{ImageBuffer, Rgba};
 use fractal_lib::color;
 use fractal_lib::escapetime::EscapeTime;
 use fractal_lib::geometry::{Point, ViewAreaTransformer};
-use gfx_device_gl;
 use graphics::math::Vec2d;
 use num::complex::Complex64;
 use piston_window;
@@ -40,7 +39,7 @@ pub struct EscapeTimeWindowHandler {
     canvas: Arc<RwLock<FractalImageBuffer>>,
     threads: Option<ThreadedWorkMultiplexerHandles>,
     /// Main thread only
-    texture: Option<piston_window::Texture<gfx_device_gl::Resources>>,
+    texture_context: Option<piston_window::G2dTextureContext>,
 }
 
 impl EscapeTimeWindowHandler {
@@ -60,7 +59,7 @@ impl EscapeTimeWindowHandler {
             )),
             canvas,
             threads: None,
-            texture: None,
+            texture_context: None,
         }
     }
 
@@ -95,7 +94,7 @@ impl EscapeTimeWindowHandler {
         )));
 
         {
-            let shared_canvas = Arc::clone(&self.canvas);
+            let shared_canvas = (&self.canvas).clone();
             let vat = Arc::clone(&self.vat);
             let etsystem = Arc::clone(&self.etsystem);
             let colors = Arc::clone(&colors);
@@ -149,51 +148,36 @@ impl EscapeTimeWindowHandler {
 }
 
 impl WindowHandler for EscapeTimeWindowHandler {
-    fn initialize_with_window(&mut self, window: &mut piston_window::PistonWindow) {
-        let canvas = self.canvas.read().unwrap();
-        self.texture = Some(
-            piston_window::Texture::from_image(
-                &mut window.factory,
-                &*canvas,
-                &piston_window::TextureSettings::new(),
-            )
-            .unwrap(),
-        );
-    }
-
-    fn window_resized(&mut self, new_size: Vec2d, factory: &mut gfx_device_gl::Factory) {
+    fn window_resized(&mut self, new_size: Vec2d, window: &mut piston_window::PistonWindow) {
         // Set the new size
         self.screen_size = new_size;
         // Create a new canvas and start rendering it
         self.redraw();
-        // Recreate the Texture for rendering (it will also be updated with the canvas on each
-        // tick)
-        {
-            let canvas = self.canvas.read().unwrap();
-            self.texture = Some(
-                piston_window::Texture::from_image(
-                    factory,
-                    &*canvas,
-                    &piston_window::TextureSettings::new(),
-                )
-                .unwrap(),
-            );
-        }
+        // Recreate the texture context (may not be necessary)
+        self.texture_context = Some(window.create_texture_context());
     }
 
     fn render_frame(&mut self, render_context: &mut RenderContext, _: u32) {
-        // Convert the Option<Texture> into a mutable reference to the Texture
-        let texture = self.texture.as_mut().unwrap();
-        {
+        // With piston_window 0.85.0, I was able to create a texture, store it on the
+        // WindowHandler, and then use texture.update(...) when rendering each frame in order to
+        // update the texture object with the current canvas. However, with piston_window 0.107.0,
+        // I seem unable to actually update the texture. The update does not fail, but the image in
+        // the texture itself does not seem to change.
+        //
+        // Get a read-lock on the canvas, and create a texture from it.
+        let texture = {
             let canvas = self.canvas.read().unwrap();
-            if let Err(e) = texture.update(&mut render_context.gfx.encoder, &*canvas) {
-                println!("texture update error: {:?}", e);
-            }
-        }
+            piston_window::Texture::from_image(
+                self.texture_context.as_mut().unwrap(),
+                &*canvas,
+                &piston_window::TextureSettings::new(),
+            )
+            .unwrap()
+        };
 
         piston_window::clear(color::WHITE_F32.0, render_context.gfx);
         piston_window::image(
-            texture,
+            &texture,
             render_context.context.transform,
             render_context.gfx,
         );

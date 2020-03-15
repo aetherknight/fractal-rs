@@ -18,12 +18,11 @@ pub mod chaosgame;
 pub mod escapetime;
 pub mod turtle;
 
-use gfx_device_gl;
 use graphics;
 use graphics::math::Vec2d;
 use piston_window::{
-    Button, G2d, Key, MouseButton, MouseCursorEvent, OpenGL, PistonWindow, PressEvent,
-    ReleaseEvent, RenderEvent, WindowSettings,
+    Button, G2d, Key, MouseButton, MouseCursorEvent, PistonWindow, PressEvent, ReleaseEvent,
+    RenderEvent, WindowSettings,
 };
 
 /// State machine for `WindowHandlers` that want to animate across the double buffered frames.
@@ -47,14 +46,10 @@ pub struct RenderContext<'a, 'b: 'a> {
 
 /// An object that can render frames of a drawing/animation/program/game.
 pub trait WindowHandler {
-    /// Optional: Allows the handler to borrow the window before the main event loop starts.
-    ///
-    /// It could use the window to gain access to the GFX factory to initialize a Texture, for
-    /// example.
-    fn initialize_with_window(&mut self, _: &mut PistonWindow) {}
-
-    /// When the window is resized, we may need to plan to re-render.
-    fn window_resized(&mut self, new_size: Vec2d, factory: &mut gfx_device_gl::Factory);
+    /// When the window is resized (including the first time it is created/sized), do or gather any
+    /// information needed in order to start the render/re-render. (Eg, to extract the gfx context,
+    /// texture context, etc.)
+    fn window_resized(&mut self, new_size: Vec2d, window: &mut PistonWindow);
 
     /// Render a frame.
     fn render_frame(&mut self, context: &mut RenderContext, frame_num: u32);
@@ -76,9 +71,7 @@ pub fn run(window_handler: &mut dyn WindowHandler) {
     println!("Press backspace to reset the view back to the initial view");
     println!("Press esc to exit");
 
-    let opengl = OpenGL::V3_2;
     let mut window: PistonWindow = WindowSettings::new("Fractal", [800, 600])
-        .opengl(opengl)
         .exit_on_esc(true)
         .build()
         .unwrap_or_else(|e| panic!("Failed to build Window: {}", e));
@@ -89,8 +82,6 @@ pub fn run(window_handler: &mut dyn WindowHandler) {
     let mut mouse_pos: Vec2d = [0.0, 0.0];
     let mut mouse_down_pos = None;
 
-    window_handler.initialize_with_window(&mut window);
-
     while let Some(e) = window.next() {
         if let Some(args) = e.render_args() {
             let uvec = args.viewport().window_size;
@@ -99,18 +90,18 @@ pub fn run(window_handler: &mut dyn WindowHandler) {
             if size != old_size {
                 println!("resized");
                 old_size = size;
-                window_handler.window_resized(size, &mut window.factory);
+                window_handler.window_resized(size, &mut window);
             }
         }
-        window.draw_2d(&e, |context, gfx| {
+        window.draw_2d(&e, |context, gfx, _device| {
             frame_num += 1;
             // println!("Render frame {}, window: {:?}", frame_num, size);
             let mut render_context = RenderContext { context, gfx };
             window_handler.render_frame(&mut render_context, frame_num);
         });
-        e.mouse_cursor(|x, y| {
+        e.mouse_cursor(|coords| {
             // mouse moved
-            mouse_pos = [x, y];
+            mouse_pos = coords;
         });
         e.press(|button| {
             match button {

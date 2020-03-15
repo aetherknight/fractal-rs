@@ -18,7 +18,6 @@ use super::{RenderContext, WhichFrame, WindowHandler};
 use fractal_lib::color;
 use fractal_lib::geometry::{Point, Vector, ViewAreaTransformer};
 use fractal_lib::turtle::{Turtle, TurtleCollectToNextForwardIterator, TurtleProgram, TurtleState};
-use gfx_device_gl;
 use graphics;
 use graphics::math::Vec2d;
 use piston_window;
@@ -170,7 +169,7 @@ impl<'a> fmt::Debug for DoubleBufferedWindowHandler<'a> {
 }
 
 impl<'a> WindowHandler for DoubleBufferedWindowHandler<'a> {
-    fn window_resized(&mut self, _: Vec2d, _: &mut gfx_device_gl::Factory) {
+    fn window_resized(&mut self, _: Vec2d, _window: &mut piston_window::PistonWindow) {
         self.redraw[0] = true;
         self.redraw[1] = true;
     }
@@ -254,7 +253,7 @@ impl<'a> DoubleBufferedAnimatedWindowHandler<'a> {
 }
 
 impl<'a> WindowHandler for DoubleBufferedAnimatedWindowHandler<'a> {
-    fn window_resized(&mut self, _: Vec2d, _: &mut gfx_device_gl::Factory) {
+    fn window_resized(&mut self, _: Vec2d, _: &mut piston_window::PistonWindow) {
         self.which_frame = WhichFrame::FirstFrame;
         self.turtles[0] = TurtleState::new();
         self.turtles[1] = TurtleState::new();

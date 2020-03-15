@@ -18,7 +18,6 @@ use super::{RenderContext, WhichFrame, WindowHandler};
 use fractal_lib::chaosgame::ChaosGameMoveIterator;
 use fractal_lib::color;
 use fractal_lib::geometry::{Point, ViewAreaTransformer};
-use gfx_device_gl;
 use graphics;
 use graphics::math::Vec2d;
 use piston_window;
@@ -67,7 +66,7 @@ impl ChaosGameWindowHandler {
 }
 
 impl WindowHandler for ChaosGameWindowHandler {
-    fn window_resized(&mut self, _: Vec2d, _: &mut gfx_device_gl::Factory) {
+    fn window_resized(&mut self, _: Vec2d, _: &mut piston_window::PistonWindow) {
         self.which_frame = WhichFrame::FirstFrame;
         self.iter.reset_game();
         self.last_moves = Vec::with_capacity(self.dots_per_frame as usize);
