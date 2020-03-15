@@ -27,6 +27,7 @@
 //! ```
 
 use console_error_panic_hook;
+use console_log;
 use fractal_lib::chaosgame::barnsleyfern;
 use fractal_lib::chaosgame::sierpinski;
 use fractal_lib::curves::cesaro;
@@ -38,10 +39,11 @@ use fractal_lib::curves::terdragon;
 use fractal_lib::escapetime::burningship::{BurningMandel, BurningShip, RoadRunner};
 use fractal_lib::escapetime::mandelbrot::Mandelbrot;
 use fractal_lib::lindenmayer::LindenmayerSystemTurtleProgram;
+use log;
 use paste;
 use wasm_bindgen::prelude::*;
 use wasm_bindgen::JsCast;
-use web_sys::{console, CanvasRenderingContext2d, HtmlCanvasElement};
+use web_sys::{CanvasRenderingContext2d, HtmlCanvasElement};
 
 mod chaosgame;
 mod escapetime;
@@ -50,6 +52,7 @@ mod turtle;
 #[wasm_bindgen(start)]
 pub fn start() {
     console_error_panic_hook::set_once();
+    console_log::init_with_level(log::Level::Debug).unwrap();
 }
 
 /// Macro that generates a function for constructing a TurtleAnimation for a particular kind of
@@ -92,7 +95,7 @@ macro_rules! animated_turtle {
                 canvas: &HtmlCanvasElement,
                 iteration: u32
             ) -> turtle::TurtleAnimation {
-                console::log_1(&format!("Starting animation {}", stringify!($name)).into());
+                log::debug!("Starting animation {}", stringify!($name));
                 let ctx = JsValue::from(canvas.get_context("2d").unwrap().unwrap())
                     .dyn_into::<CanvasRenderingContext2d>()
                     .unwrap();
@@ -154,7 +157,7 @@ macro_rules! animated_chaos_game {
             pub fn [<animated_ $name>] (
                 canvas: &HtmlCanvasElement
             ) -> chaosgame::ChaosGameAnimation {
-                console::log_1(&format!("Starting animation {}", stringify!($name)).into());
+                log::debug!("Starting animation {}", stringify!($name));
                 let ctx = JsValue::from(canvas.get_context("2d").unwrap().unwrap())
                     .dyn_into::<CanvasRenderingContext2d>()
                     .unwrap();
@@ -186,7 +189,7 @@ macro_rules! animated_escape_time {
             pub fn [<animated_ $name>] (
                 canvas: &HtmlCanvasElement, max_iterations: u32, power: u32
             ) -> escapetime::EscapeTimeAnimation {
-                console::log_1(&format!("Starting animation {}", stringify!($name)).into());
+                log::debug!("Starting animation {}", stringify!($name));
                 let ctx = JsValue::from(canvas.get_context("2d").unwrap().unwrap())
                     .dyn_into::<CanvasRenderingContext2d>()
                     .unwrap();

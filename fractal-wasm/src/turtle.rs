@@ -15,8 +15,9 @@
 use fractal_lib::geometry::{Point, Vector, ViewAreaTransformer};
 use fractal_lib::turtle::{Turtle, TurtleCollectToNextForwardIterator, TurtleProgram, TurtleState};
 use js_sys::Array;
+use log;
 use wasm_bindgen::prelude::*;
-use web_sys::{console, CanvasRenderingContext2d, HtmlCanvasElement};
+use web_sys::{CanvasRenderingContext2d, HtmlCanvasElement};
 
 /// Constructs a ViewAreaTransformer for converting between a canvas pixel-coordinate and the
 /// coordinate system used by Turtle curves.
@@ -60,16 +61,16 @@ impl Turtle for CanvasTurtle {
 
             let old_coords = turtle_vat.map_point_to_pixel(old_pos);
             let new_coords = turtle_vat.map_point_to_pixel(new_pos);
-            // console::log_3(&"Line to".into(), &new_pos.x.into(), &new_pos.y.into());
-            // console::log_3(
-            //     &"old coords".into(),
-            //     &old_coords[0].into(),
-            //     &old_coords[1].into(),
+            // log::debug!("Line to {}, {}", new_pos.x, new_pos.y);
+            // log::debug!(
+            //     "old coords",
+            //     old_coords[0],
+            //     old_coords[1],
             // );
-            // console::log_3(
-            //     &"new coords".into(),
-            //     &new_coords[0].into(),
-            //     &new_coords[1].into(),
+            // log::debug!(
+            //     "new coords",
+            //     &new_coords[0],
+            //     &new_coords[1],
             // );
 
             self.ctx.set_line_width(1.0f64);
@@ -138,13 +139,13 @@ impl TurtleAnimation {
     /// Returns true if there are more moves to make, and false if it can no longer perform a move.
     pub fn draw_one_frame(&mut self) -> bool {
         if let Some(one_move) = self.iter.next() {
-            console::log_1(&"Rendering one move".into());
+            log::debug!("Rendering one move");
             for action in one_move {
                 self.turtle.perform(action);
             }
             true
         } else {
-            console::log_1(&"No more moves".into());
+            log::debug!("No more moves");
             self.turtle.up();
             false
         }

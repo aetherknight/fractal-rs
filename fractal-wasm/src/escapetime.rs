@@ -16,11 +16,12 @@ use fractal_lib::color;
 use fractal_lib::escapetime::EscapeTime;
 use fractal_lib::geometry;
 use js_sys::Array;
+use log;
 use num::complex::Complex64;
 use std::cmp;
 use wasm_bindgen::prelude::*;
 use wasm_bindgen::Clamped;
-use web_sys::{console, CanvasRenderingContext2d, ImageData};
+use web_sys::{CanvasRenderingContext2d, ImageData};
 
 #[wasm_bindgen]
 pub struct EscapeTimeAnimation {
@@ -59,26 +60,23 @@ impl EscapeTimeAnimation {
             self.view_area[0],
             self.view_area[1],
         );
-        console::log_1(&format!("View area: {:?}", self.view_area).into());
-        console::log_1(&format!("pixel 0,0 maps to {}", vat.map_pixel_to_point([0.0, 0.0])).into());
-        console::log_1(
-            &format!(
-                "pixel {},{} maps to {}",
-                screen_width as u32,
-                screen_height as u32,
-                vat.map_pixel_to_point([screen_width.into(), screen_height.into()])
-            )
-            .into(),
+        log::debug!("View area: {:?}", self.view_area);
+        log::debug!("pixel 0,0 maps to {}", vat.map_pixel_to_point([0.0, 0.0]));
+        log::debug!(
+            "pixel {},{} maps to {}",
+            screen_width as u32,
+            screen_height as u32,
+            vat.map_pixel_to_point([screen_width.into(), screen_height.into()])
         );
 
-        console::log_1(&"build color range".into());
+        log::debug!("build color range");
         let colors = color::color_range_linear(
             color::BLACK_U8,
             color::WHITE_U8,
             cmp::min(self.etsystem.max_iterations(), 50) as usize,
         );
 
-        console::log_1(&"build image pixels".into());
+        log::debug!("build image pixels");
         let mut image_pixels = (0..screen_height)
             .map(|y| {
                 (0..screen_width)
@@ -97,14 +95,14 @@ impl EscapeTimeAnimation {
             })
             .flatten()
             .cloned()
-            .collect::<Vec<u8>>();;
+            .collect::<Vec<u8>>();
 
         // Construct a Clamped Uint8 Array
-        console::log_1(&"build clamped image array".into());
+        log::debug!("build clamped image array");
         let clamped_image_array = Clamped(image_pixels.as_mut_slice());
 
         // Create an ImageData from the array
-        console::log_1(&"Create Image Data".into());
+        log::debug!("Create Image Data");
         let image = ImageData::new_with_u8_clamped_array_and_sh(
             clamped_image_array,
             screen_width,
@@ -112,7 +110,7 @@ impl EscapeTimeAnimation {
         )
         .unwrap();
 
-        console::log_1(&"Put Image Data".into());
+        log::debug!("Put Image Data");
         self.ctx.put_image_data(&image, 0.0, 0.0).unwrap();
     }
 }

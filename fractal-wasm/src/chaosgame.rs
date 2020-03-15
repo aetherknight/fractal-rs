@@ -15,8 +15,9 @@
 use fractal_lib::chaosgame::ChaosGameMoveIterator;
 use fractal_lib::geometry;
 use js_sys::Array;
+use log;
 use wasm_bindgen::prelude::*;
-use web_sys::{console, CanvasRenderingContext2d, HtmlCanvasElement};
+use web_sys::{CanvasRenderingContext2d, HtmlCanvasElement};
 
 /// Constructs a ViewAreaTransformer for converting between a canvas pixel-coordinate and the
 /// coordinate system used by Chaos Games.
@@ -55,7 +56,7 @@ impl ChaosGameAnimation {
     fn draw_point(&self, point: geometry::Point) {
         let canvas = self.ctx.canvas().unwrap();
         let pixel_pos = chaos_game_vat(&canvas).map_point_to_pixel(point);
-        // console::log_1(&format!("pixels: {}, {}", pixel_pos[0], pixel_pos[1]).into());
+        // log::debug(&format!("pixels: {}, {}", pixel_pos[0], pixel_pos[1]).into());
         self.ctx.set_fill_style(&"black".into());
         self.ctx.fill_rect(pixel_pos[0], pixel_pos[1], 1.0, 1.0);
         // self.ctx.stroke();
@@ -70,11 +71,11 @@ impl ChaosGameAnimation {
     /// reason.
     pub fn draw_one_frame(&mut self) -> bool {
         if let Some(next_point) = self.iter.next() {
-            // console::log_1(&format!("{}", next_point).into());
+            // log::debug(&format!("{}", next_point).into());
             self.draw_point(next_point);
             true
         } else {
-            console::log_1(&"No more points".into());
+            log::debug!("No more points");
             false
         }
     }
