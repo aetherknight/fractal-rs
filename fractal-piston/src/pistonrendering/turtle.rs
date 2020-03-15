@@ -246,9 +246,8 @@ impl<'a> DoubleBufferedAnimatedWindowHandler<'a> {
     ) where
         G: graphics::Graphics,
     {
-        let one_move = program_iter.next();
-        if one_move.is_some() {
-            for action in one_move.unwrap() {
+        if let Some(one_move) = program_iter.next() {
+            for action in one_move {
                 turtle.perform(action)
             }
         }
@@ -295,9 +294,8 @@ impl<'a> WindowHandler for DoubleBufferedAnimatedWindowHandler<'a> {
                 self.iters[bufnum] = self.program.turtle_program_iter().collect_to_next_forward();
                 // if we are the second frame, then we need to stagger our buffer from the first
                 // buffer.
-                let one_move = self.iters[bufnum].next();
-                if one_move.is_some() {
-                    for action in one_move.unwrap() {
+                if let Some(one_move) = self.iters[bufnum].next() {
+                    for action in one_move {
                         turtle.perform(action)
                     }
                 }

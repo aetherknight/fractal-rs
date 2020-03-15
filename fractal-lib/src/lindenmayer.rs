@@ -172,10 +172,9 @@ where
     fn generate(&self, iteration: u64) -> Vec<A> {
         {
             let cache = self.iteration_cache.borrow_mut();
-            let val = cache.get(iteration as usize);
-            if val.is_some() {
+            if let Some(val) = cache.get(iteration as usize) {
                 log::debug!("found {}", iteration);
-                return val.unwrap().clone();
+                return val.clone();
             }
         } // end borrow of the cache
         {
