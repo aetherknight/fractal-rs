@@ -197,7 +197,7 @@ impl ViewAreaTransformer {
         if (cart_height / cart_width) > (window_height / window_width) {
             cart_height / window_height
         } else {
-            (cart_width / window_width)
+            cart_width / window_width
         }
     }
 

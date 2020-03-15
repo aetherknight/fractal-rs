@@ -183,9 +183,9 @@ where
     }
 
     fn run(&self, matches: &clap::ArgMatches) -> Result<(), String> {
-        let max_iterations = r#try!(extract!(matches, "MAX_ITERATIONS"));
+        let max_iterations = (extract!(matches, "MAX_ITERATIONS"))?;
         // .unwrap_or_else(|| return Err("Must specify a MAX_ITERATIONS of 1 or greater!"));
-        let power = r#try!(extract!(matches, "POWER"));
+        let power = (extract!(matches, "POWER"))?;
         // .unwrap_or_else(|| return Err("Must specify a POWER of 1 or greater!"));
 
         // The ctor callback can return a raw object that implements EscapeTime because this method
@@ -247,8 +247,8 @@ where
     }
 
     fn run(&self, matches: &clap::ArgMatches) -> Result<(), String> {
-        let drawrate = r#try!(extract!(matches, "drawrate"));
-        let iteration = r#try!(extract!(matches, "ITERATION"));
+        let drawrate = (extract!(matches, "drawrate"))?;
+        let iteration = (extract!(matches, "ITERATION"))?;
         // .unwrap_or_else(|| Err("Must specify an ITERATION of 1 or greater!"));
 
         let program = (self.ctor)(iteration);
