@@ -49,11 +49,11 @@ mod chaosgame;
 mod escapetime;
 mod turtle;
 
-#[wasm_bindgen(start)]
-pub fn start() {
-    console_error_panic_hook::set_once();
-    console_log::init_with_level(log::Level::Debug).unwrap();
-}
+// #[wasm_bindgen(start)]
+// pub fn start() {
+//     console_error_panic_hook::set_once();
+//     console_log::init_with_level(log::Level::Debug).unwrap();
+// }
 
 /// Macro that generates a function for constructing a TurtleAnimation for a particular kind of
 /// turtle-based curve.
@@ -208,3 +208,116 @@ animated_escape_time!(
 animated_escape_time!(burningship: BurningShip::new(u64::from(max_iterations), u64::from(power)));
 animated_escape_time!(mandelbrot: Mandelbrot::new(u64::from(max_iterations), u64::from(power)));
 animated_escape_time!(roadrunner: RoadRunner::new(u64::from(max_iterations), u64::from(power)));
+
+// (Lines like the one below ignore selected Clippy rules
+//  - it's useful when you want to check your code with `cargo make verify`
+// but some rules are too "annoying" or are not applicable for your case.)
+// #![allow(clippy::wildcard_imports)]
+
+use seed::{prelude::*, *};
+
+// ------ ------
+//     Init
+// ------ ------
+
+// `init` describes what should happen when your app started.
+fn init(_url: Url, orders: &mut impl Orders<Msg>) -> Model {
+    orders.after_next_render(|_| Msg::Rendered);
+    Model {
+        canvas: ElRef::default(),
+        selected_fractal: SelectedFractal::BarnsleyFern,
+        current_animation: None,
+    }
+}
+
+// ------ ------
+//     Model
+// ------ ------
+
+// `Model` describes our app state.
+struct Model {
+    selected_fractal: SelectedFractal,
+    canvas: ElRef<HtmlCanvasElement>,
+    current_animation: Option<turtle::TurtleAnimation>,
+}
+
+#[derive(Copy, Clone)]
+enum SelectedFractal {
+    BarnsleyFern,
+}
+
+// ------ ------
+//    Update
+// ------ ------
+
+// (Remove the line below once any of your `Msg` variants doesn't implement `Copy`.)
+#[derive(Copy, Clone)]
+// `Msg` describes the different events you can modify state with.
+enum Msg {
+    Rendered,
+    RunClicked,
+}
+
+// `update` describes how to handle each `Msg`.
+fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
+    match msg {
+        Msg::Rendered => {
+            match &mut model.current_animation {
+                None => {
+                    // Initialize a new animation
+                    let canvas = model.canvas.get().expect("get canvas element failed");
+                    model.current_animation = Some(animated_dragon(&canvas, 4));
+                    orders.after_next_render(|_| Msg::Rendered);
+                }
+                Some(turtle_animation) => {
+                    // Animate until it says its done
+                    if turtle_animation.draw_one_frame() {
+                        orders.after_next_render(|_| Msg::Rendered);
+                    }
+                }
+            }
+        }
+        Msg::RunClicked => {}
+    }
+}
+
+// ------ ------
+//     View
+// ------ ------
+
+// (Remove the line below once your `Model` become more complex.)
+#[allow(clippy::trivially_copy_pass_by_ref)]
+// `view` describes what to display.
+fn view(model: &Model) -> Node<Msg> {
+    div![
+        div![
+            style! {St::Float => "left"},
+            canvas![
+                el_ref(&model.canvas),
+                attrs! { At::Id => "fractal-canvas", At::Width => "800", At::Height => "600"},
+                style! {St::BackgroundColor => "white"}
+            ],
+            div![attrs! {At::Id => "coords"}, "Canvas coords:"],
+            div![attrs! {At::Id => "fractal-coords"}, "Fractal coords:"],
+        ],
+        div![
+            style! {St::Float => "left"},
+            select![attrs! {At::Id => "fractal-type"},],
+            div![attrs! {At::Id => "configs"}],
+        ]
+    ]
+}
+
+// ------ ------
+//     Start
+// ------ ------
+
+// (This function is invoked by `init` function in `index.html`.)
+#[wasm_bindgen(start)]
+pub fn start() {
+    console_error_panic_hook::set_once();
+    console_log::init_with_level(log::Level::Debug).unwrap();
+    log::debug!("Start App");
+    // Mount the `app` to the element with the `id` "app".
+    App::start("app", init, update, view);
+}

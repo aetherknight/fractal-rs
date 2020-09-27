@@ -9,7 +9,14 @@ edition = "2018"
 [lib]
 crate-type = ["cdylib"]
 
+[dev-dependencies]
+wasm-bindgen-test = "0.3.13"
+
 [dependencies]
+# This commit points to Seed 0.7.0 with important fixes.
+# Replace with `seed = "0.8.0"` (or newer) once released.
+seed = { git = "https://github.com/seed-rs/seed", rev = "0a538f0" }
+
 console_error_panic_hook = "0.1.6"
 console_log = "^0.1"
 fractal-lib = { path = "../fractal-lib", features = ["wasm-bindgen"]}
@@ -20,6 +27,10 @@ paste = "0.1.5"
 wasm-bindgen = "0.2.42"
 web-sys = {version = "0.3.4", features = ['CanvasRenderingContext2d', 'HtmlCanvasElement', 'ImageData']}
 
-# [profile.release]
-# lto = true
-# opt-level = 's'
+[profile.release]
+lto = true
+opt-level = 'z'
+codegen-units = 1
+
+[package.metadata.wasm-pack.profile.release]
+wasm-opt = ['-Os']
