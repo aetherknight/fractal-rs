@@ -317,7 +317,7 @@ define_subcommands! {
     cesaro: {
         TurtleCommand::new(
             "cesaro",
-            "Draws a square Césaro fractal",
+            "Draws a square Cesàro fractal",
             Box::new(|iteration| {
                 LindenmayerSystemTurtleProgram::new(CesaroFractal::new(iteration))
             })
@@ -327,7 +327,7 @@ define_subcommands! {
     cesarotri: {
         TurtleCommand::new(
             "cestarotri",
-            "Draws a triangle Césaro fractal",
+            "Draws a triangle Cesàro fractal",
             Box::new(|iteration| {
                 LindenmayerSystemTurtleProgram::new(CesaroTriFractal::new(iteration))
             })
@@ -355,7 +355,7 @@ define_subcommands! {
     levyccurve: {
         TurtleCommand::new(
             "levyccurve",
-            "Draws a Levy C Curve",
+            "Draws a Lévy C Curve",
             Box::new(|iteration| {
                 LindenmayerSystemTurtleProgram::new(LevyCCurve::new(iteration))
             })
@@ -386,7 +386,7 @@ define_subcommands! {
         let ctor = Box::new(SierpinskiChaosGame::new);
         ChaosGameCommand::new(
             "sierpinski",
-            "Draws a Sierpinski triangle using a chaos game and 3 randomly chosen points on the \
+            "Draws a Sierpiński triangle using a chaos game and 3 randomly chosen points on the \
             screen",
             ctor
         )

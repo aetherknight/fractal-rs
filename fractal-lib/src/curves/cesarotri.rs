@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-//! Computations and abstractions needed for rendering a Césaro fractal
+//! Computations and abstractions needed for rendering a Cesàro fractal
 
 use crate::geometry::deg2rad;
 use crate::lindenmayer::{LindenmayerSystem, LindenmayerSystemDrawingParameters};

@@ -348,14 +348,14 @@ impl SelectedFractal {
             SelectedFractal::BarnsleyFern => "Barnsley Fern",
             SelectedFractal::BurningMandel => "Burning Mandel",
             SelectedFractal::BurningShip => "Burning Ship",
-            SelectedFractal::Cesaro => "Cesaro",
-            SelectedFractal::CesaroTri => "Cesaro Triangle",
+            SelectedFractal::Cesaro => "Cesàro",
+            SelectedFractal::CesaroTri => "Cesàro Triangle",
             SelectedFractal::Dragon => "Dragon",
             SelectedFractal::KochCurve => "Koch Curve",
-            SelectedFractal::LevyCCurve => "Levi C Curve",
+            SelectedFractal::LevyCCurve => "Lévy C Curve",
             SelectedFractal::Mandelbrot => "Mandelbrot",
             SelectedFractal::RoadRunner => "Roadrunner",
-            SelectedFractal::Sierpinski => "Sierpinski",
+            SelectedFractal::Sierpinski => "Sierpiński Triangle",
             SelectedFractal::TerDragon => "Terdragon",
         }
     }
