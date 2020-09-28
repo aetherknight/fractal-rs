@@ -42,7 +42,9 @@ use fractal_lib::lindenmayer::LindenmayerSystemTurtleProgram;
 use js_sys::Array;
 use log;
 use paste;
-use std::convert::TryFrom;
+use std::str::FromStr;
+use strum::IntoEnumIterator;
+use strum_macros::{EnumIter, EnumString, IntoStaticStr};
 use wasm_bindgen::prelude::*;
 use wasm_bindgen::JsCast;
 use web_sys::{CanvasRenderingContext2d, HtmlCanvasElement};
@@ -259,7 +261,30 @@ struct Model {
     animation_ongoing: bool,
 }
 
-#[derive(Copy, Clone)]
+/// All of the support fractals, with associated data for using them.
+///
+/// You can list all of them by using a derived iterator:
+///
+/// ```rust
+/// use strum::IntoEnumIterator;
+///
+/// SelectedFractal::iter()
+/// ```
+///
+/// You can parse a string token into one of these enums using something like:
+///
+/// ```rust
+/// use std::str::FromStr;
+///
+/// SelectedFractal::from_str("Dragon").unwrap()
+/// ```
+///
+/// You can generate a static str representation using:
+///
+/// ```rust.ignore
+/// <&'static str>::from(SelectedFractal::Dragon)
+/// ```
+#[derive(Copy, Clone, EnumString, EnumIter, IntoStaticStr)]
 enum SelectedFractal {
     BarnsleyFern,
     BurningMandel,
@@ -275,74 +300,7 @@ enum SelectedFractal {
     TerDragon,
 }
 
-impl TryFrom<&str> for SelectedFractal {
-    type Error = &'static str;
-    fn try_from(value: &str) -> Result<Self, Self::Error> {
-        if value == "barnsleyfern" {
-            Ok(SelectedFractal::BarnsleyFern)
-        } else if value == "burningmandel" {
-            Ok(SelectedFractal::BurningMandel)
-        } else if value == "burningship" {
-            Ok(SelectedFractal::BurningShip)
-        } else if value == "cesaro" {
-            Ok(SelectedFractal::Cesaro)
-        } else if value == "cesarotri" {
-            Ok(SelectedFractal::CesaroTri)
-        } else if value == "dragon" {
-            Ok(SelectedFractal::Dragon)
-        } else if value == "kochcurve" {
-            Ok(SelectedFractal::KochCurve)
-        } else if value == "levyccurve" {
-            Ok(SelectedFractal::LevyCCurve)
-        } else if value == "mandelbrot" {
-            Ok(SelectedFractal::Mandelbrot)
-        } else if value == "roadrunner" {
-            Ok(SelectedFractal::RoadRunner)
-        } else if value == "sierpinski" {
-            Ok(SelectedFractal::Sierpinski)
-        } else if value == "terdragon" {
-            Ok(SelectedFractal::TerDragon)
-        } else {
-            Err("Unsupported fractal type")
-        }
-    }
-}
-
 impl SelectedFractal {
-    pub fn all() -> Vec<Self> {
-        vec![
-            SelectedFractal::BarnsleyFern,
-            SelectedFractal::BurningMandel,
-            SelectedFractal::BurningShip,
-            SelectedFractal::Cesaro,
-            SelectedFractal::CesaroTri,
-            SelectedFractal::Dragon,
-            SelectedFractal::KochCurve,
-            SelectedFractal::LevyCCurve,
-            SelectedFractal::Mandelbrot,
-            SelectedFractal::RoadRunner,
-            SelectedFractal::Sierpinski,
-            SelectedFractal::TerDragon,
-        ]
-    }
-
-    pub fn id(self) -> &'static str {
-        match self {
-            SelectedFractal::BarnsleyFern => "barnsleyfern",
-            SelectedFractal::BurningMandel => "burningmandel",
-            SelectedFractal::BurningShip => "burningship",
-            SelectedFractal::Cesaro => "cesaro",
-            SelectedFractal::CesaroTri => "cesarotri",
-            SelectedFractal::Dragon => "dragon",
-            SelectedFractal::KochCurve => "kochcurve",
-            SelectedFractal::LevyCCurve => "levyccurve",
-            SelectedFractal::Mandelbrot => "mandelbrot",
-            SelectedFractal::RoadRunner => "roadrunner",
-            SelectedFractal::Sierpinski => "sierpinski",
-            SelectedFractal::TerDragon => "terdragon",
-        }
-    }
-
     pub fn name(self) -> &'static str {
         match self {
             SelectedFractal::BarnsleyFern => "Barnsley Fern",
@@ -412,7 +370,7 @@ fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
         Msg::FractalSelected(selected) => {
             log::debug!("selected {}", selected);
             model.selected_fractal =
-                SelectedFractal::try_from(selected.as_ref()).expect("unknown selected fractal");
+                SelectedFractal::from_str(selected.as_ref()).expect("unknown selected fractal");
         }
         Msg::RunClicked => {
             log::debug!("clicked run");
@@ -465,19 +423,22 @@ fn view(model: &Model) -> Node<Msg> {
         ],
         div![
             style! {St::Float => "left"},
-            view_menu(&SelectedFractal::all()),
+            view_menu(),
             div![attrs! {At::Id => "configs"}],
             button!["Run", ev(Ev::Click, |_| Msg::RunClicked)],
         ]
     ]
 }
 
-fn view_menu(fractals: &[SelectedFractal]) -> Node<Msg> {
+fn view_menu() -> Node<Msg> {
     select![
         attrs! {At::Id => "fractal-type"},
-        fractals
-            .iter()
-            .map(|desc| { option![attrs! {At::Value => desc.id()}, desc.name()] }),
+        SelectedFractal::iter().map(|fractal| {
+            option![
+                attrs! {At::Value => <&'static str>::from(fractal)},
+                fractal.name()
+            ]
+        }),
         input_ev(Ev::Input, Msg::FractalSelected),
         ev(Ev::Change, |event| log::debug!("change {:?}", event)),
         ev(Ev::Focus, |event| log::debug!("focus {:?}", event)),
