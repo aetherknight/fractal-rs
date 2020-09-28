@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
+use super::FractalAnimation;
 use fractal_lib::geometry::{Point, Vector, ViewAreaTransformer};
 use fractal_lib::turtle::{Turtle, TurtleCollectToNextForwardIterator, TurtleProgram, TurtleState};
 use js_sys::Array;
@@ -134,10 +135,9 @@ impl TurtleAnimation {
     }
 }
 
-#[wasm_bindgen]
-impl TurtleAnimation {
+impl FractalAnimation for TurtleAnimation {
     /// Returns true if there are more moves to make, and false if it can no longer perform a move.
-    pub fn draw_one_frame(&mut self) -> bool {
+    fn draw_one_frame(&mut self) -> bool {
         if let Some(one_move) = self.iter.next() {
             log::debug!("Rendering one move");
             for action in one_move {
@@ -155,13 +155,13 @@ impl TurtleAnimation {
     /// curves.
     ///
     /// See turtle::turtle_vat for more information on the coordinate system for turtle curves.
-    pub fn pixel_to_coordinate(&self, x: f64, y: f64) -> Array {
+    fn pixel_to_coordinate(&self, x: f64, y: f64) -> Array {
         let canvas = self.turtle.ctx.canvas().unwrap();
         let pos_point = turtle_vat(&canvas).map_pixel_to_point([x, y]);
         Array::of2(&pos_point.x.into(), &pos_point.y.into())
     }
 
-    pub fn zoom(&mut self, _x1: f64, _y1: f64, _x2: f64, _y2: f64) -> bool {
+    fn zoom(&mut self, _x1: f64, _y1: f64, _x2: f64, _y2: f64) -> bool {
         false
     }
 }

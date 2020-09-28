@@ -39,8 +39,10 @@ use fractal_lib::curves::terdragon;
 use fractal_lib::escapetime::burningship::{BurningMandel, BurningShip, RoadRunner};
 use fractal_lib::escapetime::mandelbrot::Mandelbrot;
 use fractal_lib::lindenmayer::LindenmayerSystemTurtleProgram;
+use js_sys::Array;
 use log;
 use paste;
+use std::convert::TryFrom;
 use wasm_bindgen::prelude::*;
 use wasm_bindgen::JsCast;
 use web_sys::{CanvasRenderingContext2d, HtmlCanvasElement};
@@ -54,6 +56,13 @@ mod turtle;
 //     console_error_panic_hook::set_once();
 //     console_log::init_with_level(log::Level::Debug).unwrap();
 // }
+//
+
+pub trait FractalAnimation {
+    fn draw_one_frame(&mut self) -> bool;
+    fn pixel_to_coordinate(&self, x: f64, y: f64) -> Array;
+    fn zoom(&mut self, _x1: f64, _y1: f64, _x2: f64, _y2: f64) -> bool;
+}
 
 /// Macro that generates a function for constructing a TurtleAnimation for a particular kind of
 /// turtle-based curve.
@@ -209,6 +218,14 @@ animated_escape_time!(burningship: BurningShip::new(u64::from(max_iterations), u
 animated_escape_time!(mandelbrot: Mandelbrot::new(u64::from(max_iterations), u64::from(power)));
 animated_escape_time!(roadrunner: RoadRunner::new(u64::from(max_iterations), u64::from(power)));
 
+#[derive(Copy, Clone)]
+enum FractalCategory {
+    ChaosGames,
+    EscapeTimeFractals,
+    LindenmayerCurves,
+    OtherCurves,
+}
+
 // (Lines like the one below ignore selected Clippy rules
 //  - it's useful when you want to check your code with `cargo make verify`
 // but some rules are too "annoying" or are not applicable for your case.)
@@ -221,12 +238,12 @@ use seed::{prelude::*, *};
 // ------ ------
 
 // `init` describes what should happen when your app started.
-fn init(_url: Url, orders: &mut impl Orders<Msg>) -> Model {
-    orders.after_next_render(|_| Msg::Rendered);
+fn init(_url: Url, _orders: &mut impl Orders<Msg>) -> Model {
     Model {
         canvas: ElRef::default(),
         selected_fractal: SelectedFractal::BarnsleyFern,
         current_animation: None,
+        animation_ongoing: false,
     }
 }
 
@@ -238,46 +255,191 @@ fn init(_url: Url, orders: &mut impl Orders<Msg>) -> Model {
 struct Model {
     selected_fractal: SelectedFractal,
     canvas: ElRef<HtmlCanvasElement>,
-    current_animation: Option<turtle::TurtleAnimation>,
+    current_animation: Option<Box<dyn FractalAnimation>>,
+    animation_ongoing: bool,
 }
 
 #[derive(Copy, Clone)]
 enum SelectedFractal {
     BarnsleyFern,
+    BurningMandel,
+    BurningShip,
+    Cesaro,
+    CesaroTri,
+    Dragon,
+    KochCurve,
+    LevyCCurve,
+    Mandelbrot,
+    RoadRunner,
+    Sierpinski,
+    TerDragon,
+}
+
+impl TryFrom<&str> for SelectedFractal {
+    type Error = &'static str;
+    fn try_from(value: &str) -> Result<Self, Self::Error> {
+        if value == "barnsleyfern" {
+            Ok(SelectedFractal::BarnsleyFern)
+        } else if value == "burningmandel" {
+            Ok(SelectedFractal::BurningMandel)
+        } else if value == "burningship" {
+            Ok(SelectedFractal::BurningShip)
+        } else if value == "cesaro" {
+            Ok(SelectedFractal::Cesaro)
+        } else if value == "cesarotri" {
+            Ok(SelectedFractal::CesaroTri)
+        } else if value == "dragon" {
+            Ok(SelectedFractal::Dragon)
+        } else if value == "kochcurve" {
+            Ok(SelectedFractal::KochCurve)
+        } else if value == "levyccurve" {
+            Ok(SelectedFractal::LevyCCurve)
+        } else if value == "mandelbrot" {
+            Ok(SelectedFractal::Mandelbrot)
+        } else if value == "roadrunner" {
+            Ok(SelectedFractal::RoadRunner)
+        } else if value == "sierpinski" {
+            Ok(SelectedFractal::Sierpinski)
+        } else if value == "terdragon" {
+            Ok(SelectedFractal::TerDragon)
+        } else {
+            Err("Unsupported fractal type")
+        }
+    }
+}
+
+impl SelectedFractal {
+    pub fn all() -> Vec<Self> {
+        vec![
+            SelectedFractal::BarnsleyFern,
+            SelectedFractal::BurningMandel,
+            SelectedFractal::BurningShip,
+            SelectedFractal::Cesaro,
+            SelectedFractal::CesaroTri,
+            SelectedFractal::Dragon,
+            SelectedFractal::KochCurve,
+            SelectedFractal::LevyCCurve,
+            SelectedFractal::Mandelbrot,
+            SelectedFractal::RoadRunner,
+            SelectedFractal::Sierpinski,
+            SelectedFractal::TerDragon,
+        ]
+    }
+
+    pub fn id(self) -> &'static str {
+        match self {
+            SelectedFractal::BarnsleyFern => "barnsleyfern",
+            SelectedFractal::BurningMandel => "burningmandel",
+            SelectedFractal::BurningShip => "burningship",
+            SelectedFractal::Cesaro => "cesaro",
+            SelectedFractal::CesaroTri => "cesarotri",
+            SelectedFractal::Dragon => "dragon",
+            SelectedFractal::KochCurve => "kochcurve",
+            SelectedFractal::LevyCCurve => "levyccurve",
+            SelectedFractal::Mandelbrot => "mandelbrot",
+            SelectedFractal::RoadRunner => "roadrunner",
+            SelectedFractal::Sierpinski => "sierpinski",
+            SelectedFractal::TerDragon => "terdragon",
+        }
+    }
+
+    pub fn name(self) -> &'static str {
+        match self {
+            SelectedFractal::BarnsleyFern => "Barnsley Fern",
+            SelectedFractal::BurningMandel => "Burning Mandel",
+            SelectedFractal::BurningShip => "Burning Ship",
+            SelectedFractal::Cesaro => "Cesaro",
+            SelectedFractal::CesaroTri => "Cesaro Triangle",
+            SelectedFractal::Dragon => "Dragon",
+            SelectedFractal::KochCurve => "Koch Curve",
+            SelectedFractal::LevyCCurve => "Levi C Curve",
+            SelectedFractal::Mandelbrot => "Mandelbrot",
+            SelectedFractal::RoadRunner => "Roadrunner",
+            SelectedFractal::Sierpinski => "Sierpinski",
+            SelectedFractal::TerDragon => "Terdragon",
+        }
+    }
+
+    pub fn category(self) -> FractalCategory {
+        match self {
+            SelectedFractal::BarnsleyFern => FractalCategory::ChaosGames,
+            SelectedFractal::BurningMandel => FractalCategory::EscapeTimeFractals,
+            SelectedFractal::BurningShip => FractalCategory::EscapeTimeFractals,
+            SelectedFractal::Cesaro => FractalCategory::LindenmayerCurves,
+            SelectedFractal::CesaroTri => FractalCategory::LindenmayerCurves,
+            SelectedFractal::Dragon => FractalCategory::OtherCurves,
+            SelectedFractal::KochCurve => FractalCategory::LindenmayerCurves,
+            SelectedFractal::LevyCCurve => FractalCategory::LindenmayerCurves,
+            SelectedFractal::Mandelbrot => FractalCategory::EscapeTimeFractals,
+            SelectedFractal::RoadRunner => FractalCategory::EscapeTimeFractals,
+            SelectedFractal::Sierpinski => FractalCategory::ChaosGames,
+            SelectedFractal::TerDragon => FractalCategory::LindenmayerCurves,
+        }
+    }
+
+    pub fn build_animation(self, canvas: &HtmlCanvasElement) -> Box<dyn FractalAnimation> {
+        match self {
+            SelectedFractal::BarnsleyFern => Box::new(animated_barnsleyfern(canvas)),
+            SelectedFractal::BurningMandel => Box::new(animated_burningmandel(canvas, 100, 2)),
+            SelectedFractal::BurningShip => Box::new(animated_burningship(canvas, 100, 2)),
+            SelectedFractal::Cesaro => Box::new(animated_cesaro(canvas, 5)),
+            SelectedFractal::CesaroTri => Box::new(animated_cesarotri(canvas, 5)),
+            SelectedFractal::Dragon => Box::new(animated_dragon(canvas, 5)),
+            SelectedFractal::KochCurve => Box::new(animated_kochcurve(canvas, 5)),
+            SelectedFractal::LevyCCurve => Box::new(animated_levyccurve(canvas, 5)),
+            SelectedFractal::Mandelbrot => Box::new(animated_mandelbrot(canvas, 100, 2)),
+            SelectedFractal::RoadRunner => Box::new(animated_roadrunner(canvas, 100, 2)),
+            SelectedFractal::Sierpinski => Box::new(animated_sierpinski(canvas)),
+            SelectedFractal::TerDragon => Box::new(animated_terdragon(canvas, 5)),
+        }
+    }
 }
 
 // ------ ------
 //    Update
 // ------ ------
 
-// (Remove the line below once any of your `Msg` variants doesn't implement `Copy`.)
-#[derive(Copy, Clone)]
 // `Msg` describes the different events you can modify state with.
 enum Msg {
-    Rendered,
+    FractalSelected(String),
     RunClicked,
+    AnimationFrameRequested,
 }
 
 // `update` describes how to handle each `Msg`.
 fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
     match msg {
-        Msg::Rendered => {
+        Msg::FractalSelected(selected) => {
+            log::debug!("selected {}", selected);
+            model.selected_fractal =
+                SelectedFractal::try_from(selected.as_ref()).expect("unknown selected fractal");
+        }
+        Msg::RunClicked => {
+            log::debug!("clicked run");
+            // Initialize a new animation
+            let canvas = model.canvas.get().expect("get canvas element failed");
+            model.current_animation = Some(model.selected_fractal.build_animation(&canvas));
+            if !model.animation_ongoing {
+                // There might already be an animation running. We don't want to double-up on the
+                // number of AnimationFrameRequested messages if that's the case.
+                orders.after_next_render(|_| Msg::AnimationFrameRequested);
+                model.animation_ongoing = true;
+            }
+        }
+        Msg::AnimationFrameRequested => {
+            log::debug!("animation frame requested");
             match &mut model.current_animation {
-                None => {
-                    // Initialize a new animation
-                    let canvas = model.canvas.get().expect("get canvas element failed");
-                    model.current_animation = Some(animated_dragon(&canvas, 4));
-                    orders.after_next_render(|_| Msg::Rendered);
-                }
-                Some(turtle_animation) => {
+                None => {}
+                Some(animation) => {
                     // Animate until it says its done
-                    if turtle_animation.draw_one_frame() {
-                        orders.after_next_render(|_| Msg::Rendered);
+                    if animation.draw_one_frame() {
+                        orders.after_next_render(|_| Msg::AnimationFrameRequested);
+                    } else {
+                        model.animation_ongoing = false;
                     }
                 }
             }
         }
-        Msg::RunClicked => {}
     }
 }
 
@@ -289,6 +451,7 @@ fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
 #[allow(clippy::trivially_copy_pass_by_ref)]
 // `view` describes what to display.
 fn view(model: &Model) -> Node<Msg> {
+    log::debug!("view");
     div![
         div![
             style! {St::Float => "left"},
@@ -302,9 +465,23 @@ fn view(model: &Model) -> Node<Msg> {
         ],
         div![
             style! {St::Float => "left"},
-            select![attrs! {At::Id => "fractal-type"},],
+            view_menu(&SelectedFractal::all()),
             div![attrs! {At::Id => "configs"}],
+            button!["Run", ev(Ev::Click, |_| Msg::RunClicked)],
         ]
+    ]
+}
+
+fn view_menu(fractals: &[SelectedFractal]) -> Node<Msg> {
+    select![
+        attrs! {At::Id => "fractal-type"},
+        fractals
+            .iter()
+            .map(|desc| { option![attrs! {At::Value => desc.id()}, desc.name()] }),
+        input_ev(Ev::Input, Msg::FractalSelected),
+        ev(Ev::Change, |event| log::debug!("change {:?}", event)),
+        ev(Ev::Focus, |event| log::debug!("focus {:?}", event)),
+        ev(Ev::Blur, |event| log::debug!("blur {:?}", event)),
     ]
 }
 
