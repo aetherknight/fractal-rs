@@ -47,7 +47,7 @@ use strum::IntoEnumIterator;
 use strum_macros::{EnumIter, EnumString, IntoStaticStr};
 use wasm_bindgen::prelude::*;
 use wasm_bindgen::JsCast;
-use web_sys::{CanvasRenderingContext2d, HtmlCanvasElement};
+use web_sys::{CanvasRenderingContext2d, HtmlCanvasElement, HtmlInputElement};
 
 mod chaosgame;
 mod escapetime;
@@ -224,26 +224,25 @@ animated_escape_time!(roadrunner: RoadRunner::new(u64::from(max_iterations), u64
 enum FractalCategory {
     ChaosGames,
     EscapeTimeFractals,
-    LindenmayerCurves,
-    OtherCurves,
+    TurtleCurves,
 }
 
 // (Lines like the one below ignore selected Clippy rules
 //  - it's useful when you want to check your code with `cargo make verify`
 // but some rules are too "annoying" or are not applicable for your case.)
 // #![allow(clippy::wildcard_imports)]
-
 use seed::{prelude::*, *};
 
 // ------ ------
 //     Init
 // ------ ------
 
-// `init` describes what should happen when your app started.
+/// Initializes the Model at app launch
 fn init(_url: Url, _orders: &mut impl Orders<Msg>) -> Model {
     Model {
         canvas: ElRef::default(),
         selected_fractal: SelectedFractal::BarnsleyFern,
+        current_config: FractalConfig::NoConfig,
         current_animation: None,
         animation_ongoing: false,
     }
@@ -253,10 +252,10 @@ fn init(_url: Url, _orders: &mut impl Orders<Msg>) -> Model {
 //     Model
 // ------ ------
 
-// `Model` describes our app state.
 struct Model {
-    selected_fractal: SelectedFractal,
     canvas: ElRef<HtmlCanvasElement>,
+    selected_fractal: SelectedFractal,
+    current_config: FractalConfig,
     current_animation: Option<Box<dyn FractalAnimation>>,
     animation_ongoing: bool,
 }
@@ -323,15 +322,27 @@ impl SelectedFractal {
             SelectedFractal::BarnsleyFern => FractalCategory::ChaosGames,
             SelectedFractal::BurningMandel => FractalCategory::EscapeTimeFractals,
             SelectedFractal::BurningShip => FractalCategory::EscapeTimeFractals,
-            SelectedFractal::Cesaro => FractalCategory::LindenmayerCurves,
-            SelectedFractal::CesaroTri => FractalCategory::LindenmayerCurves,
-            SelectedFractal::Dragon => FractalCategory::OtherCurves,
-            SelectedFractal::KochCurve => FractalCategory::LindenmayerCurves,
-            SelectedFractal::LevyCCurve => FractalCategory::LindenmayerCurves,
+            SelectedFractal::Cesaro => FractalCategory::TurtleCurves,
+            SelectedFractal::CesaroTri => FractalCategory::TurtleCurves,
+            SelectedFractal::Dragon => FractalCategory::TurtleCurves,
+            SelectedFractal::KochCurve => FractalCategory::TurtleCurves,
+            SelectedFractal::LevyCCurve => FractalCategory::TurtleCurves,
             SelectedFractal::Mandelbrot => FractalCategory::EscapeTimeFractals,
             SelectedFractal::RoadRunner => FractalCategory::EscapeTimeFractals,
             SelectedFractal::Sierpinski => FractalCategory::ChaosGames,
-            SelectedFractal::TerDragon => FractalCategory::LindenmayerCurves,
+            SelectedFractal::TerDragon => FractalCategory::TurtleCurves,
+        }
+    }
+
+    /// Returns the initial/default configuration for the given fractal.
+    pub fn default_config(self) -> FractalConfig {
+        match self.category() {
+            FractalCategory::ChaosGames => FractalConfig::NoConfig,
+            FractalCategory::TurtleCurves => FractalConfig::TurtleCurveConfig { iteration: 1 },
+            FractalCategory::EscapeTimeFractals => FractalConfig::EscapeTimeConfig {
+                max_iterations: 100,
+                power: 2,
+            },
         }
     }
 
@@ -353,6 +364,37 @@ impl SelectedFractal {
     }
 }
 
+#[derive(Debug)]
+enum FractalConfig {
+    NoConfig,
+    EscapeTimeConfig { max_iterations: u32, power: u32 },
+    TurtleCurveConfig { iteration: u32 },
+}
+
+impl FractalConfig {
+    pub fn apply_change(&mut self, field: String, new_value: u32) {
+        log::debug!("apply_change {:?}", self);
+        match self {
+            FractalConfig::NoConfig => panic!("{:?} does not have a {}", self, field),
+            FractalConfig::EscapeTimeConfig {
+                ref mut max_iterations,
+                ref mut power,
+            } => {
+                match field.as_str() {
+                    "max_iterations" => *max_iterations = new_value,
+                    "power" => *power = new_value,
+                    _ => panic!("{:?} does not have a {}", self, field),
+                };
+                log::debug!("{:?}", self);
+            }
+            FractalConfig::TurtleCurveConfig { ref mut iteration } => match field.as_str() {
+                "iteration" => *iteration = new_value,
+                _ => panic!("{:?} does not have a {}", self, field),
+            },
+        }
+    }
+}
+
 // ------ ------
 //    Update
 // ------ ------
@@ -362,6 +404,7 @@ enum Msg {
     FractalSelected(String),
     RunClicked,
     AnimationFrameRequested,
+    ConfigChanged(String, u32),
 }
 
 // `update` describes how to handle each `Msg`.
@@ -371,6 +414,11 @@ fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
             log::debug!("selected {}", selected);
             model.selected_fractal =
                 SelectedFractal::from_str(selected.as_ref()).expect("unknown selected fractal");
+            model.current_config = model.selected_fractal.default_config();
+            log::debug!("config {:?}", model.current_config);
+        }
+        Msg::ConfigChanged(input, new_value) => {
+            model.current_config.apply_change(input, new_value);
         }
         Msg::RunClicked => {
             log::debug!("clicked run");
@@ -424,7 +472,7 @@ fn view(model: &Model) -> Node<Msg> {
         div![
             style! {St::Float => "left"},
             view_menu(),
-            div![attrs! {At::Id => "configs"}],
+            view_config(&model.current_config),
             button!["Run", ev(Ev::Click, |_| Msg::RunClicked)],
         ]
     ]
@@ -440,9 +488,77 @@ fn view_menu() -> Node<Msg> {
             ]
         }),
         input_ev(Ev::Input, Msg::FractalSelected),
-        ev(Ev::Change, |event| log::debug!("change {:?}", event)),
-        ev(Ev::Focus, |event| log::debug!("focus {:?}", event)),
-        ev(Ev::Blur, |event| log::debug!("blur {:?}", event)),
+        // ev(Ev::Change, |event| log::debug!("change {:?}", event)),
+        // ev(Ev::Focus, |event| log::debug!("focus {:?}", event)),
+        // ev(Ev::Blur, |event| log::debug!("blur {:?}", event)),
+    ]
+}
+
+fn validate_input(event: web_sys::Event) -> Option<Msg> {
+    let target = event
+        .target()
+        .unwrap()
+        .dyn_into::<HtmlInputElement>()
+        .unwrap();
+    target.check_validity();
+    if target.report_validity() {
+        if let Ok(value) = target.value().parse::<u32>() {
+            return Some(Msg::ConfigChanged(target.id(), value));
+        }
+    }
+    None
+}
+
+fn view_config(config: &FractalConfig) -> Node<Msg> {
+    div![
+        attrs! {At::Id => "config"},
+        match config {
+            FractalConfig::NoConfig => div!["No configuration for this fractal"],
+            FractalConfig::TurtleCurveConfig { iteration } => div![div![
+                label![attrs! {At::For => "iteration"}, "Iterations"],
+                input![
+                    attrs! {
+                        At::Id => "iteration",
+                        At::Type => "number",
+                        At::Required => "true",
+                        At::Value => iteration,
+                        At::Min => 0,
+                    },
+                    ev(Ev::Input, validate_input),
+                ]
+            ]],
+            FractalConfig::EscapeTimeConfig {
+                max_iterations,
+                power,
+            } => div![
+                div![
+                    label![attrs! {At::For => "max_iterations"}, "Max Iterations"],
+                    input![
+                        attrs! {
+                            At::Id => "max_iterations",
+                            At::Type => "number",
+                            At::Required => "true",
+                            At::Value => max_iterations,
+                            At::Min => 1,
+                        },
+                        ev(Ev::Input, validate_input),
+                    ],
+                ],
+                div![
+                    label![attrs! {At::For => "power"}, "Power"],
+                    input![
+                        attrs! {
+                            At::Id => "power",
+                            At::Type => "number",
+                            At::Required => "true",
+                            At::Value => power,
+                            At::Min => 1,
+                        },
+                        ev(Ev::Input, validate_input),
+                    ],
+                ],
+            ],
+        }
     ]
 }
 
