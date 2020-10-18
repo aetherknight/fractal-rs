@@ -80,17 +80,11 @@ pub trait FractalAnimation {
 /// Will create a function with signature:
 ///
 /// ```rust, ignore
-/// #[wasm_bindgen]
-/// pub fn animated_dragon(canvas: &HtmlCanvaselement, iteration: u32) -> turtle::TurtleAnimation;
+/// pub fn animated_dragon(canvas: &HtmlCanvaselement, config: &FractalConfig) -> turtle::TurtleAnimation;
 /// ```
 ///
 /// It will blank out the screen, start the TurtleAnimation, and then return it. The caller may
 /// then call `draw_one_frame` on future frames/ticks to update/animate the canvas.
-///
-/// Note: `iteration` is a u32 in the function signature (and not a u64) because as of 2019/06/08,
-/// wasm-bindgen uses BigUint64Array to help pass around 64-bit unsigned integers, but
-/// BigUint64Array has not yet been standardized/ Firefox 67 does not yet support BigUint64Array or
-/// bigints.
 macro_rules! animated_turtle {
     ($name:ident: $expr:expr) => {
         // Paste is needed to concatenate render_ and the name of the fractal. Rust's own macros
@@ -101,42 +95,57 @@ macro_rules! animated_turtle {
             /// additional frames.
             ///
             /// The iteration specifies which iteration of the TurtleProgram it will draw.
-            #[wasm_bindgen]
-            pub fn [<animated_ $name>] (
+            fn [<animated_ $name>] (
                 canvas: &HtmlCanvasElement,
-                iteration: u32
+                config: &FractalConfig,
             ) -> turtle::TurtleAnimation {
-                log::debug!("Starting animation {}", stringify!($name));
-                let ctx = JsValue::from(canvas.get_context("2d").unwrap().unwrap())
-                    .dyn_into::<CanvasRenderingContext2d>()
-                    .unwrap();
-                let program = $expr;
-                ctx.clear_rect(0.0, 0.0, canvas.width().into(), canvas.height().into());
+                match config {
+                    FractalConfig::TurtleCurveConfig{iteration: iteration} => {
+                        log::debug!("Starting animation {}", stringify!($name));
+                        let ctx = JsValue::from(canvas.get_context("2d").unwrap().unwrap())
+                            .dyn_into::<CanvasRenderingContext2d>()
+                            .unwrap();
+                        ctx.clear_rect(0.0, 0.0, canvas.width().into(), canvas.height().into());
 
-                turtle::TurtleAnimation::new(ctx, &program)
+                        let program = $expr;
+                        turtle::TurtleAnimation::new(ctx, &(program(*iteration)))
+                    },
+                    _ => { panic!("{} needs a TurtleCurveConfig", stringify!($name)) },
+                }
             }
         }
     };
 }
 
 animated_turtle!(
-    cesaro: LindenmayerSystemTurtleProgram::new(cesaro::CesaroFractal::new(u64::from(iteration)))
+    cesaro: |iteration| {
+        LindenmayerSystemTurtleProgram::new(cesaro::CesaroFractal::new(u64::from(iteration)))
+    }
 );
 animated_turtle!(
-    cesarotri:
+    cesarotri: |iteration| {
         LindenmayerSystemTurtleProgram::new(cesarotri::CesaroTriFractal::new(u64::from(iteration)))
-);
-animated_turtle!(dragon: dragon::DragonFractal::new(u64::from(iteration)));
-animated_turtle!(
-    kochcurve: LindenmayerSystemTurtleProgram::new(kochcurve::KochCurve::new(u64::from(iteration)))
+    }
 );
 animated_turtle!(
-    levyccurve:
+    dragon: |iteration| {
+        dragon::DragonFractal::new(u64::from(iteration))
+    }
+);
+animated_turtle!(
+    kochcurve: |iteration| {
+        LindenmayerSystemTurtleProgram::new(kochcurve::KochCurve::new(u64::from(iteration)))
+    }
+);
+animated_turtle!(
+    levyccurve: |iteration| {
         LindenmayerSystemTurtleProgram::new(levyccurve::LevyCCurve::new(u64::from(iteration)))
+    }
 );
 animated_turtle!(
-    terdragon:
+    terdragon: |iteration| {
         LindenmayerSystemTurtleProgram::new(terdragon::TerdragonFractal::new(u64::from(iteration)))
+    }
 );
 
 /// Macro that generates a function for constructing (and starting) a ChaosGameAnimation for a
@@ -346,20 +355,24 @@ impl SelectedFractal {
         }
     }
 
-    pub fn build_animation(self, canvas: &HtmlCanvasElement) -> Box<dyn FractalAnimation> {
+    pub fn build_animation(
+        self,
+        canvas: &HtmlCanvasElement,
+        config: &FractalConfig,
+    ) -> Box<dyn FractalAnimation> {
         match self {
             SelectedFractal::BarnsleyFern => Box::new(animated_barnsleyfern(canvas)),
             SelectedFractal::BurningMandel => Box::new(animated_burningmandel(canvas, 100, 2)),
             SelectedFractal::BurningShip => Box::new(animated_burningship(canvas, 100, 2)),
-            SelectedFractal::Cesaro => Box::new(animated_cesaro(canvas, 5)),
-            SelectedFractal::CesaroTri => Box::new(animated_cesarotri(canvas, 5)),
-            SelectedFractal::Dragon => Box::new(animated_dragon(canvas, 5)),
-            SelectedFractal::KochCurve => Box::new(animated_kochcurve(canvas, 5)),
-            SelectedFractal::LevyCCurve => Box::new(animated_levyccurve(canvas, 5)),
+            SelectedFractal::Cesaro => Box::new(animated_cesaro(canvas, config)),
+            SelectedFractal::CesaroTri => Box::new(animated_cesarotri(canvas, config)),
+            SelectedFractal::Dragon => Box::new(animated_dragon(canvas, config)),
+            SelectedFractal::KochCurve => Box::new(animated_kochcurve(canvas, config)),
+            SelectedFractal::LevyCCurve => Box::new(animated_levyccurve(canvas, config)),
             SelectedFractal::Mandelbrot => Box::new(animated_mandelbrot(canvas, 100, 2)),
             SelectedFractal::RoadRunner => Box::new(animated_roadrunner(canvas, 100, 2)),
             SelectedFractal::Sierpinski => Box::new(animated_sierpinski(canvas)),
-            SelectedFractal::TerDragon => Box::new(animated_terdragon(canvas, 5)),
+            SelectedFractal::TerDragon => Box::new(animated_terdragon(canvas, config)),
         }
     }
 }
@@ -424,7 +437,11 @@ fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
             log::debug!("clicked run");
             // Initialize a new animation
             let canvas = model.canvas.get().expect("get canvas element failed");
-            model.current_animation = Some(model.selected_fractal.build_animation(&canvas));
+            model.current_animation = Some(
+                model
+                    .selected_fractal
+                    .build_animation(&canvas, &model.current_config),
+            );
             if !model.animation_ongoing {
                 // There might already be an animation running. We don't want to double-up on the
                 // number of AnimationFrameRequested messages if that's the case.
@@ -558,7 +575,8 @@ fn view_config(config: &FractalConfig) -> Node<Msg> {
                     ],
                 ],
             ],
-        }
+        },
+        format!("{:?}", config),
     ]
 }
 
