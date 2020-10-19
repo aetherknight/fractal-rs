@@ -18,7 +18,6 @@ pub mod chaosgame;
 pub mod escapetime;
 pub mod turtle;
 
-use graphics;
 use graphics::math::Vec2d;
 use piston_window::{
     Button, G2d, Key, MouseButton, MouseCursorEvent, PistonWindow, PressEvent, ReleaseEvent,
@@ -84,9 +83,9 @@ pub fn run(window_handler: &mut dyn WindowHandler) {
 
     while let Some(e) = window.next() {
         if let Some(args) = e.render_args() {
-            let uvec = args.viewport().window_size;
-            #[allow(clippy::identity_conversion)]
-            let size: Vec2d = [f64::from(uvec[0]), f64::from(uvec[1])];
+            let size: Vec2d = args.viewport().window_size;
+            // Allow exact float array comparisons here. we only care if it changed.
+            #[allow(clippy::float_cmp)]
             if size != old_size {
                 log::debug!("resized");
                 old_size = size;

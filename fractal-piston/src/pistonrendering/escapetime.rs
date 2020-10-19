@@ -21,9 +21,7 @@ use fractal_lib::color;
 use fractal_lib::escapetime::EscapeTime;
 use fractal_lib::geometry::{Point, ViewAreaTransformer};
 use graphics::math::Vec2d;
-use log;
 use num::complex::Complex64;
-use piston_window;
 use std::cmp;
 use std::sync::{Arc, RwLock};
 

@@ -17,7 +17,6 @@ use fractal_lib::color;
 use fractal_lib::escapetime::EscapeTime;
 use fractal_lib::geometry;
 use js_sys::Array;
-use log;
 use num::complex::Complex64;
 use std::cmp;
 use wasm_bindgen::prelude::*;

@@ -26,10 +26,7 @@
 //! }
 //! ```
 
-use console_error_panic_hook;
-use console_log;
 use js_sys::Array;
-use log;
 use std::str::FromStr;
 use strum::IntoEnumIterator;
 use wasm_bindgen::prelude::*;

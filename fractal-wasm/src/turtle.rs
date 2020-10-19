@@ -16,7 +16,6 @@ use super::FractalAnimation;
 use fractal_lib::geometry::{Point, Vector, ViewAreaTransformer};
 use fractal_lib::turtle::{Turtle, TurtleCollectToNextForwardIterator, TurtleProgram, TurtleState};
 use js_sys::Array;
-use log;
 use wasm_bindgen::prelude::*;
 use web_sys::{CanvasRenderingContext2d, HtmlCanvasElement};
 

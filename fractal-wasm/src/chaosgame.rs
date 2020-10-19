@@ -15,7 +15,6 @@ use super::FractalAnimation;
 use fractal_lib::chaosgame::ChaosGameMoveIterator;
 use fractal_lib::geometry;
 use js_sys::Array;
-use log;
 use wasm_bindgen::prelude::*;
 use web_sys::{CanvasRenderingContext2d, HtmlCanvasElement};
 

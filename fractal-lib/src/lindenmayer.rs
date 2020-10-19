@@ -22,7 +22,6 @@
 
 use crate::geometry::Point;
 use crate::turtle::*;
-use log;
 use std::cell::RefCell;
 use std::marker::PhantomData;
 

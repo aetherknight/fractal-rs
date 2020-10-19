@@ -9,8 +9,6 @@ use fractal_lib::curves::terdragon;
 use fractal_lib::escapetime::burningship::{BurningMandel, BurningShip, RoadRunner};
 use fractal_lib::escapetime::mandelbrot::Mandelbrot;
 use fractal_lib::lindenmayer::LindenmayerSystemTurtleProgram;
-use log;
-use paste;
 use strum_macros::{EnumIter, EnumString, IntoStaticStr};
 use wasm_bindgen::prelude::JsValue;
 use wasm_bindgen::JsCast;

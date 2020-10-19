@@ -17,8 +17,6 @@
 //! The data structures also provide a closure to process configuration for each curve and
 //! configure a `WindowHandler` to handle callbacks from the event loop.
 
-use clap;
-use std;
 use std::sync::Arc;
 
 use super::pistonrendering;
