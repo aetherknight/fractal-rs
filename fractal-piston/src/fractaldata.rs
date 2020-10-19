@@ -169,11 +169,11 @@ impl SelectedFractalExt for SelectedFractal {
             SelectedFractal::BurningMandel => run_escape_time(&BurningMandel::new, matches),
             SelectedFractal::BurningShip => run_escape_time(&BurningShip::new, matches),
             SelectedFractal::Cesaro => run_turtle(
-                &|iteration| LindenmayerSystemTurtleProgram::new(CesaroFractal::new(iteration)),
+                &LindenmayerSystemTurtleProgram::build(CesaroFractal::new),
                 matches,
             ),
             SelectedFractal::CesaroTri => run_turtle(
-                &|iteration| LindenmayerSystemTurtleProgram::new(CesaroTriFractal::new(iteration)),
+                &LindenmayerSystemTurtleProgram::build(CesaroTriFractal::new),
                 matches,
             ),
             SelectedFractal::Dragon => run_turtle(&DragonFractal::new, matches),
@@ -182,14 +182,14 @@ impl SelectedFractalExt for SelectedFractal {
                 matches,
             ),
             SelectedFractal::LevyCCurve => run_turtle(
-                &|iteration| LindenmayerSystemTurtleProgram::new(LevyCCurve::new(iteration)),
+                &LindenmayerSystemTurtleProgram::build(LevyCCurve::new),
                 matches,
             ),
             SelectedFractal::Mandelbrot => run_escape_time(&Mandelbrot::new, matches),
             SelectedFractal::RoadRunner => run_escape_time(&RoadRunner::new, matches),
             SelectedFractal::Sierpinski => run_chaos_game(&SierpinskiChaosGame::new, matches),
             SelectedFractal::TerDragon => run_turtle(
-                &|iteration| LindenmayerSystemTurtleProgram::new(TerdragonFractal::new(iteration)),
+                &LindenmayerSystemTurtleProgram::build(TerdragonFractal::new),
                 matches,
             ),
         }

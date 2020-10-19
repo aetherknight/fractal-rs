@@ -214,6 +214,13 @@ where
             cacheable_system: LindenmayerSystemCachingDecorator::new(system), // system: system,
         }
     }
+
+    pub fn build<C>(ctor: C) -> Box<dyn Fn(u64) -> LindenmayerSystemTurtleProgram<L, A>>
+    where
+        C: Fn(u64) -> L + 'static,
+    {
+        Box::new(move |iteration| LindenmayerSystemTurtleProgram::new(ctor(iteration)))
+    }
 }
 
 impl<L, A> TurtleProgram for LindenmayerSystemTurtleProgram<L, A>
