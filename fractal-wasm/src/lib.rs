@@ -173,8 +173,7 @@ macro_rules! animated_chaos_game {
         // Paste is needed to concatenate render_ and the name of the fractal. Rust's own macros
         // don't provide a good way to do this.
         paste::item! {
-            #[wasm_bindgen]
-            pub fn [<animated_ $name>] (
+            fn [<animated_ $name>] (
                 canvas: &HtmlCanvasElement
             ) -> chaosgame::ChaosGameAnimation {
                 log::debug!("Starting animation {}", stringify!($name));
@@ -205,29 +204,49 @@ macro_rules! animated_escape_time {
         // Paste is needed to concatenate render_ and the name of the fractal. Rust's own macros
         // don't provide a good way to do this.
         paste::item! {
-            #[wasm_bindgen]
-            pub fn [<animated_ $name>] (
-                canvas: &HtmlCanvasElement, max_iterations: u32, power: u32
+            fn [<animated_ $name>] (
+                canvas: &HtmlCanvasElement,
+                config: &FractalConfig,
             ) -> escapetime::EscapeTimeAnimation {
-                log::debug!("Starting animation {}", stringify!($name));
-                let ctx = JsValue::from(canvas.get_context("2d").unwrap().unwrap())
-                    .dyn_into::<CanvasRenderingContext2d>()
-                    .unwrap();
+                match config {
+                    FractalConfig::EscapeTimeConfig{max_iterations: max_iterations, power: power} => {
+                        log::debug!("Starting animation {}", stringify!($name));
+                        let ctx = JsValue::from(canvas.get_context("2d").unwrap().unwrap())
+                            .dyn_into::<CanvasRenderingContext2d>()
+                            .unwrap();
 
-                ctx.clear_rect(0.0, 0.0, canvas.width().into(), canvas.height().into());
+                        ctx.clear_rect(0.0, 0.0, canvas.width().into(), canvas.height().into());
 
-                escapetime::EscapeTimeAnimation::new(ctx, Box::new($expr))
+                        let fractal = $expr;
+                        escapetime::EscapeTimeAnimation::new(ctx, Box::new(fractal(*max_iterations, *power)))
+                    },
+                    _ => { panic!("{} needs a EscapeTimeconfig", stringify!($name)) },
+                }
             }
         }
     };
 }
 
 animated_escape_time!(
-    burningmandel: BurningMandel::new(u64::from(max_iterations), u64::from(power))
+    burningmandel: |max_iterations, power| {
+        BurningMandel::new(u64::from(max_iterations), u64::from(power))
+    }
 );
-animated_escape_time!(burningship: BurningShip::new(u64::from(max_iterations), u64::from(power)));
-animated_escape_time!(mandelbrot: Mandelbrot::new(u64::from(max_iterations), u64::from(power)));
-animated_escape_time!(roadrunner: RoadRunner::new(u64::from(max_iterations), u64::from(power)));
+animated_escape_time!(
+    burningship: |max_iterations, power| {
+        BurningShip::new(u64::from(max_iterations), u64::from(power))
+    }
+);
+animated_escape_time!(
+    mandelbrot: |max_iterations, power| {
+        Mandelbrot::new(u64::from(max_iterations), u64::from(power))
+    }
+);
+animated_escape_time!(
+    roadrunner: |max_iterations, power| {
+        RoadRunner::new(u64::from(max_iterations), u64::from(power))
+    }
+);
 
 #[derive(Copy, Clone)]
 enum FractalCategory {
@@ -362,15 +381,15 @@ impl SelectedFractal {
     ) -> Box<dyn FractalAnimation> {
         match self {
             SelectedFractal::BarnsleyFern => Box::new(animated_barnsleyfern(canvas)),
-            SelectedFractal::BurningMandel => Box::new(animated_burningmandel(canvas, 100, 2)),
-            SelectedFractal::BurningShip => Box::new(animated_burningship(canvas, 100, 2)),
+            SelectedFractal::BurningMandel => Box::new(animated_burningmandel(canvas, config)),
+            SelectedFractal::BurningShip => Box::new(animated_burningship(canvas, config)),
             SelectedFractal::Cesaro => Box::new(animated_cesaro(canvas, config)),
             SelectedFractal::CesaroTri => Box::new(animated_cesarotri(canvas, config)),
             SelectedFractal::Dragon => Box::new(animated_dragon(canvas, config)),
             SelectedFractal::KochCurve => Box::new(animated_kochcurve(canvas, config)),
             SelectedFractal::LevyCCurve => Box::new(animated_levyccurve(canvas, config)),
-            SelectedFractal::Mandelbrot => Box::new(animated_mandelbrot(canvas, 100, 2)),
-            SelectedFractal::RoadRunner => Box::new(animated_roadrunner(canvas, 100, 2)),
+            SelectedFractal::Mandelbrot => Box::new(animated_mandelbrot(canvas, config)),
+            SelectedFractal::RoadRunner => Box::new(animated_roadrunner(canvas, config)),
             SelectedFractal::Sierpinski => Box::new(animated_sierpinski(canvas)),
             SelectedFractal::TerDragon => Box::new(animated_terdragon(canvas, config)),
         }
