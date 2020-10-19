@@ -17,8 +17,6 @@
 //! The data structures also provide a closure to process configuration for each curve and
 //! configure a `WindowHandler` to handle callbacks from the event loop.
 
-use std::sync::Arc;
-
 use super::pistonrendering;
 use fractal_lib::chaosgame::barnsleyfern;
 use fractal_lib::chaosgame::sierpinski::SierpinskiChaosGame;
@@ -34,6 +32,10 @@ use fractal_lib::escapetime::mandelbrot::Mandelbrot;
 use fractal_lib::escapetime::EscapeTime;
 use fractal_lib::lindenmayer::LindenmayerSystemTurtleProgram;
 use fractal_lib::turtle::TurtleProgram;
+use fractal_lib::SelectedFractal;
+use std::str::FromStr;
+use std::sync::Arc;
+use strum::IntoEnumIterator;
 
 /// Helper to get the size of a list of expressions
 #[allow(unused_macros)]
@@ -70,7 +72,8 @@ pub trait FractalSubcommand {
     /// Returns a clap::App definition of this subcommand. The command line arguments it
     /// specifies
     /// should then be handled by the `run()` method.
-    fn command(&self) -> clap::App<'static, 'static>;
+    fn command(&self, name: &'static str, description: &'static str)
+        -> clap::App<'static, 'static>;
 
     /// Runs the command with the given command line arguments and the provided callback.
     fn run(&self, matches: &clap::ArgMatches) -> Result<(), String>;
@@ -80,8 +83,6 @@ pub struct ChaosGameCommand<E>
 where
     E: ChaosGameMoveIterator,
 {
-    name: &'static str,
-    description: &'static str,
     ctor: Box<dyn Fn() -> E>,
 }
 
@@ -89,16 +90,8 @@ impl<E> ChaosGameCommand<E>
 where
     E: ChaosGameMoveIterator,
 {
-    pub fn new(
-        name: &'static str,
-        description: &'static str,
-        ctor: Box<dyn Fn() -> E>,
-    ) -> ChaosGameCommand<E> {
-        ChaosGameCommand {
-            name,
-            description,
-            ctor,
-        }
+    pub fn new(ctor: Box<dyn Fn() -> E>) -> ChaosGameCommand<E> {
+        ChaosGameCommand { ctor }
     }
 }
 
@@ -106,17 +99,19 @@ impl<E> FractalSubcommand for ChaosGameCommand<E>
 where
     E: ChaosGameMoveIterator + 'static,
 {
-    fn command(&self) -> clap::App<'static, 'static> {
-        clap::SubCommand::with_name(self.name)
-            .about(self.description)
-            .arg(
-                clap::Arg::with_name("drawrate")
-                    .takes_value(true)
-                    .help("The number of points to draw per frame")
-                    .long("drawrate")
-                    .value_name("MPF")
-                    .default_value("1"),
-            )
+    fn command(
+        &self,
+        name: &'static str,
+        description: &'static str,
+    ) -> clap::App<'static, 'static> {
+        clap::SubCommand::with_name(name).about(description).arg(
+            clap::Arg::with_name("drawrate")
+                .takes_value(true)
+                .help("The number of points to draw per frame")
+                .long("drawrate")
+                .value_name("MPF")
+                .default_value("1"),
+        )
     }
 
     fn run(&self, matches: &clap::ArgMatches) -> Result<(), String> {
@@ -134,8 +129,6 @@ pub struct EscapeTimeCommand<E>
 where
     E: EscapeTime + Send + Sync,
 {
-    name: &'static str,
-    description: &'static str,
     ctor: Box<dyn Fn(u64, u64) -> E>,
 }
 
@@ -143,16 +136,8 @@ impl<E> EscapeTimeCommand<E>
 where
     E: EscapeTime + Send + Sync,
 {
-    pub fn new(
-        name: &'static str,
-        description: &'static str,
-        ctor: Box<dyn Fn(u64, u64) -> E>,
-    ) -> EscapeTimeCommand<E> {
-        EscapeTimeCommand {
-            name,
-            description,
-            ctor,
-        }
+    pub fn new(ctor: Box<dyn Fn(u64, u64) -> E>) -> EscapeTimeCommand<E> {
+        EscapeTimeCommand { ctor }
     }
 }
 
@@ -160,9 +145,13 @@ impl<E> FractalSubcommand for EscapeTimeCommand<E>
 where
     E: EscapeTime + Send + Sync + 'static,
 {
-    fn command(&self) -> clap::App<'static, 'static> {
-        clap::SubCommand::with_name(self.name)
-            .about(self.description)
+    fn command(
+        &self,
+        name: &'static str,
+        description: &'static str,
+    ) -> clap::App<'static, 'static> {
+        clap::SubCommand::with_name(name)
+            .about(description)
             .arg(
                 clap::Arg::with_name("MAX_ITERATIONS")
                     .required(true)
@@ -204,8 +193,6 @@ pub struct TurtleCommand<E>
 where
     E: TurtleProgram,
 {
-    name: &'static str,
-    description: &'static str,
     ctor: Box<dyn Fn(u64) -> E>,
 }
 
@@ -213,16 +200,8 @@ impl<E> TurtleCommand<E>
 where
     E: TurtleProgram,
 {
-    pub fn new(
-        name: &'static str,
-        description: &'static str,
-        ctor: Box<dyn Fn(u64) -> E>,
-    ) -> TurtleCommand<E> {
-        TurtleCommand {
-            name,
-            description,
-            ctor,
-        }
+    pub fn new(ctor: Box<dyn Fn(u64) -> E>) -> TurtleCommand<E> {
+        TurtleCommand { ctor }
     }
 }
 
@@ -230,9 +209,13 @@ impl<E> FractalSubcommand for TurtleCommand<E>
 where
     E: TurtleProgram + 'static,
 {
-    fn command(&self) -> clap::App<'static, 'static> {
-        clap::SubCommand::with_name(self.name)
-            .about(self.description)
+    fn command(
+        &self,
+        name: &'static str,
+        description: &'static str,
+    ) -> clap::App<'static, 'static> {
+        clap::SubCommand::with_name(name)
+            .about(description)
             .arg(
                 clap::Arg::with_name("drawrate")
                     .takes_value(true)
@@ -258,146 +241,83 @@ where
     }
 }
 
-macro_rules! define_subcommands {
-    ( $($name:ident: $expr:expr),+ ) => {
+pub trait SelectedFractalExt {
+    fn subcommand(&self) -> Box<dyn FractalSubcommand>;
+}
 
-        pub fn add_subcommands<'a, 'b>(app: clap::App<'a, 'b>) -> clap::App<'a, 'b> {
-            app $(.subcommand(($expr).command()))+
-        }
-
-        pub fn run_subcommand(app_argmatches: &clap::ArgMatches) -> Result<(), String> {
-            match app_argmatches.subcommand() {
-                $(
-                    (stringify!($name), Some(args)) => {
-                        ($expr).run(&args)
-                    }
-                 )+
-                    _ => Err("Unknown subcommand".to_string()),
+impl SelectedFractalExt for SelectedFractal {
+    fn subcommand(&self) -> Box<dyn FractalSubcommand> {
+        match self {
+            SelectedFractal::BarnsleyFern => Box::new(ChaosGameCommand::new(Box::new(|| {
+                barnsleyfern::BarnsleyFern::new(
+                    &barnsleyfern::REFERENCE_TRANSFORMS,
+                    &barnsleyfern::REFERENCE_WEIGHTS,
+                )
+            }))),
+            SelectedFractal::BurningMandel => {
+                Box::new(EscapeTimeCommand::new(Box::new(|max_iterations, power| {
+                    BurningMandel::new(max_iterations, power)
+                })))
             }
+            SelectedFractal::BurningShip => {
+                Box::new(EscapeTimeCommand::new(Box::new(|max_iterations, power| {
+                    BurningShip::new(max_iterations, power)
+                })))
+            }
+            SelectedFractal::Cesaro => Box::new(TurtleCommand::new(Box::new(|iteration| {
+                LindenmayerSystemTurtleProgram::new(CesaroFractal::new(iteration))
+            }))),
+            SelectedFractal::CesaroTri => Box::new(TurtleCommand::new(Box::new(|iteration| {
+                LindenmayerSystemTurtleProgram::new(CesaroTriFractal::new(iteration))
+            }))),
+            SelectedFractal::Dragon => Box::new(TurtleCommand::new(Box::new(DragonFractal::new))),
+            SelectedFractal::KochCurve => Box::new(TurtleCommand::new(Box::new(|iteration| {
+                LindenmayerSystemTurtleProgram::new(KochCurve::new(iteration))
+            }))),
+            SelectedFractal::LevyCCurve => Box::new(TurtleCommand::new(Box::new(|iteration| {
+                LindenmayerSystemTurtleProgram::new(LevyCCurve::new(iteration))
+            }))),
+            SelectedFractal::Mandelbrot => {
+                Box::new(EscapeTimeCommand::new(Box::new(|max_iterations, power| {
+                    Mandelbrot::new(max_iterations, power)
+                })))
+            }
+            SelectedFractal::RoadRunner => {
+                Box::new(EscapeTimeCommand::new(Box::new(|max_iterations, power| {
+                    RoadRunner::new(max_iterations, power)
+                })))
+            }
+            SelectedFractal::Sierpinski => {
+                Box::new(ChaosGameCommand::new(Box::new(SierpinskiChaosGame::new)))
+            }
+            SelectedFractal::TerDragon => Box::new(TurtleCommand::new(Box::new(|iteration| {
+                LindenmayerSystemTurtleProgram::new(TerdragonFractal::new(iteration))
+            }))),
         }
     }
 }
 
-define_subcommands! {
-    barnsleyfern: {
-        ChaosGameCommand::new(
-            "barnsleyfern",
-            "Draws the Barnsley Fern fractal using a chaos game with affine transforms.",
-            Box::new(|| {
-                barnsleyfern::BarnsleyFern::new(
-                    &barnsleyfern::REFERENCE_TRANSFORMS,
-                    &barnsleyfern::REFERENCE_WEIGHTS
-                    )
-            })
-        )
-    },
-
-    burningship: {
-        EscapeTimeCommand::new(
-            "burningship",
-            "Draws the burning ship fractal",
-            Box::new(|max_iterations, power| {
-                BurningShip::new(max_iterations, power)
-            })
-        )
-    },
-
-    burningmandel: {
-        EscapeTimeCommand::new(
-            "burningmandel",
-            "Draws a variation of the burning ship fractal",
-            Box::new(|max_iterations, power| {
-                BurningMandel::new(max_iterations, power)
-            })
-        )
-    },
-
-    cesaro: {
-        TurtleCommand::new(
-            "cesaro",
-            "Draws a square Cesàro fractal",
-            Box::new(|iteration| {
-                LindenmayerSystemTurtleProgram::new(CesaroFractal::new(iteration))
-            })
-        )
-    },
-
-    cesarotri: {
-        TurtleCommand::new(
-            "cestarotri",
-            "Draws a triangle Cesàro fractal",
-            Box::new(|iteration| {
-                LindenmayerSystemTurtleProgram::new(CesaroTriFractal::new(iteration))
-            })
-        )
-    },
-
-    dragon: {
-        TurtleCommand::new(
-            "dragon",
-            "Draws a dragon curve fractal",
-            Box::new(DragonFractal::new)
-        )
-    },
-
-    kochcurve: {
-        TurtleCommand::new(
-            "kochcurve",
-            "Draws a Koch snowflake curve",
-            Box::new(|iteration| {
-                LindenmayerSystemTurtleProgram::new(KochCurve::new(iteration))
-            })
-        )
-    },
-
-    levyccurve: {
-        TurtleCommand::new(
-            "levyccurve",
-            "Draws a Lévy C Curve",
-            Box::new(|iteration| {
-                LindenmayerSystemTurtleProgram::new(LevyCCurve::new(iteration))
-            })
-        )
-    },
-
-    mandelbrot: {
-        EscapeTimeCommand::new(
-            "mandelbrot",
-            "Draws the mandelbrot fractal",
-            Box::new(|max_iterations, power| {
-                Mandelbrot::new(max_iterations, power)
-            })
-        )
-    },
-
-    roadrunner: {
-        EscapeTimeCommand::new(
-            "roadrunner",
-            "Draws a variation of the burning ship fractal",
-            Box::new(|max_iterations, power| {
-                RoadRunner::new(max_iterations, power)
-            })
-        )
-    },
-
-    sierpinski: {
-        let ctor = Box::new(SierpinskiChaosGame::new);
-        ChaosGameCommand::new(
-            "sierpinski",
-            "Draws a Sierpiński triangle using a chaos game and 3 randomly chosen points on the \
-            screen",
-            ctor
-        )
-    },
-
-    terdragon: {
-        TurtleCommand::new(
-            "terdragon",
-            "Draws a terdragon curve",
-            Box::new(|iteration| {
-                LindenmayerSystemTurtleProgram::new(TerdragonFractal::new(iteration))
-            })
-        )
+pub fn add_subcommands<'a, 'b>(app: clap::App<'a, 'b>) -> clap::App<'a, 'b> {
+    let mut app = app;
+    for fractal in SelectedFractal::iter() {
+        app = app.subcommand(
+            fractal
+                .subcommand()
+                .command(fractal.into(), fractal.description()),
+        );
     }
+    app
+}
 
+pub fn run_subcommand(app_argmatches: &clap::ArgMatches) -> Result<(), String> {
+    let (name, maybe_args) = app_argmatches.subcommand();
+    if let Some(args) = maybe_args {
+        if let Ok(fractal) = SelectedFractal::from_str(name) {
+            fractal.subcommand().run(&args)
+        } else {
+            Err("Unknown subcommand".to_string())
+        }
+    } else {
+        Err("Unknown subcommand".to_string())
+    }
 }

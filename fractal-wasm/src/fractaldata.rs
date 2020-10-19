@@ -1,3 +1,5 @@
+use fractal_lib::FractalCategory;
+use fractal_lib::SelectedFractal;
 use fractal_lib::chaosgame::barnsleyfern;
 use fractal_lib::chaosgame::sierpinski;
 use fractal_lib::curves::cesaro;
@@ -9,7 +11,6 @@ use fractal_lib::curves::terdragon;
 use fractal_lib::escapetime::burningship::{BurningMandel, BurningShip, RoadRunner};
 use fractal_lib::escapetime::mandelbrot::Mandelbrot;
 use fractal_lib::lindenmayer::LindenmayerSystemTurtleProgram;
-use strum_macros::{EnumIter, EnumString, IntoStaticStr};
 use wasm_bindgen::prelude::JsValue;
 use wasm_bindgen::JsCast;
 use web_sys::{CanvasRenderingContext2d, HtmlCanvasElement};
@@ -17,89 +18,19 @@ use web_sys::{CanvasRenderingContext2d, HtmlCanvasElement};
 use super::FractalAnimation;
 use super::{chaosgame, escapetime, turtle};
 
-#[derive(Copy, Clone)]
-pub enum FractalCategory {
-    ChaosGames,
-    EscapeTimeFractals,
-    TurtleCurves,
+/// Extend SelectedFractal for fractal-wasm
+pub trait SelectedFractalExt {
+    fn default_config(self) -> FractalConfig;
+    fn build_animation(
+        self,
+        canvas: &HtmlCanvasElement,
+        config: &FractalConfig,
+    ) -> Box<dyn FractalAnimation>;
 }
 
-/// All of the support fractals, with associated data for using them.
-///
-/// You can list all of them by using a derived iterator:
-///
-/// ```rust
-/// use strum::IntoEnumIterator;
-///
-/// SelectedFractal::iter()
-/// ```
-///
-/// You can parse a string token into one of these enums using something like:
-///
-/// ```rust
-/// use std::str::FromStr;
-///
-/// SelectedFractal::from_str("Dragon").unwrap()
-/// ```
-///
-/// You can generate a static str representation using:
-///
-/// ```rust.ignore
-/// <&'static str>::from(SelectedFractal::Dragon)
-/// ```
-#[derive(Copy, Clone, EnumString, EnumIter, IntoStaticStr)]
-pub enum SelectedFractal {
-    BarnsleyFern,
-    BurningMandel,
-    BurningShip,
-    Cesaro,
-    CesaroTri,
-    Dragon,
-    KochCurve,
-    LevyCCurve,
-    Mandelbrot,
-    RoadRunner,
-    Sierpinski,
-    TerDragon,
-}
-
-impl SelectedFractal {
-    pub fn name(self) -> &'static str {
-        match self {
-            SelectedFractal::BarnsleyFern => "Barnsley Fern",
-            SelectedFractal::BurningMandel => "Burning Mandel",
-            SelectedFractal::BurningShip => "Burning Ship",
-            SelectedFractal::Cesaro => "Cesàro",
-            SelectedFractal::CesaroTri => "Cesàro Triangle",
-            SelectedFractal::Dragon => "Dragon",
-            SelectedFractal::KochCurve => "Koch Curve",
-            SelectedFractal::LevyCCurve => "Lévy C Curve",
-            SelectedFractal::Mandelbrot => "Mandelbrot",
-            SelectedFractal::RoadRunner => "Roadrunner",
-            SelectedFractal::Sierpinski => "Sierpiński Triangle",
-            SelectedFractal::TerDragon => "Terdragon",
-        }
-    }
-
-    pub fn category(self) -> FractalCategory {
-        match self {
-            SelectedFractal::BarnsleyFern => FractalCategory::ChaosGames,
-            SelectedFractal::BurningMandel => FractalCategory::EscapeTimeFractals,
-            SelectedFractal::BurningShip => FractalCategory::EscapeTimeFractals,
-            SelectedFractal::Cesaro => FractalCategory::TurtleCurves,
-            SelectedFractal::CesaroTri => FractalCategory::TurtleCurves,
-            SelectedFractal::Dragon => FractalCategory::TurtleCurves,
-            SelectedFractal::KochCurve => FractalCategory::TurtleCurves,
-            SelectedFractal::LevyCCurve => FractalCategory::TurtleCurves,
-            SelectedFractal::Mandelbrot => FractalCategory::EscapeTimeFractals,
-            SelectedFractal::RoadRunner => FractalCategory::EscapeTimeFractals,
-            SelectedFractal::Sierpinski => FractalCategory::ChaosGames,
-            SelectedFractal::TerDragon => FractalCategory::TurtleCurves,
-        }
-    }
-
+impl SelectedFractalExt for SelectedFractal {
     /// Returns the initial/default configuration for the given fractal.
-    pub fn default_config(self) -> FractalConfig {
+    fn default_config(self) -> FractalConfig {
         match self.category() {
             FractalCategory::ChaosGames => FractalConfig::NoConfig,
             FractalCategory::TurtleCurves => FractalConfig::TurtleCurveConfig { iteration: 1 },
@@ -110,7 +41,7 @@ impl SelectedFractal {
         }
     }
 
-    pub fn build_animation(
+    fn build_animation(
         self,
         canvas: &HtmlCanvasElement,
         config: &FractalConfig,

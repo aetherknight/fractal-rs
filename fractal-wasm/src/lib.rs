@@ -26,6 +26,7 @@
 //! }
 //! ```
 
+use fractal_lib::SelectedFractal;
 use js_sys::Array;
 use std::str::FromStr;
 use strum::IntoEnumIterator;
@@ -38,7 +39,7 @@ mod escapetime;
 mod fractaldata;
 mod turtle;
 
-use fractaldata::{FractalConfig, SelectedFractal};
+use fractaldata::{FractalConfig, SelectedFractalExt};
 
 pub trait FractalAnimation {
     fn draw_one_frame(&mut self) -> bool;
