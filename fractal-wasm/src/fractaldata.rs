@@ -1,5 +1,3 @@
-use fractal_lib::FractalCategory;
-use fractal_lib::SelectedFractal;
 use fractal_lib::chaosgame::barnsleyfern;
 use fractal_lib::chaosgame::sierpinski;
 use fractal_lib::curves::cesaro;
@@ -11,6 +9,8 @@ use fractal_lib::curves::terdragon;
 use fractal_lib::escapetime::burningship::{BurningMandel, BurningShip, RoadRunner};
 use fractal_lib::escapetime::mandelbrot::Mandelbrot;
 use fractal_lib::lindenmayer::LindenmayerSystemTurtleProgram;
+use fractal_lib::FractalCategory;
+use fractal_lib::SelectedFractal;
 use wasm_bindgen::prelude::JsValue;
 use wasm_bindgen::JsCast;
 use web_sys::{CanvasRenderingContext2d, HtmlCanvasElement};
@@ -66,12 +66,12 @@ impl SelectedFractalExt for SelectedFractal {
 #[derive(Debug)]
 pub enum FractalConfig {
     NoConfig,
-    EscapeTimeConfig { max_iterations: u32, power: u32 },
-    TurtleCurveConfig { iteration: u32 },
+    EscapeTimeConfig { max_iterations: u64, power: u64 },
+    TurtleCurveConfig { iteration: u64 },
 }
 
 impl FractalConfig {
-    pub fn apply_change(&mut self, field: String, new_value: u32) {
+    pub fn apply_change(&mut self, field: String, new_value: u64) {
         log::debug!("apply_change {:?}", self);
         match self {
             FractalConfig::NoConfig => panic!("{:?} does not have a {}", self, field),
@@ -102,7 +102,7 @@ impl FractalConfig {
 ///
 /// For example:
 /// ```rust,ignore
-/// animated_turtle!(dragon: dragon::DragonFractal::new(u64::from(iteration)));
+/// animated_turtle!(dragon: dragon::DragonFractal::new(iteration));
 /// ```
 ///
 /// Will create a function with signature:
@@ -147,32 +147,32 @@ macro_rules! animated_turtle {
 
 animated_turtle!(
     cesaro: |iteration| {
-        LindenmayerSystemTurtleProgram::new(cesaro::CesaroFractal::new(u64::from(iteration)))
+        LindenmayerSystemTurtleProgram::new(cesaro::CesaroFractal::new(iteration))
     }
 );
 animated_turtle!(
     cesarotri: |iteration| {
-        LindenmayerSystemTurtleProgram::new(cesarotri::CesaroTriFractal::new(u64::from(iteration)))
+        LindenmayerSystemTurtleProgram::new(cesarotri::CesaroTriFractal::new(iteration))
     }
 );
 animated_turtle!(
     dragon: |iteration| {
-        dragon::DragonFractal::new(u64::from(iteration))
+        dragon::DragonFractal::new(iteration)
     }
 );
 animated_turtle!(
     kochcurve: |iteration| {
-        LindenmayerSystemTurtleProgram::new(kochcurve::KochCurve::new(u64::from(iteration)))
+        LindenmayerSystemTurtleProgram::new(kochcurve::KochCurve::new(iteration))
     }
 );
 animated_turtle!(
     levyccurve: |iteration| {
-        LindenmayerSystemTurtleProgram::new(levyccurve::LevyCCurve::new(u64::from(iteration)))
+        LindenmayerSystemTurtleProgram::new(levyccurve::LevyCCurve::new(iteration))
     }
 );
 animated_turtle!(
     terdragon: |iteration| {
-        LindenmayerSystemTurtleProgram::new(terdragon::TerdragonFractal::new(u64::from(iteration)))
+        LindenmayerSystemTurtleProgram::new(terdragon::TerdragonFractal::new(iteration))
     }
 );
 
@@ -257,21 +257,21 @@ macro_rules! animated_escape_time {
 
 animated_escape_time!(
     burningmandel: |max_iterations, power| {
-        BurningMandel::new(u64::from(max_iterations), u64::from(power))
+        BurningMandel::new(max_iterations, power)
     }
 );
 animated_escape_time!(
     burningship: |max_iterations, power| {
-        BurningShip::new(u64::from(max_iterations), u64::from(power))
+        BurningShip::new(max_iterations, power)
     }
 );
 animated_escape_time!(
     mandelbrot: |max_iterations, power| {
-        Mandelbrot::new(u64::from(max_iterations), u64::from(power))
+        Mandelbrot::new(max_iterations, power)
     }
 );
 animated_escape_time!(
     roadrunner: |max_iterations, power| {
-        RoadRunner::new(u64::from(max_iterations), u64::from(power))
+        RoadRunner::new(max_iterations, power)
     }
 );

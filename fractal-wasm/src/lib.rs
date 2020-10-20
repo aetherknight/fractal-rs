@@ -87,7 +87,7 @@ enum Msg {
     AnimationFrameRequested,
     /// Indicates that a configuration field changed. It specifies the configuration field name, as
     /// well as the new value (currently they can only be integers)
-    ConfigChanged(String, u32),
+    ConfigChanged(String, u64),
     /// Indicates which fractal was selected for configuration and eventually running.
     FractalSelected(String),
     /// Whether to start the animation for the currently selected fractal and configuration.
@@ -198,7 +198,7 @@ fn validate_input(event: web_sys::Event) -> Option<Msg> {
         .unwrap();
     target.check_validity();
     if target.report_validity() {
-        if let Ok(value) = target.value().parse::<u32>() {
+        if let Ok(value) = target.value().parse::<u64>() {
             return Some(Msg::ConfigChanged(target.id(), value));
         }
     }
