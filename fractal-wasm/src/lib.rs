@@ -12,27 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-//! Exports the various fractal curves so that they can be called and animated/rendered from
-//! JavaScript in a browser.
-//!
-//! Each fractal type has its own factory function that returns an object that implements the
-//! following interface/protocol (although traits don't map to JS):
-//!
-//! ```
-//! trait FractalAnimation {
-//!     fn draw_one_frame(&mut self) -> bool;
-//!     fn pixel_to_coordinate(&self, x: f64, y: f64) -> Array;
-//!     fn zoom(&mut self, x1, y1, x2, y2) -> bool;
-//! }
-//! ```
+//! A Seed application that runs and renders various fractal curves.
 
 use fractal_lib::SelectedFractal;
-use js_sys::Array;
 use std::str::FromStr;
 use strum::IntoEnumIterator;
 use wasm_bindgen::prelude::*;
 use wasm_bindgen::JsCast;
-use web_sys::{HtmlCanvasElement, HtmlInputElement};
+use web_sys::{HtmlCanvasElement, HtmlElement, HtmlInputElement, PointerEvent};
 
 mod chaosgame;
 mod escapetime;
@@ -43,7 +30,7 @@ use fractaldata::{FractalConfig, SelectedFractalExt};
 
 pub trait FractalAnimation {
     fn draw_one_frame(&mut self) -> bool;
-    fn pixel_to_coordinate(&self, x: f64, y: f64) -> Array;
+    fn pixel_to_coordinate(&self, x: f64, y: f64) -> [f64; 2];
     fn zoom(&mut self, _x1: f64, _y1: f64, _x2: f64, _y2: f64) -> bool;
 }
 
@@ -61,6 +48,8 @@ fn init(_url: Url, _orders: &mut impl Orders<Msg>) -> Model {
         current_config: FractalConfig::NoConfig,
         current_animation: None,
         animation_ongoing: false,
+        cursor_coords: [0, 0],
+        fractal_coords: None,
     }
 }
 
@@ -80,6 +69,8 @@ struct Model {
     ///
     /// TODO: can we use the None option for Current animation?
     animation_ongoing: bool,
+    cursor_coords: [i32; 2],
+    fractal_coords: Option<[f64; 2]>,
 }
 
 enum Msg {
@@ -92,6 +83,7 @@ enum Msg {
     FractalSelected(String),
     /// Whether to start the animation for the currently selected fractal and configuration.
     RunClicked,
+    CursorCoordsCanged(i32, i32),
 }
 
 /// Handles events that send `Msg`s, resulting in updates to the Model.
@@ -137,6 +129,13 @@ fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
                 }
             }
         }
+        Msg::CursorCoordsCanged(x, y) => {
+            model.cursor_coords = [x, y];
+            if let Some(animation) = &model.current_animation {
+                let fractal_coords = animation.pixel_to_coordinate(x.into(), y.into());
+                model.fractal_coords = Some(fractal_coords);
+            }
+        }
     }
 }
 
@@ -151,10 +150,34 @@ fn view(model: &Model) -> Node<Msg> {
             canvas![
                 el_ref(&model.canvas),
                 attrs! { At::Id => "fractal-canvas", At::Width => "800", At::Height => "600"},
-                style! {St::BackgroundColor => "white"}
+                style! {St::BackgroundColor => "white"},
+                //  update the pointer location
+                ev(Ev::PointerMove, |event| {
+                    let pointer_event = event.dyn_into::<PointerEvent>().unwrap();
+                    let target = pointer_event
+                        .target()
+                        .unwrap()
+                        .dyn_into::<HtmlElement>()
+                        .unwrap();
+
+                    Msg::CursorCoordsCanged(
+                        pointer_event.client_x() - target.offset_left(),
+                        pointer_event.client_y() - target.offset_top(),
+                    )
+                }),
             ],
-            div![attrs! {At::Id => "coords"}, "Canvas coords:"],
-            div![attrs! {At::Id => "fractal-coords"}, "Fractal coords:"],
+            div![
+                attrs! {At::Id => "coords"},
+                format!("Canvas coords: {:?}", model.cursor_coords)
+            ],
+            div![
+                attrs! {At::Id => "fractal-coords"},
+                IF!(not(model.fractal_coords.is_none()) => format!(
+                    "Fractal coords: X: {}, Y: {}",
+                    model.fractal_coords.unwrap()[0], model.fractal_coords.unwrap()[1]
+                )),
+                IF!(model.fractal_coords.is_none() => "Fractal coorrrds: No fractal being rendered")
+            ],
         ],
         div![
             style! {St::Float => "left"},

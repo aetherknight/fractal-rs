@@ -14,7 +14,6 @@
 use super::FractalAnimation;
 use fractal_lib::chaosgame::ChaosGameMoveIterator;
 use fractal_lib::geometry;
-use js_sys::Array;
 use wasm_bindgen::prelude::*;
 use web_sys::{CanvasRenderingContext2d, HtmlCanvasElement};
 
@@ -82,10 +81,10 @@ impl FractalAnimation for ChaosGameAnimation {
     /// game.
     ///
     /// See chaos_game_vat for more information on the coordinate system for chaos games.
-    fn pixel_to_coordinate(&self, x: f64, y: f64) -> Array {
+    fn pixel_to_coordinate(&self, x: f64, y: f64) -> [f64; 2] {
         let canvas = self.ctx.canvas().unwrap();
         let pos_point = chaos_game_vat(&canvas).map_pixel_to_point([x, y]);
-        Array::of2(&pos_point.x.into(), &pos_point.y.into())
+        pos_point.into()
     }
 
     fn zoom(&mut self, _x1: f64, _y1: f64, _x2: f64, _y2: f64) -> bool {

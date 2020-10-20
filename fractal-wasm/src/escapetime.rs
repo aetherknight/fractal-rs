@@ -16,7 +16,6 @@ use super::FractalAnimation;
 use fractal_lib::color;
 use fractal_lib::escapetime::EscapeTime;
 use fractal_lib::geometry;
-use js_sys::Array;
 use num::complex::Complex64;
 use std::cmp;
 use wasm_bindgen::prelude::*;
@@ -121,7 +120,7 @@ impl FractalAnimation for EscapeTimeAnimation {
         false
     }
 
-    fn pixel_to_coordinate(&self, x: f64, y: f64) -> Array {
+    fn pixel_to_coordinate(&self, x: f64, y: f64) -> [f64; 2] {
         let screen_width = self.ctx.canvas().unwrap().width();
         let screen_height = self.ctx.canvas().unwrap().height();
 
@@ -131,7 +130,7 @@ impl FractalAnimation for EscapeTimeAnimation {
             self.view_area[1],
         );
         let pos_point = vat.map_pixel_to_point([x, y]);
-        Array::of2(&pos_point.x.into(), &pos_point.y.into())
+        pos_point.into()
     }
 
     fn zoom(&mut self, x1: f64, y1: f64, x2: f64, y2: f64) -> bool {
