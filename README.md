@@ -41,12 +41,44 @@ support colors and geometry used by some of the fractals.
 
 ### `fractal-wasm`
 
-TODO: link to a hosted page for `fractal-wasm`.
+A web+WASM UI that runs in modern browsers. Currently implemented using
+[Seed](https://seed-rs.org/).
+
+I host a built version of it on [my
+website](https://www.aedifice.org/fractal_wasm/).
+
+#### Development
+
+Development dependencies:
+
+* You need to set up rust with the `rust-std-wasm32-unknown-unknown` target.
+  Usually you can install this through `rustup`.
+* Install `cargo-make`: `cargo --force install cargo-make`
+* The `Makefile.toml` and `cargo-make` should automatically install `wasm-pack`
+  and `microserver` if they are not installed
+
+In order to automatically rebuild it and host it locally, `cd` multiple
+terminals to the `fractal-wasm` subdirectory and run the following commands:
+
+```sh
+# Run each of these in a separate terminal:
+cargo make watch  # Runs wasm-pack any time a file changes to recompile the WASM file
+cargo make serve  # Runs a small local webserver that hosts the project. Defaults to port 8000
+```
+
+To make a production build (the performance for escape time fractals is
+drastically better than a development/debug build):
+
+```sh
+cargo make build_release
+```
 
 
 ### `fractal-piston`
 
-A minimalistic piston-based UI that can be run from the command line.
+A minimalistic piston-based UI that can be run from the command line. It opens a
+window that animates/renders the chosen fractal, and it can be interacted with
+for certain kinds of fractals.
 
 #### Usage
 
