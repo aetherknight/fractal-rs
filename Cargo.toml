@@ -3,3 +3,11 @@
 members = [
   "fractal-lib", "fractal-piston", "fractal-wasm"
 ]
+
+[profile.release]
+lto = true
+
+# https://doc.rust-lang.org/cargo/reference/profiles.html
+[profile.release.package.fractal-wasm]
+opt-level = 'z'
+codegen-units = 1
