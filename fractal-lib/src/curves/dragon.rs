@@ -14,7 +14,6 @@
 
 //! Computations and abstractions needed for rendering a dragon fractal.
 
-use log;
 use std::f64::consts::PI;
 use std::f64::consts::SQRT_2;
 

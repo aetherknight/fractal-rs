@@ -41,11 +41,9 @@
 //! log::debug!("Done!")
 //! ```
 
-use num_cpus;
 use std::sync::mpsc::*;
 use std::sync::Arc;
 use std::thread;
-use time;
 
 /// Measures how long a block takes to complete, and returns that time.
 fn measure_time<T, F>(block: F) -> (time::Duration, T)

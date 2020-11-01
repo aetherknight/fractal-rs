@@ -20,7 +20,6 @@ pub mod barnsleyfern;
 pub mod sierpinski;
 
 use super::geometry::Point;
-use log;
 use std::sync::mpsc::{sync_channel, Receiver, SyncSender};
 use std::sync::Arc;
 use std::thread;

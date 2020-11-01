@@ -18,10 +18,7 @@ use super::{RenderContext, WhichFrame, WindowHandler};
 use fractal_lib::color;
 use fractal_lib::geometry::{Point, Vector, ViewAreaTransformer};
 use fractal_lib::turtle::{Turtle, TurtleCollectToNextForwardIterator, TurtleProgram, TurtleState};
-use graphics;
 use graphics::math::Vec2d;
-use log;
-use piston_window;
 use std::fmt;
 
 // The lifetimes are needed here to make the boxed window handlers happy.

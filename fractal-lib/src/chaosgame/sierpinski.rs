@@ -14,10 +14,8 @@
 
 //! Implementation of a 2-D Sierpinski triangle as a `ChaosGame`.
 
-use log;
 use super::super::geometry::*;
 use super::{ChaosGameMoveIterator, ChaosGameThreadedGenerator};
-use rand;
 use rand::distributions::{Distribution, Uniform};
 use std::sync::mpsc::SyncSender;
 
@@ -35,7 +33,8 @@ impl SierpinskiChaosGame {
         let vertices = Self::gen_vertices();
         let center_point = Self::center_point(&vertices);
         let mut game = SierpinskiChaosGame {
-            vertices, curr_point: center_point,
+            vertices,
+            curr_point: center_point,
         };
 
         // Pick the first vertex to jump halfway towards
@@ -93,7 +92,7 @@ impl ChaosGameThreadedGenerator for SierpinskiChaosGame {
         let mut curr_point = self.curr_point;
 
         // Send the move, repeat ad naseum
-        while let Ok(_) = channel.send(curr_point) {
+        while channel.send(curr_point).is_ok() {
             let target = point_range.sample(&mut rng);
             let target_point = self.vertices[target];
             curr_point = Point {

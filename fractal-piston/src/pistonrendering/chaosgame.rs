@@ -18,9 +18,7 @@ use super::{RenderContext, WhichFrame, WindowHandler};
 use fractal_lib::chaosgame::ChaosGameMoveIterator;
 use fractal_lib::color;
 use fractal_lib::geometry::{Point, ViewAreaTransformer};
-use graphics;
 use graphics::math::Vec2d;
-use piston_window;
 
 /// Draw a dot at the given point. (0.0,0.0) is the center of the screen, (1.0,1.0) is near the top
 /// right, and (-1.0,-1.0) is near the bottom left.

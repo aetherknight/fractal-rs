@@ -9,17 +9,26 @@ edition = "2018"
 [lib]
 crate-type = ["cdylib"]
 
+[dev-dependencies]
+wasm-bindgen-test = "0.3.13"
+
 [dependencies]
-console_error_panic_hook = "0.1.6"
-console_log = "^0.1"
-fractal-lib = { path = "../fractal-lib", features = ["wasm-bindgen"]}
-js-sys = "0.3.9"
+# Shared, but used by fractal-wasm
 log = "^0.4"
 num = "^0.2"
-paste = "0.1.5"
-wasm-bindgen = "0.2.42"
-web-sys = {version = "0.3.4", features = ['CanvasRenderingContext2d', 'HtmlCanvasElement', 'ImageData']}
+strum = "^0.19"
+strum_macros = "0.19"
+# fractal-wasm-specific
+console_error_panic_hook = "0.1.6"
+console_log = { version = "^0.2", features = ["color"] }
+fractal-lib = { path = "../fractal-lib", features = ["wasm-bindgen"]}
+js-sys = "^0.3.9"
+seed = "0.8.0"
+wasm-bindgen = "^0.2.68"
+web-sys = {version = "^0.3.4", features = ['CanvasRenderingContext2d', 'HtmlCanvasElement', 'ImageData']}
 
-# [profile.release]
-# lto = true
-# opt-level = 's'
+# https://doc.rust-lang.org/cargo/reference/profiles.html
+[profile.release]
+lto = true
+opt-level = 'z'
+codegen-units = 1

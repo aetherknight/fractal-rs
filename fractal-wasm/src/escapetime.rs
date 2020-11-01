@@ -12,18 +12,15 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+use super::FractalAnimation;
 use fractal_lib::color;
 use fractal_lib::escapetime::EscapeTime;
 use fractal_lib::geometry;
-use js_sys::Array;
-use log;
 use num::complex::Complex64;
 use std::cmp;
-use wasm_bindgen::prelude::*;
 use wasm_bindgen::Clamped;
 use web_sys::{CanvasRenderingContext2d, ImageData};
 
-#[wasm_bindgen]
 pub struct EscapeTimeAnimation {
     /// The rendering context.
     ctx: CanvasRenderingContext2d,
@@ -115,14 +112,13 @@ impl EscapeTimeAnimation {
     }
 }
 
-#[wasm_bindgen]
-impl EscapeTimeAnimation {
-    pub fn draw_one_frame(&mut self) -> bool {
+impl FractalAnimation for EscapeTimeAnimation {
+    fn draw_one_frame(&mut self) -> bool {
         self.render();
         false
     }
 
-    pub fn pixel_to_coordinate(&self, x: f64, y: f64) -> Array {
+    fn pixel_to_coordinate(&self, x: f64, y: f64) -> [f64; 2] {
         let screen_width = self.ctx.canvas().unwrap().width();
         let screen_height = self.ctx.canvas().unwrap().height();
 
@@ -132,10 +128,10 @@ impl EscapeTimeAnimation {
             self.view_area[1],
         );
         let pos_point = vat.map_pixel_to_point([x, y]);
-        Array::of2(&pos_point.x.into(), &pos_point.y.into())
+        pos_point.into()
     }
 
-    pub fn zoom(&mut self, x1: f64, y1: f64, x2: f64, y2: f64) -> bool {
+    fn zoom(&mut self, x1: f64, y1: f64, x2: f64, y2: f64) -> bool {
         let screen_width = self.ctx.canvas().unwrap().width();
         let screen_height = self.ctx.canvas().unwrap().height();
 

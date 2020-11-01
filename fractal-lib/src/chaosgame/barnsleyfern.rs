@@ -16,7 +16,6 @@
 
 use super::super::geometry::*;
 use super::{ChaosGameMoveIterator, ChaosGameThreadedGenerator};
-use rand;
 use rand::distributions::{Distribution, WeightedIndex};
 use std::sync::mpsc::SyncSender;
 
@@ -68,10 +67,13 @@ impl BarnsleyFern {
 impl ChaosGameThreadedGenerator for BarnsleyFern {
     fn generate(&self, channel: &mut SyncSender<Point>) {
         let mut curr_point = Point { x: 0.0, y: 0.0 };
-        while let Ok(_) = channel.send(Point {
-            x: curr_point.x / 10.0,
-            y: curr_point.y / 10.0,
-        }) {
+        while channel
+            .send(Point {
+                x: curr_point.x / 10.0,
+                y: curr_point.y / 10.0,
+            })
+            .is_ok()
+        {
             curr_point = self.pick_transform()(curr_point);
         }
     }

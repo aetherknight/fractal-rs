@@ -12,6 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+use strum::IntoEnumIterator;
+use strum_macros::{EnumIter, EnumString, EnumVariantNames, IntoStaticStr};
+
 // must be before any local modules that use the macros
 #[macro_use]
 pub mod macros;
@@ -23,3 +26,143 @@ pub mod escapetime;
 pub mod geometry;
 pub mod lindenmayer;
 pub mod turtle;
+
+/// Mainly used to categorize the fractals in a UI or menu.
+#[derive(Copy, Clone, EnumIter, PartialEq)]
+pub enum FractalCategory {
+    ChaosGames,
+    EscapeTimeFractals,
+    TurtleCurves,
+}
+
+impl FractalCategory {
+    pub fn display_name(self) -> &'static str {
+        match self {
+            FractalCategory::ChaosGames => "Chaos Games",
+            FractalCategory::EscapeTimeFractals => "Escape-time Fractals",
+            FractalCategory::TurtleCurves => "Turtle Curves",
+        }
+    }
+}
+
+/// All of the supported fractals, with associated data for using them.
+///
+/// This type is meant to be extended or used by the various UI implementations to provide their
+/// own code for constructing implementations for each kind of Fractal.
+///
+/// You can list all of them by using a derived iterator:
+///
+/// ```rust
+/// use strum::IntoEnumIterator;
+///
+/// SelectedFractal::iter()
+/// ```
+///
+/// You can parse a string token into one of these enums using something like:
+///
+/// ```rust
+/// use std::str::FromStr;
+///
+/// SelectedFractal::from_str("dragon").unwrap()
+/// ```
+///
+/// You can generate a static str representation using:
+///
+/// ```rust.ignore
+/// <&'static str>::from(SelectedFractal::Dragon)
+/// ```
+///
+/// Or:
+///
+/// ```rust.ignore
+/// let slug: &'static str = SelectedFractal::Dragon.into()
+/// ```
+#[derive(Copy, Clone, EnumString, EnumIter, IntoStaticStr, EnumVariantNames)]
+#[strum(serialize_all = "lowercase")]
+pub enum SelectedFractal {
+    BarnsleyFern,
+    BurningMandel,
+    BurningShip,
+    Cesaro,
+    CesaroTri,
+    Dragon,
+    KochCurve,
+    LevyCCurve,
+    Mandelbrot,
+    RoadRunner,
+    Sierpinski,
+    TerDragon,
+}
+
+impl SelectedFractal {
+    pub fn by_category() -> Vec<(FractalCategory, Vec<Self>)> {
+        FractalCategory::iter()
+            .map(|cat| {
+                (
+                    cat,
+                    SelectedFractal::iter()
+                        .filter(|fractal| fractal.category() == cat)
+                        .collect(),
+                )
+            })
+            .collect()
+    }
+    /// The full display name for each fractal variant.
+    ///
+    /// If you want a simpler ASCII name, use the `IntoStaticStr` derived definition, which lets
+    /// you turn the Enum `into()` a `&'static str`.
+    pub fn name(self) -> &'static str {
+        match self {
+            SelectedFractal::BarnsleyFern => "Barnsley Fern",
+            SelectedFractal::BurningMandel => "Burning Mandel",
+            SelectedFractal::BurningShip => "Burning Ship",
+            SelectedFractal::Cesaro => "Cesàro",
+            SelectedFractal::CesaroTri => "Cesàro Triangle",
+            SelectedFractal::Dragon => "Dragon",
+            SelectedFractal::KochCurve => "Koch Curve",
+            SelectedFractal::LevyCCurve => "Lévy C Curve",
+            SelectedFractal::Mandelbrot => "Mandelbrot",
+            SelectedFractal::RoadRunner => "Roadrunner",
+            SelectedFractal::Sierpinski => "Sierpiński Triangle",
+            SelectedFractal::TerDragon => "Terdragon",
+        }
+    }
+
+    /// A short description of each fractal variant.
+    pub fn description(self) -> &'static str {
+        match self {
+            SelectedFractal::BarnsleyFern => "Draws the Barnsley Fern fractal using a chaos game with affine transforms.",
+            SelectedFractal::BurningMandel => "Draws a variation of the burning ship fractal",
+            SelectedFractal::BurningShip => "Draws the burning ship fractal",
+            SelectedFractal::Cesaro => "Draws a square Cesàro fractal",
+            SelectedFractal::CesaroTri => "Draws a triangle Cesàro fractal",
+            SelectedFractal::Dragon => "Draws a dragon curve fractal",
+            SelectedFractal::KochCurve => "Draws a Koch snowflake curve",
+            SelectedFractal::LevyCCurve => "Draws a Lévy C Curve",
+            SelectedFractal::Mandelbrot => "Draws the mandelbrot fractal",
+            SelectedFractal::RoadRunner => "Draws a variation of the burning ship fractal",
+            SelectedFractal::Sierpinski => "Draws a Sierpiński triangle using a chaos game and 3 randomly chosen points on the screen",
+            SelectedFractal::TerDragon => "Draws a terdragon curve",
+        }
+    }
+
+    /// Returns the category for the given variant.
+    ///
+    /// The categories relate to the kind of configuration that the given fractal needs.
+    pub fn category(self) -> FractalCategory {
+        match self {
+            SelectedFractal::BarnsleyFern => FractalCategory::ChaosGames,
+            SelectedFractal::BurningMandel => FractalCategory::EscapeTimeFractals,
+            SelectedFractal::BurningShip => FractalCategory::EscapeTimeFractals,
+            SelectedFractal::Cesaro => FractalCategory::TurtleCurves,
+            SelectedFractal::CesaroTri => FractalCategory::TurtleCurves,
+            SelectedFractal::Dragon => FractalCategory::TurtleCurves,
+            SelectedFractal::KochCurve => FractalCategory::TurtleCurves,
+            SelectedFractal::LevyCCurve => FractalCategory::TurtleCurves,
+            SelectedFractal::Mandelbrot => FractalCategory::EscapeTimeFractals,
+            SelectedFractal::RoadRunner => FractalCategory::EscapeTimeFractals,
+            SelectedFractal::Sierpinski => FractalCategory::ChaosGames,
+            SelectedFractal::TerDragon => FractalCategory::TurtleCurves,
+        }
+    }
+}

@@ -11,12 +11,9 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-
+use super::FractalAnimation;
 use fractal_lib::chaosgame::ChaosGameMoveIterator;
 use fractal_lib::geometry;
-use js_sys::Array;
-use log;
-use wasm_bindgen::prelude::*;
 use web_sys::{CanvasRenderingContext2d, HtmlCanvasElement};
 
 /// Constructs a ViewAreaTransformer for converting between a canvas pixel-coordinate and the
@@ -36,7 +33,6 @@ fn chaos_game_vat(canvas: &HtmlCanvasElement) -> geometry::ViewAreaTransformer {
 }
 
 /// Represents everything needed to render a chaos game fractal as an animation.
-#[wasm_bindgen]
 pub struct ChaosGameAnimation {
     ctx: CanvasRenderingContext2d,
     iter: Box<dyn ChaosGameMoveIterator>,
@@ -63,13 +59,12 @@ impl ChaosGameAnimation {
     }
 }
 
-#[wasm_bindgen]
-impl ChaosGameAnimation {
+impl FractalAnimation for ChaosGameAnimation {
     /// Draws one point of the chaos game animation.
     ///
     /// Should always return true, unless the underlying chaos game's iterator ends for some
     /// reason.
-    pub fn draw_one_frame(&mut self) -> bool {
+    fn draw_one_frame(&mut self) -> bool {
         if let Some(next_point) = self.iter.next() {
             // log::debug(&format!("{}", next_point).into());
             self.draw_point(next_point);
@@ -84,13 +79,13 @@ impl ChaosGameAnimation {
     /// game.
     ///
     /// See chaos_game_vat for more information on the coordinate system for chaos games.
-    pub fn pixel_to_coordinate(&self, x: f64, y: f64) -> Array {
+    fn pixel_to_coordinate(&self, x: f64, y: f64) -> [f64; 2] {
         let canvas = self.ctx.canvas().unwrap();
         let pos_point = chaos_game_vat(&canvas).map_pixel_to_point([x, y]);
-        Array::of2(&pos_point.x.into(), &pos_point.y.into())
+        pos_point.into()
     }
 
-    pub fn zoom(&mut self, _x1: f64, _y1: f64, _x2: f64, _y2: f64) -> bool {
+    fn zoom(&mut self, _x1: f64, _y1: f64, _x2: f64, _y2: f64) -> bool {
         false
     }
 }

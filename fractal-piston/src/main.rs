@@ -34,13 +34,17 @@ fn main() {
     );
 
     let matches = app.get_matches();
-    simple_logger::init_with_level(
-        matches
-            .value_of("loglevel")
-            .map(|s| fractaldata::parse_arg::<log::Level>("loglevel", s))
-            .unwrap().unwrap(),
-    )
-    .unwrap();
+    simple_logger::SimpleLogger::new()
+        .with_level(
+            matches
+                .value_of("loglevel")
+                .map(|s| fractaldata::parse_arg::<log::LevelFilter>("loglevel", s))
+                .unwrap()
+                .unwrap(),
+        )
+        .with_module_level("gfx_device_gl", log::LevelFilter::Warn)
+        .init()
+        .unwrap();
 
     let result = fractaldata::run_subcommand(&matches);
 

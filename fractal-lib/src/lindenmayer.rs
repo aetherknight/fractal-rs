@@ -22,7 +22,6 @@
 
 use crate::geometry::Point;
 use crate::turtle::*;
-use log;
 use std::cell::RefCell;
 use std::marker::PhantomData;
 
@@ -214,6 +213,13 @@ where
             alphabet: PhantomData,
             cacheable_system: LindenmayerSystemCachingDecorator::new(system), // system: system,
         }
+    }
+
+    pub fn build<C>(ctor: C) -> Box<dyn Fn(u64) -> LindenmayerSystemTurtleProgram<L, A>>
+    where
+        C: Fn(u64) -> L + 'static,
+    {
+        Box::new(move |iteration| LindenmayerSystemTurtleProgram::new(ctor(iteration)))
     }
 }
 

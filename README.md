@@ -29,7 +29,7 @@ support colors and geometry used by some of the fractals.
     * Terdragon fractal
 * Chaos game images supported:
     * [Barnsley fern](https://en.wikipedia.org/wiki/Barnsley_fern)
-    * [Sierpinski triangle](https://en.wikipedia.org/wiki/Sierpinski_triangle)
+    * [Sierpiński triangle](https://en.wikipedia.org/wiki/Sierpi%C5%84ski_triangle)
 * Escape time fractals, with support for shading/color, and zooming in and out.
   Supported families of escape time fractals include:
     * [Mandelbrot set](https://en.wikipedia.org/wiki/Mandelbrot_set) with
@@ -41,12 +41,44 @@ support colors and geometry used by some of the fractals.
 
 ### `fractal-wasm`
 
-TODO: link to a hosted page for `fractal-wasm`.
+A web+WASM UI that runs in modern browsers. Currently implemented using
+[Seed](https://seed-rs.org/).
+
+I host a built version of it on [my
+website](https://www.aedifice.org/fractal_wasm/).
+
+#### Development
+
+Development dependencies:
+
+* You need to set up rust with the `rust-std-wasm32-unknown-unknown` target.
+  Usually you can install this through `rustup`.
+* Install `cargo-make`: `cargo --force install cargo-make`
+* The `Makefile.toml` and `cargo-make` should automatically install `wasm-pack`
+  and `microserver` if they are not installed
+
+In order to automatically rebuild it and host it locally, `cd` multiple
+terminals to the `fractal-wasm` subdirectory and run the following commands:
+
+```sh
+# Run each of these in a separate terminal:
+cargo make watch  # Runs wasm-pack any time a file changes to recompile the WASM file
+cargo make serve  # Runs a small local webserver that hosts the project. Defaults to port 8000
+```
+
+To make a production build (the performance for escape time fractals is
+drastically better than a development/debug build):
+
+```sh
+cargo make build_release
+```
 
 
 ### `fractal-piston`
 
-A minimalistic piston-based UI that can be run from the command line.
+A minimalistic piston-based UI that can be run from the command line. It opens a
+window that animates/renders the chosen fractal, and it can be interacted with
+for certain kinds of fractals.
 
 #### Usage
 
@@ -97,14 +129,14 @@ The fractal program includes the following subcommands:
 | `barnsleyfern [--drawrate MPF]` | Draws the Barnsley Fern fractal using a chaos game with affine transforms. |
 | `burningmandel MAX_IT POWER` | Draws a variation of the burning ship fractal |
 | `burningship MAX_IT POWER` | Draws the burning ship fractal |
-| `cesaro [--drawrate MPF] ITER` | Draws a square Césaro fractal |
-| `cestarotri [--drawrate MPF] ITER` | Draws a triangle Césaro fractal |
+| `cesaro [--drawrate MPF] ITER` | Draws a square Cesàro fractal |
+| `cestarotri [--drawrate MPF] ITER` | Draws a triangle Cesàro fractal |
 | `dragon [--drawrate MPF] ITER` | Draws a dragon curve fractal |
 | `kochcurve [--drawrate MPF] ITER` | Draws a Koch snowflake curve |
-| `levyccurve [--drawrate MPF] ITER` | Draws a Levy C Curve |
+| `levyccurve [--drawrate MPF] ITER` | Draws a Lévy C Curve |
 | `mandelbrot MAX_IT POWER` | Draws the mandelbrot fractal |
 | `roadrunner MAX_IT POWER` | Draws a variation of the burning ship fractal |
-| `sierpinski [--drawrate MPF]` | Draws a Sierpinski triangle using a chaos game and 3 randomly chosen points on the screen |
+| `sierpinski [--drawrate MPF]` | Draws a Sierpiński triangle using a chaos game and 3 randomly chosen points on the screen |
 | `terdragon [--drawrate MPF] ITER` | Draws a terdragon curve |
 
 Where the arguments have the following meaning:
@@ -117,7 +149,7 @@ Where the arguments have the following meaning:
 | `POWER` | The exponent used in the escape time function (positive integer) |
 
 The chaos game and turtle-drawn curves are not particularly interactive. If you
-resize the screen, they will redraw themselves (the Sierpinski triangle will
+resize the screen, they will redraw themselves (the Sierpiński triangle will
 pick 3 new random points as vertices for the triangle).
 
 The escape-time fractals (`burningmandel`, `burningship`, `mandelbrot`, and
