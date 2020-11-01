@@ -15,7 +15,6 @@
 use super::FractalAnimation;
 use fractal_lib::geometry::{Point, Vector, ViewAreaTransformer};
 use fractal_lib::turtle::{Turtle, TurtleCollectToNextForwardIterator, TurtleProgram, TurtleState};
-use wasm_bindgen::prelude::*;
 use web_sys::{CanvasRenderingContext2d, HtmlCanvasElement};
 
 /// Constructs a ViewAreaTransformer for converting between a canvas pixel-coordinate and the
@@ -108,7 +107,6 @@ impl Turtle for CanvasTurtle {
 ///
 /// It holds onto a turtle program, which is then used to eventually initialize an iterator over
 /// that program.
-#[wasm_bindgen]
 pub struct TurtleAnimation {
     turtle: CanvasTurtle,
     iter: TurtleCollectToNextForwardIterator,

@@ -14,7 +14,6 @@
 use super::FractalAnimation;
 use fractal_lib::chaosgame::ChaosGameMoveIterator;
 use fractal_lib::geometry;
-use wasm_bindgen::prelude::*;
 use web_sys::{CanvasRenderingContext2d, HtmlCanvasElement};
 
 /// Constructs a ViewAreaTransformer for converting between a canvas pixel-coordinate and the
@@ -34,7 +33,6 @@ fn chaos_game_vat(canvas: &HtmlCanvasElement) -> geometry::ViewAreaTransformer {
 }
 
 /// Represents everything needed to render a chaos game fractal as an animation.
-#[wasm_bindgen]
 pub struct ChaosGameAnimation {
     ctx: CanvasRenderingContext2d,
     iter: Box<dyn ChaosGameMoveIterator>,

@@ -18,11 +18,9 @@ use fractal_lib::escapetime::EscapeTime;
 use fractal_lib::geometry;
 use num::complex::Complex64;
 use std::cmp;
-use wasm_bindgen::prelude::*;
 use wasm_bindgen::Clamped;
 use web_sys::{CanvasRenderingContext2d, ImageData};
 
-#[wasm_bindgen]
 pub struct EscapeTimeAnimation {
     /// The rendering context.
     ctx: CanvasRenderingContext2d,
