@@ -57,6 +57,7 @@ fn init(_url: Url, _orders: &mut impl Orders<Msg>) -> Model {
         current_animation_status: FractalAnimationStatus::NotStarted,
         cursor_coords: [0, 0],
         fractal_coords: None,
+        zoom_start_coords: None,
     }
 }
 
@@ -76,6 +77,7 @@ struct Model {
     current_animation_status: FractalAnimationStatus,
     cursor_coords: [i32; 2],
     fractal_coords: Option<[f64; 2]>,
+    zoom_start_coords: Option<[i32; 2]>,
 }
 
 enum Msg {
@@ -93,6 +95,8 @@ enum Msg {
     /// Whether to resume the currentl running animation.
     ResumeClicked,
     CursorCoordsCanged(i32, i32),
+    CursorDown,
+    CursorUp,
 }
 
 /// Handles events that send `Msg`s, resulting in updates to the Model.
@@ -123,8 +127,8 @@ fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
             match model.current_animation_status {
                 FractalAnimationStatus::Animating => {}
                 _ => {
-                    // There might already be an animation running. We don't want to double-up on the
-                    // number of AnimationFrameRequested messages if that's the case.
+                    // There might already be an animation running. We don't want to double-up on
+                    // the number of AnimationFrameRequested messages if that's the case.
                     orders.after_next_render(|_| Msg::AnimationFrameRequested);
                     model.current_animation_status = FractalAnimationStatus::Animating;
                 }
@@ -166,6 +170,36 @@ fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
                 model.fractal_coords = Some(fractal_coords);
             }
         }
+        Msg::CursorDown => {
+            // Track where the cursor started being down, to begin selecting an area to zoom into.
+            model.zoom_start_coords = Some(model.cursor_coords);
+            log::debug!("Mouse down: {:?}", model.zoom_start_coords);
+        }
+        Msg::CursorUp => match model.zoom_start_coords {
+            None => {}
+            Some(zoom_start_coords) => {
+                // If the cursor has been held down and was just raised up, compute the zoom and
+                // resume the animation, if zoom is supported.
+                let zoom_end_coords = model.cursor_coords;
+                log::debug!("Mouse up: {:?}", zoom_end_coords);
+                match &mut model.current_animation {
+                    None => {}
+                    Some(animation) => {
+                        if animation.zoom(
+                            f64::from(zoom_start_coords[0]),
+                            f64::from(zoom_start_coords[1]),
+                            f64::from(zoom_end_coords[0]),
+                            f64::from(zoom_end_coords[1]),
+                        ) {
+                            // After `zoom()` is called, try to render the next frame. `zoom()`
+                            // should prepare the animation.
+                            orders.after_next_render(|_| Msg::AnimationFrameRequested);
+                            model.current_animation_status = FractalAnimationStatus::Animating;
+                        }
+                    }
+                }
+            }
+        },
     }
 }
 
@@ -195,6 +229,8 @@ fn view(model: &Model) -> Node<Msg> {
                         pointer_event.client_y() - target.offset_top(),
                     )
                 }),
+                ev(Ev::PointerDown, |_| Msg::CursorDown),
+                ev(Ev::PointerUp, |_| Msg::CursorUp),
             ],
             div![
                 attrs! {At::Id => "coords"},
