@@ -11,17 +11,19 @@ name = "fractal-piston"
 doc = false
 
 [dependencies]
+# Shared, but used by fractal-piston
+log = "^0.4"
+num = "^0.2"
+strum = "0.19"
+strum_macros = "0.19"
+# fractal-piston-specific
 clap = "2"
 fractal-lib = { path = "../fractal-lib" }
 gfx_device_gl = "^0.16.2"  # needs to match piston_window/dependencies
 image = "~0.23.0"  # needs to match piston_window/dependencies
-log = "^0.4"
-num = "^0.2"
 num_cpus = "^1.9"
 piston = "^0.49.0"
 piston2d-graphics = "^0.36.0"
 piston_window = "0.107.0"
 simple_logger = "^1.6"
-strum = "0.19"
-strum_macros = "0.19"
 time = "~0.1"
