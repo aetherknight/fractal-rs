@@ -16,7 +16,6 @@
 
 use fractal_lib::SelectedFractal;
 use std::str::FromStr;
-use strum::IntoEnumIterator;
 use wasm_bindgen::prelude::*;
 use wasm_bindgen::JsCast;
 use web_sys::{HtmlCanvasElement, HtmlElement, HtmlInputElement, PointerEvent};
@@ -242,12 +241,19 @@ fn view_menu(disable: bool) -> Node<Msg> {
         attrs! { At::Id => "fractal-type" },
         // the presence of `disabled`, not its value, determines if an element is disabled.
         IF!(disable => attrs!{ At::Disabled => disable }),
-        SelectedFractal::iter().map(|fractal| {
-            option![
-                attrs! {At::Value => <&'static str>::from(fractal)},
-                fractal.name()
-            ]
-        }),
+        SelectedFractal::by_category()
+            .iter()
+            .map(|(category, fractals)| {
+                optgroup![
+                    attrs! {At::Label => category.display_name()},
+                    fractals.iter().map(|fractal| {
+                        option![
+                            attrs! {At::Value => <&'static str>::from(fractal)},
+                            fractal.name()
+                        ]
+                    })
+                ]
+            }),
         input_ev(Ev::Input, Msg::FractalSelected),
     ]
 }

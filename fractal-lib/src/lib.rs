@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+use strum::IntoEnumIterator;
 use strum_macros::{EnumIter, EnumString, EnumVariantNames, IntoStaticStr};
 
 // must be before any local modules that use the macros
@@ -27,11 +28,21 @@ pub mod lindenmayer;
 pub mod turtle;
 
 /// Mainly used to categorize the fractals in a UI or menu.
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, EnumIter, PartialEq)]
 pub enum FractalCategory {
     ChaosGames,
     EscapeTimeFractals,
     TurtleCurves,
+}
+
+impl FractalCategory {
+    pub fn display_name(self) -> &'static str {
+        match self {
+            FractalCategory::ChaosGames => "Chaos Games",
+            FractalCategory::EscapeTimeFractals => "Escape-time Fractals",
+            FractalCategory::TurtleCurves => "Turtle Curves",
+        }
+    }
 }
 
 /// All of the supported fractals, with associated data for using them.
@@ -84,6 +95,18 @@ pub enum SelectedFractal {
 }
 
 impl SelectedFractal {
+    pub fn by_category() -> Vec<(FractalCategory, Vec<Self>)> {
+        FractalCategory::iter()
+            .map(|cat| {
+                (
+                    cat,
+                    SelectedFractal::iter()
+                        .filter(|fractal| fractal.category() == cat)
+                        .collect(),
+                )
+            })
+            .collect()
+    }
     /// The full display name for each fractal variant.
     ///
     /// If you want a simpler ASCII name, use the `IntoStaticStr` derived definition, which lets
