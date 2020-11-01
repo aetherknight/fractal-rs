@@ -34,6 +34,14 @@ pub trait FractalAnimation {
     fn zoom(&mut self, _x1: f64, _y1: f64, _x2: f64, _y2: f64) -> bool;
 }
 
+#[derive(PartialEq)]
+enum FractalAnimationStatus {
+    NotStarted,
+    Animating,
+    Paused,
+    Done,
+}
+
 // (Lines like the one below ignore selected Clippy rules
 //  - it's useful when you want to check your code with `cargo make verify`
 // but some rules are too "annoying" or are not applicable for your case.)
@@ -47,7 +55,7 @@ fn init(_url: Url, _orders: &mut impl Orders<Msg>) -> Model {
         selected_fractal: SelectedFractal::BarnsleyFern,
         current_config: FractalConfig::NoConfig,
         current_animation: None,
-        animation_ongoing: false,
+        current_animation_status: FractalAnimationStatus::NotStarted,
         cursor_coords: [0, 0],
         fractal_coords: None,
     }
@@ -65,10 +73,8 @@ struct Model {
     /// The currently ongoing fractal animation. This object does the work of rendering either each
     /// frame, or the whole fractal at once (if not drawn using an animation).
     current_animation: Option<Box<dyn FractalAnimation>>,
-    /// Whether the animation is currently ongoing.
-    ///
-    /// TODO: can we use the None option for Current animation?
-    animation_ongoing: bool,
+    /// Whether the current animation is animating, paused, or done.
+    current_animation_status: FractalAnimationStatus,
     cursor_coords: [i32; 2],
     fractal_coords: Option<[f64; 2]>,
 }
@@ -83,6 +89,10 @@ enum Msg {
     FractalSelected(String),
     /// Whether to start the animation for the currently selected fractal and configuration.
     RunClicked,
+    /// Whether to pause the currently running animation.
+    PauseClicked,
+    /// Whether to resume the currentl running animation.
+    ResumeClicked,
     CursorCoordsCanged(i32, i32),
 }
 
@@ -95,9 +105,11 @@ fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
                 SelectedFractal::from_str(selected.as_ref()).expect("unknown selected fractal");
             model.current_config = model.selected_fractal.default_config();
             log::debug!("config {:?}", model.current_config);
+            model.current_animation_status = FractalAnimationStatus::NotStarted;
         }
         Msg::ConfigChanged(input, new_value) => {
             model.current_config.apply_change(input, new_value);
+            model.current_animation_status = FractalAnimationStatus::NotStarted;
         }
         Msg::RunClicked => {
             log::debug!("clicked run");
@@ -108,12 +120,25 @@ fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
                     .selected_fractal
                     .build_animation(&canvas, &model.current_config),
             );
-            if !model.animation_ongoing {
-                // There might already be an animation running. We don't want to double-up on the
-                // number of AnimationFrameRequested messages if that's the case.
-                orders.after_next_render(|_| Msg::AnimationFrameRequested);
-                model.animation_ongoing = true;
+            // If it's not currently animating, start the animation
+            match model.current_animation_status {
+                FractalAnimationStatus::Animating => {}
+                _ => {
+                    // There might already be an animation running. We don't want to double-up on the
+                    // number of AnimationFrameRequested messages if that's the case.
+                    orders.after_next_render(|_| Msg::AnimationFrameRequested);
+                    model.current_animation_status = FractalAnimationStatus::Animating;
+                }
             }
+        }
+        Msg::PauseClicked => {
+            log::debug!("clicked pause");
+            model.current_animation_status = FractalAnimationStatus::Paused;
+        }
+        Msg::ResumeClicked => {
+            log::debug!("clicked pause");
+            model.current_animation_status = FractalAnimationStatus::Animating;
+            orders.after_next_render(|_| Msg::AnimationFrameRequested);
         }
         Msg::AnimationFrameRequested => {
             log::debug!("animation frame requested");
@@ -122,9 +147,15 @@ fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
                 Some(animation) => {
                     // Animate until it says its done
                     if animation.draw_one_frame() {
-                        orders.after_next_render(|_| Msg::AnimationFrameRequested);
+                        // Request another frame only if the animation is still animating.
+                        match model.current_animation_status {
+                            FractalAnimationStatus::Animating => {
+                                orders.after_next_render(|_| Msg::AnimationFrameRequested);
+                            }
+                            _ => {}
+                        }
                     } else {
-                        model.animation_ongoing = false;
+                        model.current_animation_status = FractalAnimationStatus::Done
                     }
                 }
             }
@@ -181,17 +212,36 @@ fn view(model: &Model) -> Node<Msg> {
         ],
         div![
             style! {St::Float => "left"},
-            view_menu(),
+            view_menu(model.current_animation_status == FractalAnimationStatus::Animating),
             view_config(&model.current_config),
-            button!["Run", ev(Ev::Click, |_| Msg::RunClicked)],
+            IF!(
+                model.current_animation_status == FractalAnimationStatus::Animating => button![
+                "Pause", ev(Ev::Click, |_| Msg::PauseClicked)]
+            ),
+            IF!(
+                model.current_animation_status == FractalAnimationStatus::Paused => button![
+                "Resume", ev(Ev::Click, |_| Msg::ResumeClicked)]
+            ),
+            IF!(
+                model.current_animation_status != FractalAnimationStatus::Animating => div![
+                    button!["Start a new fractal", ev(Ev::Click, |_| Msg::RunClicked)]
+                ]
+            ),
         ]
     ]
 }
 
 /// Renders/re-renders the menu for selecting which fractal animation to configure and run next.
-fn view_menu() -> Node<Msg> {
+///
+/// The menu can be disabled -- while an animation is running, it causes seed to re-compute the
+/// view (the animation uses the seed event loop to schedule the next animation frame after the
+/// next render), which causes the dropdown menu beecome unusable.
+fn view_menu(disable: bool) -> Node<Msg> {
+    log::debug!("menu disabled: {}", disable);
     select![
-        attrs! {At::Id => "fractal-type"},
+        attrs! { At::Id => "fractal-type" },
+        // the presence of `disabled`, not its value, determines if an element is disabled.
+        IF!(disable => attrs!{ At::Disabled => disable }),
         SelectedFractal::iter().map(|fractal| {
             option![
                 attrs! {At::Value => <&'static str>::from(fractal)},
@@ -199,13 +249,6 @@ fn view_menu() -> Node<Msg> {
             ]
         }),
         input_ev(Ev::Input, Msg::FractalSelected),
-        // TODO: while an animation is ongoing, the menu gets re-rendered while the dropdown is
-        // open, making it unusable. Can we pause the animation, or should we disable the menu
-        // until the animation itself is paused?
-
-        // ev(Ev::Change, |event| log::debug!("change {:?}", event)),
-        // ev(Ev::Focus, |event| log::debug!("focus {:?}", event)),
-        // ev(Ev::Blur, |event| log::debug!("blur {:?}", event)),
     ]
 }
 
