@@ -210,7 +210,6 @@ fn view(model: &Model) -> Node<Msg> {
     log::debug!("view");
     div![
         div![
-            style! {St::Float => "left"},
             canvas![
                 el_ref(&model.canvas),
                 attrs! { At::Id => "fractal-canvas", At::Width => "800", At::Height => "600"},
@@ -242,11 +241,10 @@ fn view(model: &Model) -> Node<Msg> {
                     "Fractal coords: X: {}, Y: {}",
                     model.fractal_coords.unwrap()[0], model.fractal_coords.unwrap()[1]
                 )),
-                IF!(model.fractal_coords.is_none() => "Fractal coorrrds: No fractal being rendered")
+                IF!(model.fractal_coords.is_none() => "Fractal coords: No fractal being rendered")
             ],
         ],
         div![
-            style! {St::Float => "left"},
             view_menu(model.current_animation_status == FractalAnimationStatus::Animating),
             view_config(&model.current_config),
             IF!(
@@ -322,19 +320,24 @@ fn view_config(config: &FractalConfig) -> Node<Msg> {
         attrs! {At::Id => "config"},
         match config {
             FractalConfig::NoConfig => div!["No configuration for this fractal"],
-            FractalConfig::TurtleCurveConfig { iteration } => div![div![
-                label![attrs! {At::For => "iteration"}, "Iterations"],
-                input![
-                    attrs! {
-                        At::Id => "iteration",
-                        At::Type => "number",
-                        At::Required => "true",
-                        At::Value => iteration,
-                        At::Min => 0,
-                    },
-                    ev(Ev::Input, validate_input),
-                ]
-            ]],
+            FractalConfig::TurtleCurveConfig { iteration } => div![
+                div![
+                    label![attrs! {At::For => "iteration"}, "Iterations"],
+                    input![
+                        attrs! {
+                            At::Id => "iteration",
+                            At::Type => "number",
+                            At::Required => "true",
+                            At::Value => iteration,
+                            At::Min => 0,
+                        },
+                        ev(Ev::Input, validate_input),
+                    ]
+                ],
+                p![
+                    "Draws the fractal using a turtle animation."
+                ],
+            ],
             FractalConfig::EscapeTimeConfig {
                 max_iterations,
                 power,
@@ -365,9 +368,11 @@ fn view_config(config: &FractalConfig) -> Node<Msg> {
                         ev(Ev::Input, validate_input),
                     ],
                 ],
+                p![
+                    "Renders the escape time fractal using the provided parameters. After the fractal renders, you can use a pointer to select an area to zoom in on."
+                ],
             ],
         },
-        format!("{:?}", config),
     ]
 }
 
