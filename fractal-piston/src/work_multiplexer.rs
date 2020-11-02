@@ -50,9 +50,9 @@ fn measure_time<T, F>(block: F) -> (time::Duration, T)
 where
     F: Fn() -> T,
 {
-    let start_time = time::now_utc();
+    let start_time = time::OffsetDateTime::now_utc();
     let res = block();
-    let finish_time = time::now_utc();
+    let finish_time = time::OffsetDateTime::now_utc();
 
     (finish_time - start_time, res)
 }
@@ -138,7 +138,7 @@ impl ThreadedWorkMultiplexerBuilder {
                 let (time_delta, _) = measure_time(|| {
                     thread_code(i, total_threads, &notifier, thread_name.as_ref());
                 });
-                log::debug!("{} finished in {}", thread_name, time_delta);
+                log::debug!("{} finished in {} seconds", thread_name, time_delta.as_seconds_f64());
             });
             if let Ok(handle) = res {
                 thread_sync.push(Some((tx, handle)));
