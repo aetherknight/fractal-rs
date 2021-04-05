@@ -53,31 +53,43 @@ impl FractalCategory {
 /// You can list all of them by using a derived iterator:
 ///
 /// ```rust
+/// # use fractal_lib::SelectedFractal;
 /// use strum::IntoEnumIterator;
 ///
-/// SelectedFractal::iter()
+/// SelectedFractal::iter().for_each(|fractal| println!("{:?}", fractal));
+/// // => SelectedFractal::BarnsleyGern
+/// // => SelectedFractal::BurningManel
+/// // => ...
 /// ```
 ///
 /// You can parse a string token into one of these enums using something like:
 ///
 /// ```rust
+/// # use fractal_lib::SelectedFractal;
 /// use std::str::FromStr;
 ///
+/// # println!("{:?}",
 /// SelectedFractal::from_str("dragon").unwrap()
+/// # );
+/// // => SelectedFractal::Dragon
 /// ```
 ///
-/// You can generate a static str representation using:
+/// You can acquire a static str representation using:
 ///
-/// ```rust.ignore
+/// ```rust
+/// # use fractal_lib::SelectedFractal;
+/// # println!("{}",
 /// <&'static str>::from(SelectedFractal::Dragon)
+/// # );
 /// ```
 ///
 /// Or:
 ///
-/// ```rust.ignore
-/// let slug: &'static str = SelectedFractal::Dragon.into()
+/// ```rust
+/// # use fractal_lib::SelectedFractal;
+/// let slug: &'static str = SelectedFractal::Dragon.into();
 /// ```
-#[derive(Copy, Clone, EnumString, EnumIter, IntoStaticStr, EnumVariantNames)]
+#[derive(Copy, Clone, Debug, EnumString, EnumIter, IntoStaticStr, EnumVariantNames)]
 #[strum(serialize_all = "lowercase")]
 pub enum SelectedFractal {
     BarnsleyFern,
