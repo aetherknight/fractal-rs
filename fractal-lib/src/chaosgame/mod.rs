@@ -97,7 +97,7 @@ impl Drop for ChaosGameMoveThreadedIterator {
             Ok(_) => log::debug!("Worker exited normally"),
             Err(e) => {
                 log::debug!("Worker exited abnormally.");
-                panic!(e);
+                std::panic::panic_any(e);
             }
         }
     }

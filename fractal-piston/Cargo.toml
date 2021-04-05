@@ -22,8 +22,8 @@ fractal-lib = { path = "../fractal-lib" }
 gfx_device_gl = "^0.16.2"  # needs to match piston_window/dependencies
 image = "~0.23.0"  # needs to match piston_window/dependencies
 num_cpus = "^1.9"
-piston = "^0.52.0"  # needs to match piston_window/dependencies
-piston2d-graphics = "^0.37.0"  # needs to match piston_window/dependencies
-piston_window = "0.113.0"
+piston = "^0.53.0"  # needs to match piston_window/dependencies
+piston2d-graphics = "^0.39.0"  # needs to match piston_window/dependencies
+piston_window = "0.118.0"
 simple_logger = "^1.6"
 time = "~0.2"
