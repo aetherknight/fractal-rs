@@ -49,16 +49,30 @@ website](https://www.aedifice.org/fractal_wasm/).
 
 #### Development
 
-Development dependencies:
+fractal-wasm has some special setup required because it targets WASM.
 
 * You need to set up rust with the `rust-std-wasm32-unknown-unknown` target.
-  Usually you can install this through `rustup`.
-* Install `cargo-make`: `cargo --force install cargo-make`
-* The `Makefile.toml` and `cargo-make` should automatically install `wasm-pack`
-  and `microserver` if they are not installed
+* You need to install `cargo-make`, which is used to run additional commands
+  related to the rust+WASM+Seed development process.
+* Cargo-make and the Makefile.toml also use `wasm-pack` and `microserver`, but
+  the Makefile will install them automatically if they are missing.
 
-In order to automatically rebuild it and host it locally, `cd` multiple
-terminals to the `fractal-wasm` subdirectory and run the following commands:
+For example, you can install them with:;
+
+```sh
+# Install the WASM target for rustc
+rustup target add wasm32-unknown-unknown
+# Install the latest version of cargo-make using cargo
+#
+# Note that cargo-make has external dependencies. Eg, it compiles against
+# OpenSSL. This means you may have to install headers and/or an OpenSSL
+# development package for your OS.
+cargo install --force cargo-make
+```
+
+In order to automatically rebuild fractal-wasm's web assets and host them
+locally, `cd` multiple terminals to the `fractal-wasm` subdirectory and run the
+following commands:
 
 ```sh
 # Run each of these in a separate terminal:
@@ -66,12 +80,19 @@ cargo make watch  # Runs wasm-pack any time a file changes to recompile the WASM
 cargo make serve  # Runs a small local webserver that hosts the project. Defaults to port 8000
 ```
 
-To make a production build (the performance for escape time fractals is
-drastically better than a development/debug build):
+Once the development builds are built, you can navigate to
+<http://localhost:8000> in order to run fractal-wasm (built for
+development+debugging, so it may not be very fast).
+
+If you want to create a "production" optimized build (it removes debugging
+information and optimizes the build, resulting in a smaller and faster WASM
+file):
 
 ```sh
 cargo make build_release
 ```
+
+However, you will need to host it yourself.
 
 
 ### `fractal-piston`
