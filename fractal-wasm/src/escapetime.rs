@@ -74,7 +74,7 @@ impl EscapeTimeAnimation {
         );
 
         log::debug!("build image pixels");
-        let mut image_pixels = (0..screen_height)
+        let image_pixels = (0..screen_height)
             .map(|y| {
                 (0..screen_width)
                     .map(|x| {
@@ -96,7 +96,7 @@ impl EscapeTimeAnimation {
 
         // Construct a Clamped Uint8 Array
         log::debug!("build clamped image array");
-        let clamped_image_array = Clamped(image_pixels.as_mut_slice());
+        let clamped_image_array = Clamped(image_pixels.as_slice());
 
         // Create an ImageData from the array
         log::debug!("Create Image Data");
