@@ -105,7 +105,7 @@ where
 }
 
 trait SelectedFractalExt {
-    fn clap_subcommand(&self) -> clap::App<'static, 'static>;
+    fn clap_subcommand<'a>(&self) -> clap::builder::Command<'a>;
     fn run(&self, matches: &clap::ArgMatches) -> Result<(), String>;
 }
 
@@ -113,7 +113,7 @@ impl SelectedFractalExt for SelectedFractal {
     /// Constructs a clap subcommand for a given `SelectedFractal` variant.
     ///
     /// It uses the fractal's category to determine which input arguments it supports.
-    fn clap_subcommand(&self) -> clap::App<'static, 'static> {
+    fn clap_subcommand<'a>(&self) -> clap::builder::Command<'a> {
         let subcommand = clap::SubCommand::with_name(self.into()).about(self.description());
         match self.category() {
             FractalCategory::ChaosGames => subcommand.arg(
@@ -204,7 +204,7 @@ impl SelectedFractalExt for SelectedFractal {
     }
 }
 
-pub fn add_subcommands<'a, 'b>(app: clap::App<'a, 'b>) -> clap::App<'a, 'b> {
+pub fn add_subcommands<'a>(app: clap::builder::Command<'a>) -> clap::builder::Command<'a> {
     let mut app = app;
     for fractal in SelectedFractal::iter() {
         app = app.subcommand(fractal.clap_subcommand());
@@ -213,8 +213,7 @@ pub fn add_subcommands<'a, 'b>(app: clap::App<'a, 'b>) -> clap::App<'a, 'b> {
 }
 
 pub fn run_subcommand(app_argmatches: &clap::ArgMatches) -> Result<(), String> {
-    let (name, maybe_args) = app_argmatches.subcommand();
-    if let Some(args) = maybe_args {
+    if let Some((name, args)) = app_argmatches.subcommand() {
         if let Ok(fractal) = SelectedFractal::from_str(name) {
             fractal.run(&args)
         } else {
