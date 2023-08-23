@@ -38,7 +38,8 @@ use strum::IntoEnumIterator;
 macro_rules! extract {
     ($matches:expr, $name:expr) => {
         $matches
-            .value_of($name)
+            .get_one::<String>($name)
+            .map(|s| s.as_str())
             .map(|s| parse_arg($name, s))
             .unwrap_or_else(|| Err(format!("Missing {}", $name)))
     };
@@ -114,10 +115,10 @@ impl SelectedFractalExt for SelectedFractal {
     ///
     /// It uses the fractal's category to determine which input arguments it supports.
     fn clap_subcommand<'a>(&self) -> clap::builder::Command<'a> {
-        let subcommand = clap::SubCommand::with_name(self.into()).about(self.description());
+        let subcommand = clap::Command::new::<&str>(self.into()).about(self.description());
         match self.category() {
             FractalCategory::ChaosGames => subcommand.arg(
-                clap::Arg::with_name("drawrate")
+                clap::Arg::new("drawrate")
                     .takes_value(true)
                     .help("The number of points to draw per frame")
                     .long("drawrate")
@@ -126,7 +127,7 @@ impl SelectedFractalExt for SelectedFractal {
             ),
             FractalCategory::EscapeTimeFractals => subcommand
                 .arg(
-                    clap::Arg::with_name("MAX_ITERATIONS")
+                    clap::Arg::new("MAX_ITERATIONS")
                         .required(true)
                         .index(1)
                         .help(
@@ -135,14 +136,14 @@ impl SelectedFractalExt for SelectedFractal {
                         ),
                 )
                 .arg(
-                    clap::Arg::with_name("POWER")
+                    clap::Arg::new("POWER")
                         .required(true)
                         .index(2)
                         .help("The exponent used in the escape time function (positive integer)"),
                 ),
             FractalCategory::TurtleCurves => subcommand
                 .arg(
-                    clap::Arg::with_name("drawrate")
+                    clap::Arg::new("drawrate")
                         .takes_value(true)
                         .help("The number of points to draw per frame")
                         .long("drawrate")
@@ -150,7 +151,7 @@ impl SelectedFractalExt for SelectedFractal {
                         .default_value("1"),
                 )
                 .arg(
-                    clap::Arg::with_name("ITERATION")
+                    clap::Arg::new("ITERATION")
                         .required(true)
                         .index(1)
                         .help(

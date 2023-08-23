@@ -18,14 +18,14 @@ pub mod work_multiplexer;
 
 fn main() {
     // Command line arguments specification
-    let mut app = clap::App::new("fractal")
+    let mut app = clap::builder::Command::new("fractal")
         .version(env!("CARGO_PKG_VERSION"))
         .author(env!("CARGO_PKG_AUTHORS"))
         .about("Renders fractals in another window.");
     app = fractaldata::add_subcommands(app);
 
     app = app.arg(
-        clap::Arg::with_name("loglevel")
+        clap::Arg::new("loglevel")
             .takes_value(true)
             .help("Choose log level")
             .long("loglevel")
@@ -37,7 +37,8 @@ fn main() {
     simple_logger::SimpleLogger::new()
         .with_level(
             matches
-                .value_of("loglevel")
+                .get_one::<String>("loglevel")
+                .map(|s| s.as_str())
                 .map(|s| fractaldata::parse_arg::<log::LevelFilter>("loglevel", s))
                 .unwrap()
                 .unwrap(),
