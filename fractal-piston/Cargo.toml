@@ -13,7 +13,7 @@ doc = false
 [dependencies]
 # Shared, but used by fractal-piston
 log = "^0.4"
-num = "^0.2"
+num = "^0.4"
 strum = "^0.25"
 strum_macros = "^0.25"
 # fractal-piston-specific
