@@ -21,8 +21,11 @@ strum_macros = "^0.25"
 # fractal-wasm-specific
 console_error_panic_hook = "0.1.6"
 console_log = { version = "^0.2", features = ["color"] }
-fractal-lib = { path = "../fractal-lib", features = ["wasm-bindgen"]}
+fractal-lib = { path = "../fractal-lib"}
 js-sys = "^0.3.61"
 seed = "0.10.0"
 wasm-bindgen = "^0.2.84"
 web-sys = {version = "^0.3.61", features = ['CanvasRenderingContext2d', 'HtmlCanvasElement', 'ImageData']}
+
+# enable getrandom's WASM support for browser
+getrandom = {version = "0.2", features = ["js"]}
