@@ -131,7 +131,7 @@ impl SelectedFractalExt for SelectedFractal {
                         .index(1)
                         .help(
                             "The maximum number of iterations of the escape time function before \
-                         deciding the fracal has escaped",
+                         deciding the fractal has escaped",
                         ),
                 )
                 .arg(
@@ -149,7 +149,15 @@ impl SelectedFractalExt for SelectedFractal {
                         .value_name("MPF")
                         .default_value("1"),
                 )
-                .arg(clap::Arg::with_name("ITERATION").required(true).index(1)),
+                .arg(
+                    clap::Arg::with_name("ITERATION")
+                        .required(true)
+                        .index(1)
+                        .help(
+                            "Which iteration of the underlying curve to draw. This usually \
+                            causes an exponential growth in required computation",
+                        ),
+                ),
         }
     }
 

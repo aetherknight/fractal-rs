@@ -1,0 +1,35 @@
+No required args
+```
+$ fractal-piston dragon
+? 1
+error: The following required arguments were not provided:
+    <ITERATION>
+
+USAGE:
+    fractal-piston dragon <ITERATION> --drawrate <MPF>
+
+For more information try --help
+
+```
+
+Help
+```
+$ fractal-piston dragon --help
+fractal-piston-dragon 
+Draws a dragon curve fractal
+
+USAGE:
+    fractal-piston dragon [OPTIONS] <ITERATION>
+
+FLAGS:
+    -h, --help       Prints help information
+    -V, --version    Prints version information
+
+OPTIONS:
+        --drawrate <MPF>    The number of points to draw per frame [default: 1]
+
+ARGS:
+    <ITERATION>    Which iteration of the underlying curve to draw. This usually causes an exponential growth in
+                   required computation
+
+```

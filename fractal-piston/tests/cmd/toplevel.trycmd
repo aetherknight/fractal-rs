@@ -1,0 +1,48 @@
+No command provided
+```
+$ fractal-piston
+? 1
+Unknown subcommand
+
+```
+
+Help:
+```
+$ fractal-piston --help
+fractal [VERSION]
+[AUTHOR]
+Renders fractals in another window.
+
+USAGE:
+    fractal-piston [OPTIONS] [SUBCOMMAND]
+
+FLAGS:
+    -h, --help       Prints help information
+    -V, --version    Prints version information
+
+OPTIONS:
+        --loglevel <LEVEL>    Choose log level [default: INFO]
+
+SUBCOMMANDS:
+    barnsleyfern     Draws the Barnsley Fern fractal using a chaos game with affine transforms.
+    burningmandel    Draws a variation of the burning ship fractal
+    burningship      Draws the burning ship fractal
+    cesaro           Draws a square Cesàro fractal
+    cesarotri        Draws a triangle Cesàro fractal
+    dragon           Draws a dragon curve fractal
+    help             Prints this message or the help of the given subcommand(s)
+    kochcurve        Draws a Koch snowflake curve
+    levyccurve       Draws a Lévy C Curve
+    mandelbrot       Draws the mandelbrot fractal
+    roadrunner       Draws a variation of the burning ship fractal
+    sierpinski       Draws a Sierpiński triangle using a chaos game and 3 randomly chosen points on the screen
+    terdragon        Draws a terdragon curve
+
+```
+
+Version:
+```
+$ fractal-piston --version
+fractal [VERSION]
+
+```
