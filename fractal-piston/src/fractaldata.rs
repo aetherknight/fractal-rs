@@ -106,7 +106,7 @@ where
 }
 
 trait SelectedFractalExt {
-    fn clap_subcommand<'a>(&self) -> clap::builder::Command<'a>;
+    fn clap_subcommand<'a>(&self) -> clap::builder::Command;
     fn run(&self, matches: &clap::ArgMatches) -> Result<(), String>;
 }
 
@@ -114,12 +114,13 @@ impl SelectedFractalExt for SelectedFractal {
     /// Constructs a clap subcommand for a given `SelectedFractal` variant.
     ///
     /// It uses the fractal's category to determine which input arguments it supports.
-    fn clap_subcommand<'a>(&self) -> clap::builder::Command<'a> {
-        let subcommand = clap::Command::new::<&str>(self.into()).about(self.description());
+    fn clap_subcommand(&self) -> clap::builder::Command {
+        let subcommand =
+            clap::Command::new(<&SelectedFractal as Into<&str>>::into(self)).about(self.description());
         match self.category() {
             FractalCategory::ChaosGames => subcommand.arg(
                 clap::Arg::new("drawrate")
-                    .takes_value(true)
+                    .num_args(1)
                     .help("The number of points to draw per frame")
                     .long("drawrate")
                     .value_name("MPF")
@@ -144,21 +145,16 @@ impl SelectedFractalExt for SelectedFractal {
             FractalCategory::TurtleCurves => subcommand
                 .arg(
                     clap::Arg::new("drawrate")
-                        .takes_value(true)
+                        .num_args(1)
                         .help("The number of points to draw per frame")
                         .long("drawrate")
                         .value_name("MPF")
                         .default_value("1"),
                 )
-                .arg(
-                    clap::Arg::new("ITERATION")
-                        .required(true)
-                        .index(1)
-                        .help(
-                            "Which iteration of the underlying curve to draw. This usually \
+                .arg(clap::Arg::new("ITERATION").required(true).index(1).help(
+                    "Which iteration of the underlying curve to draw. This usually \
                             causes an exponential growth in required computation",
-                        ),
-                ),
+                )),
         }
     }
 
@@ -205,7 +201,7 @@ impl SelectedFractalExt for SelectedFractal {
     }
 }
 
-pub fn add_subcommands<'a>(app: clap::builder::Command<'a>) -> clap::builder::Command<'a> {
+pub fn add_subcommands<'a>(app: clap::builder::Command) -> clap::builder::Command {
     let mut app = app;
     for fractal in SelectedFractal::iter() {
         app = app.subcommand(fractal.clap_subcommand());

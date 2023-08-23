@@ -26,7 +26,7 @@ fn main() {
 
     app = app.arg(
         clap::Arg::new("loglevel")
-            .takes_value(true)
+            .num_args(1)
             .help("Choose log level")
             .long("loglevel")
             .value_name("LEVEL")
