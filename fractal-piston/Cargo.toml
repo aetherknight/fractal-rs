@@ -25,7 +25,7 @@ num_cpus = "^1.9"
 piston = "^0.53.0"  # needs to match piston_window/dependencies
 piston2d-graphics = "^0.42.0"  # needs to match piston_window/dependencies
 piston_window = "0.124.0"
-simple_logger = "^2.3"
+simple_logger = "^4.2"
 time = { version = "~0.3", features = ["local-offset"] }
 
 [dev-dependencies]
