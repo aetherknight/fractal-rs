@@ -138,7 +138,11 @@ impl ThreadedWorkMultiplexerBuilder {
                 let (time_delta, _) = measure_time(|| {
                     thread_code(i, total_threads, &notifier, thread_name.as_ref());
                 });
-                log::debug!("{} finished in {} seconds", thread_name, time_delta.as_seconds_f64());
+                log::debug!(
+                    "{} finished in {} seconds",
+                    thread_name,
+                    time_delta.as_seconds_f64()
+                );
             });
             if let Ok(handle) = res {
                 thread_sync.push(Some((tx, handle)));

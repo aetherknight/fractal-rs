@@ -115,8 +115,8 @@ impl SelectedFractalExt for SelectedFractal {
     ///
     /// It uses the fractal's category to determine which input arguments it supports.
     fn clap_subcommand(&self) -> clap::builder::Command {
-        let subcommand =
-            clap::Command::new(<&SelectedFractal as Into<&str>>::into(self)).about(self.description());
+        let subcommand = clap::Command::new(<&SelectedFractal as Into<&str>>::into(self))
+            .about(self.description());
         match self.category() {
             FractalCategory::ChaosGames => subcommand.arg(
                 clap::Arg::new("drawrate")
