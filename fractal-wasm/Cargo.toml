@@ -4,7 +4,7 @@ version = "0.0.1"
 authors = ["William (B.J.) Snow Orvis <aetherknight@gmail.com>"]
 license = "Apache-2.0"
 description = "Fractal rendering program, targeting webassembly"
-edition = "2018"
+edition = "2021"
 
 [lib]
 crate-type = ["cdylib"]

@@ -4,7 +4,7 @@ version = "0.0.1"
 authors = ["William (B.J.) Snow Orvis <aetherknight@gmail.com>"]
 license = "Apache-2.0"
 description = "Fractal library"
-edition = "2018"
+edition = "2021"
 
 [dependencies]
 log = "^0.4"
