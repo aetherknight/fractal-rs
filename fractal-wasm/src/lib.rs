@@ -33,7 +33,7 @@ pub trait FractalAnimation {
     fn zoom(&mut self, _x1: f64, _y1: f64, _x2: f64, _y2: f64) -> bool;
 }
 
-#[derive(PartialEq)]
+#[derive(Debug, PartialEq)]
 enum FractalAnimationStatus {
     NotStarted,
     Animating,
@@ -129,8 +129,8 @@ fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
                 _ => {
                     // There might already be an animation running. We don't want to double-up on
                     // the number of AnimationFrameRequested messages if that's the case.
-                    orders.after_next_render(|_| Msg::AnimationFrameRequested);
                     model.current_animation_status = FractalAnimationStatus::Animating;
+                    orders.after_next_render(|_| Msg::AnimationFrameRequested);
                 }
             }
         }
@@ -230,6 +230,10 @@ fn view(model: &Model) -> Node<Msg> {
                 }),
                 ev(Ev::PointerDown, |_| Msg::CursorDown),
                 ev(Ev::PointerUp, |_| Msg::CursorUp),
+            ],
+            div![
+                attrs! {At::Id => "status"},
+                format!("Status: {:?}", model.current_animation_status)
             ],
             div![
                 attrs! {At::Id => "coords"},
