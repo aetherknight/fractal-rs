@@ -113,6 +113,7 @@ impl EscapeTimeAnimation {
 }
 
 impl FractalAnimation for EscapeTimeAnimation {
+    /// Renders the whole EscapeTime fractal at once, then stops the animation.
     fn draw_one_frame(&mut self) -> bool {
         self.render();
         false

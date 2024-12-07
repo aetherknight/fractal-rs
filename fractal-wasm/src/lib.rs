@@ -27,9 +27,28 @@ mod turtle;
 
 use fractaldata::{FractalConfig, SelectedFractalExt};
 
+/// Represents how to render a particular kind of fractal within fractal-wasm.
+///
+/// Implementations usually need to manage the fractal's own coordinate space, which could differ
+/// from the canvas's area. Eg, you might want to render the fractal between (-1, 1) in both the X
+/// and Y axis, but the actual rendering needs to convert that to the coordinate system of the
+/// canvas.
 pub trait FractalAnimation {
+    /// Draw a frame of this fractal's animation.
+    ///
+    /// Should Return true if the animation continues, or false if the animation is finished.
     fn draw_one_frame(&mut self) -> bool;
+    /// Translate a pixel on the canvas to a point in the fractal's own coordinate system. For
+    /// display purposes.
     fn pixel_to_coordinate(&self, x: f64, y: f64) -> [f64; 2];
+    /// Provide the canvas coordinates selected by the user to the fractal animation.
+    ///
+    /// Should return true if the fractal needs to be re-animated/rerendered, or false if the
+    /// fractal doesn't support zooming in.
+    ///
+    /// Usually used to communicate an area of the canvas the user selected to zoom in on. If used,
+    /// this usually causes the FractalAnimation to transform the coordinate system to apply the
+    /// zoom, and then returning true to indicate the fractal needs to be re-rendered.
     fn zoom(&mut self, _x1: f64, _y1: f64, _x2: f64, _y2: f64) -> bool;
 }
 
@@ -75,13 +94,16 @@ struct Model {
     current_animation: Option<Box<dyn FractalAnimation>>,
     /// Whether the current animation is animating, paused, or done.
     current_animation_status: FractalAnimationStatus,
+    /// Current location of the cursor in the canvas's coordinate system
     cursor_coords: [i32; 2],
+    /// Current location of the cursor in the current fractal's coordinate system
     fractal_coords: Option<[f64; 2]>,
+    /// When selecting an area of the canvas, this is where the cursor first clicked ("mousedown")
     zoom_start_coords: Option<[i32; 2]>,
 }
 
 enum Msg {
-    /// Indiactes that we should render the next frame of the animation
+    /// Indicates that we should render the next frame of the animation
     AnimationFrameRequested,
     /// Indicates that a configuration field changed. It specifies the configuration field name, as
     /// well as the new value (currently they can only be integers)
@@ -92,7 +114,7 @@ enum Msg {
     RunClicked,
     /// Whether to pause the currently running animation.
     PauseClicked,
-    /// Whether to resume the currentl running animation.
+    /// Whether to resume the currently running animation.
     ResumeClicked,
     CursorCoordsCanged(i32, i32),
     CursorDown,
