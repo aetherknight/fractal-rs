@@ -53,7 +53,7 @@ impl ChaosGameAnimation {
         let canvas = self.ctx.canvas().unwrap();
         let pixel_pos = chaos_game_vat(&canvas).map_point_to_pixel(point);
         // log::debug(&format!("pixels: {}, {}", pixel_pos[0], pixel_pos[1]).into());
-        self.ctx.set_fill_style(&"black".into());
+        self.ctx.set_fill_style_str("black");
         self.ctx.fill_rect(pixel_pos[0], pixel_pos[1], 1.0, 1.0);
         // self.ctx.stroke();
     }
