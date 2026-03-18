@@ -137,7 +137,7 @@ pub struct DoubleBufferedWindowHandler<'a> {
 }
 
 impl<'a> DoubleBufferedWindowHandler<'a> {
-    pub fn new(program: &dyn TurtleProgram) -> DoubleBufferedWindowHandler {
+    pub fn new(program: &dyn TurtleProgram) -> DoubleBufferedWindowHandler<'_> {
         DoubleBufferedWindowHandler {
             program,
             redraw: [true; 2],
