@@ -106,7 +106,7 @@ where
 }
 
 trait SelectedFractalExt {
-    fn clap_subcommand<'a>(&self) -> clap::builder::Command;
+    fn clap_subcommand(&self) -> clap::builder::Command;
     fn run(&self, matches: &clap::ArgMatches) -> Result<(), String>;
 }
 
@@ -201,7 +201,7 @@ impl SelectedFractalExt for SelectedFractal {
     }
 }
 
-pub fn add_subcommands<'a>(app: clap::builder::Command) -> clap::builder::Command {
+pub fn add_subcommands(app: clap::builder::Command) -> clap::builder::Command {
     let mut app = app;
     for fractal in SelectedFractal::iter() {
         app = app.subcommand(fractal.clap_subcommand());

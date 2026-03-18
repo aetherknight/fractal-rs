@@ -136,7 +136,7 @@ where
     iteration_cache: RefCell<Vec<Vec<A>>>,
 }
 
-impl<'a, L, A> LindenmayerSystemCachingDecorator<L, A>
+impl<L, A> LindenmayerSystemCachingDecorator<L, A>
 where
     L: LindenmayerSystem<A>,
     A: Clone + 'static,
@@ -264,7 +264,7 @@ where
     curr_step: usize,
 }
 
-impl<'a, L, A> Iterator for LindenmayerSystemTurtleProgramIterator<L, A>
+impl<L, A> Iterator for LindenmayerSystemTurtleProgramIterator<L, A>
 where
     L: LindenmayerSystem<A> + LindenmayerSystemDrawingParameters<A> + 'static,
     A: Clone + 'static,

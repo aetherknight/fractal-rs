@@ -104,12 +104,10 @@ pub fn run(window_handler: &mut dyn WindowHandler) {
         });
         e.press(|button| {
             match button {
-                Button::Mouse(mbutton) => {
-                    if let MouseButton::Left = mbutton {
-                        // mouse down
-                        mouse_down_pos = Some(mouse_pos);
-                        log::debug!("Pressed mouse left: {:?}", mouse_down_pos.as_ref().unwrap());
-                    }
+                Button::Mouse(MouseButton::Left) => {
+                    // mouse down
+                    mouse_down_pos = Some(mouse_pos);
+                    log::debug!("Pressed mouse left: {:?}", mouse_down_pos.as_ref().unwrap());
                 }
                 Button::Keyboard(key) => {
                     match key {

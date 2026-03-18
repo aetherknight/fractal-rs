@@ -36,8 +36,8 @@ impl SelectedFractalExt for SelectedFractal {
     fn default_config(self) -> FractalConfig {
         match self.category() {
             FractalCategory::ChaosGames => FractalConfig::NoConfig,
-            FractalCategory::TurtleCurves => FractalConfig::TurtleCurveConfig { iteration: 1 },
-            FractalCategory::EscapeTimeFractals => FractalConfig::EscapeTimeConfig {
+            FractalCategory::TurtleCurves => FractalConfig::TurtleCurve { iteration: 1 },
+            FractalCategory::EscapeTimeFractals => FractalConfig::EscapeTime {
                 max_iterations: 100,
                 power: 2,
             },
@@ -132,8 +132,8 @@ impl SelectedFractalExt for SelectedFractal {
 #[derive(Debug)]
 pub enum FractalConfig {
     NoConfig,
-    EscapeTimeConfig { max_iterations: u64, power: u64 },
-    TurtleCurveConfig { iteration: u64 },
+    EscapeTime { max_iterations: u64, power: u64 },
+    TurtleCurve { iteration: u64 },
 }
 
 impl FractalConfig {
@@ -141,7 +141,7 @@ impl FractalConfig {
         log::debug!("apply_change {:?}", self);
         match self {
             FractalConfig::NoConfig => panic!("{:?} does not have a {}", self, field),
-            FractalConfig::EscapeTimeConfig {
+            FractalConfig::EscapeTime {
                 ref mut max_iterations,
                 ref mut power,
             } => {
@@ -152,7 +152,7 @@ impl FractalConfig {
                 };
                 log::debug!("{:?}", self);
             }
-            FractalConfig::TurtleCurveConfig { ref mut iteration } => match field.as_str() {
+            FractalConfig::TurtleCurve { ref mut iteration } => match field.as_str() {
                 "iteration" => *iteration = new_value,
                 _ => panic!("{:?} does not have a {}", self, field),
             },
@@ -171,7 +171,7 @@ where
     F: Fn(u64) -> E,
 {
     match config {
-        FractalConfig::TurtleCurveConfig { iteration } => {
+        FractalConfig::TurtleCurve { iteration } => {
             log::debug!("Starting animation {}", name);
             let ctx = JsValue::from(canvas.get_context("2d").unwrap().unwrap())
                 .dyn_into::<CanvasRenderingContext2d>()
@@ -214,7 +214,7 @@ where
     F: Fn(u64, u64) -> E,
 {
     match config {
-        FractalConfig::EscapeTimeConfig {
+        FractalConfig::EscapeTime {
             max_iterations,
             power,
         } => {

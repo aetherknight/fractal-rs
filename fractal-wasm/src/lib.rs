@@ -343,7 +343,7 @@ fn view_config(config: &FractalConfig) -> Node<Msg> {
         attrs! {At::Id => "config"},
         match config {
             FractalConfig::NoConfig => div!["No configuration for this fractal"],
-            FractalConfig::TurtleCurveConfig { iteration } => div![
+            FractalConfig::TurtleCurve { iteration } => div![
                 div![
                     label![attrs! {At::For => "iteration"}, "Iterations"],
                     input![
@@ -361,7 +361,7 @@ fn view_config(config: &FractalConfig) -> Node<Msg> {
                     "Draws the fractal using a turtle animation."
                 ],
             ],
-            FractalConfig::EscapeTimeConfig {
+            FractalConfig::EscapeTime {
                 max_iterations,
                 power,
             } => div![

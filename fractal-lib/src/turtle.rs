@@ -149,7 +149,7 @@ pub struct TurtleProgramIterator {
     iter: Box<dyn Iterator<Item = TurtleStep>>,
 }
 
-impl<'a> TurtleProgramIterator {
+impl TurtleProgramIterator {
     pub fn new(iter: Box<dyn Iterator<Item = TurtleStep>>) -> TurtleProgramIterator {
         TurtleProgramIterator { iter }
     }
@@ -163,7 +163,7 @@ impl<'a> TurtleProgramIterator {
     }
 }
 
-impl<'a> Iterator for TurtleProgramIterator {
+impl Iterator for TurtleProgramIterator {
     type Item = TurtleStep;
 
     fn next(&mut self) -> Option<TurtleStep> {
@@ -178,13 +178,13 @@ pub struct TurtleCollectToNextForwardIterator {
     iter: TurtleProgramIterator,
 }
 
-impl<'a> TurtleCollectToNextForwardIterator {
+impl TurtleCollectToNextForwardIterator {
     pub fn new_null_iter() -> TurtleCollectToNextForwardIterator {
         TurtleProgramIterator::new(Box::new(NullTurtleProgramIterator)).collect_to_next_forward()
     }
 }
 
-impl<'a> Iterator for TurtleCollectToNextForwardIterator {
+impl Iterator for TurtleCollectToNextForwardIterator {
     type Item = Vec<TurtleStep>;
     fn next(&mut self) -> Option<Vec<TurtleStep>> {
         let mut retval: Vec<TurtleStep> = Vec::new();
@@ -232,14 +232,14 @@ mod test {
         let first_vec = test_iter.next().expect("no first vector");
         assert_eq!(first_vec.len(), 1);
         assert_eq!(
-            *first_vec.get(0).expect("no first_vec[0]"),
+            *first_vec.first().expect("no first_vec[0]"),
             TurtleStep::Forward(1.0)
         );
 
         let second_vec = test_iter.next().expect("no second vector");
         assert_eq!(second_vec.len(), 2);
         assert_eq!(
-            *second_vec.get(0).expect("no second_vec[0]"),
+            *second_vec.first().expect("no second_vec[0]"),
             TurtleStep::TurnRad(9.0)
         );
         assert_eq!(
@@ -276,7 +276,7 @@ mod test {
         let lacks_forward = test_iter.next().expect("no third vec");
         assert_eq!(lacks_forward.len(), 1);
         assert_eq!(
-            *lacks_forward.get(0).expect("no lacks_forward[0]"),
+            *lacks_forward.first().expect("no lacks_forward[0]"),
             TurtleStep::TurnRad(-1.0)
         );
         assert!(test_iter.next().is_none());
