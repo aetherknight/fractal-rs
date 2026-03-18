@@ -173,11 +173,8 @@ fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
                     // Animate until it says its done
                     if animation.draw_one_frame() {
                         // Request another frame only if the animation is still animating.
-                        match model.current_animation_status {
-                            FractalAnimationStatus::Animating => {
-                                orders.after_next_render(|_| Msg::AnimationFrameRequested);
-                            }
-                            _ => {}
+                        if model.current_animation_status == FractalAnimationStatus::Animating {
+                            orders.after_next_render(|_| Msg::AnimationFrameRequested);
                         }
                     } else {
                         model.current_animation_status = FractalAnimationStatus::Done

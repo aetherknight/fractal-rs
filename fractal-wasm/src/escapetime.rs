@@ -61,8 +61,8 @@ impl EscapeTimeAnimation {
         log::debug!("pixel 0,0 maps to {}", vat.map_pixel_to_point([0.0, 0.0]));
         log::debug!(
             "pixel {},{} maps to {}",
-            screen_width as u32,
-            screen_height as u32,
+            { screen_width },
+            { screen_height },
             vat.map_pixel_to_point([screen_width.into(), screen_height.into()])
         );
 
@@ -75,9 +75,9 @@ impl EscapeTimeAnimation {
 
         log::debug!("build image pixels");
         let image_pixels = (0..screen_height)
-            .map(|y| {
+            .flat_map(|y| {
                 (0..screen_width)
-                    .map(|x| {
+                    .flat_map(|x| {
                         let c: Complex64 =
                             vat.map_pixel_to_point([f64::from(x), f64::from(y)]).into();
                         let (attracted, time) = self.etsystem.test_point(c);
@@ -87,10 +87,8 @@ impl EscapeTimeAnimation {
                             colors[cmp::min(time, 50 - 1) as usize].0.iter()
                         }
                     })
-                    .flatten()
                     .collect::<Vec<&u8>>()
             })
-            .flatten()
             .cloned()
             .collect::<Vec<u8>>();
 
