@@ -52,15 +52,15 @@ impl Default for Point {
     }
 }
 
-impl Into<Complex64> for Point {
-    fn into(self) -> Complex64 {
-        Complex64::new(self.x, self.y)
+impl From<Point> for Complex64 {
+    fn from(val: Point) -> Self {
+        Complex64::new(val.x, val.y)
     }
 }
 
-impl Into<[f64; 2]> for Point {
-    fn into(self) -> [f64; 2] {
-        [self.x, self.y]
+impl From<Point> for [f64; 2] {
+    fn from(val: Point) -> Self {
+        [val.x, val.y]
     }
 }
 

@@ -39,7 +39,7 @@ impl KochCurve {
     /// 1 -> 1/3
     /// 2 -> 1/9
     fn distance_forward(self) -> f64 {
-        1.0 / 2.0 / (3.0 as f64).powf((self.iterations) as f64)
+        1.0 / 2.0 / 3.0_f64.powf((self.iterations) as f64)
     }
 }
 

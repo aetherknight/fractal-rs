@@ -38,7 +38,7 @@ impl CesaroFractal {
 
     fn distance_forward(self) -> f64 {
         // TODO: 2.2 just approximates the growth factor as more gaps are added to each side.
-        1.0 / (2.2 as f64).powf((self.iterations) as f64)
+        1.0 / 2.2_f64.powf((self.iterations) as f64)
     }
 }
 

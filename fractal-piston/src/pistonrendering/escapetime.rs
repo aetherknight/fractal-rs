@@ -93,7 +93,7 @@ impl EscapeTimeWindowHandler {
         )));
 
         {
-            let shared_canvas = (&self.canvas).clone();
+            let shared_canvas = self.canvas.clone();
             let vat = Arc::clone(&self.vat);
             let etsystem = Arc::clone(&self.etsystem);
             let colors = Arc::clone(&colors);
@@ -168,7 +168,7 @@ impl WindowHandler for EscapeTimeWindowHandler {
             let canvas = self.canvas.read().unwrap();
             piston_window::Texture::from_image(
                 self.texture_context.as_mut().unwrap(),
-                &*canvas,
+                &canvas,
                 &piston_window::TextureSettings::new(),
             )
             .unwrap()

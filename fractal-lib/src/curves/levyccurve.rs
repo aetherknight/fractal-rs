@@ -45,7 +45,7 @@ impl LevyCCurve {
     }
 
     fn distance_forward(self) -> f64 {
-        1.0 / (self.lines_between_endpoints() as f64) / 2.0
+        1.0 / self.lines_between_endpoints() / 2.0
     }
 }
 

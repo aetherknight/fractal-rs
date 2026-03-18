@@ -212,7 +212,7 @@ pub fn add_subcommands<'a>(app: clap::builder::Command) -> clap::builder::Comman
 pub fn run_subcommand(app_argmatches: &clap::ArgMatches) -> Result<(), String> {
     if let Some((name, args)) = app_argmatches.subcommand() {
         if let Ok(fractal) = SelectedFractal::from_str(name) {
-            fractal.run(&args)
+            fractal.run(args)
         } else {
             Err("Unknown subcommand".to_string())
         }

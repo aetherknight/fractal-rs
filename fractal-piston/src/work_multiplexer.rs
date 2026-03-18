@@ -122,7 +122,7 @@ impl ThreadedWorkMultiplexerBuilder {
     where
         F: Fn(usize, usize, &ThreadNotifier, &str) + Send + Sync + 'static,
     {
-        let mut thread_sync = Vec::with_capacity(self.thread_count as usize);
+        let mut thread_sync = Vec::with_capacity(self.thread_count);
         // ARC the closure out here, so it is moved just once
         let arc_code = Arc::new(job);
         for i in 0..self.thread_count {

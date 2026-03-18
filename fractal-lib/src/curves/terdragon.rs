@@ -38,7 +38,7 @@ impl TerdragonFractal {
     ///
     /// Essentially: 3^(iterations)
     pub fn number_of_steps(self) -> u64 {
-        (3 as u64).pow((self.iterations) as u32)
+        3_u64.pow((self.iterations) as u32)
     }
 
     /// How many line segments are between the starting and end points.
@@ -92,7 +92,7 @@ impl LindenmayerSystemDrawingParameters<LSA> for TerdragonFractal {
 
     fn interpret_symbol(&self, symbol: LSA) -> TurtleStep {
         match symbol {
-            LSA::F => TurtleStep::Forward(1.0 / (self.lines_between_endpoints() as f64)),
+            LSA::F => TurtleStep::Forward(1.0 / self.lines_between_endpoints()),
             LSA::L => TurtleStep::TurnRad(deg2rad(120.0)),
             LSA::R => TurtleStep::TurnRad(deg2rad(-120.0)),
         }

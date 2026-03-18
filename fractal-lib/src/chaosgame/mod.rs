@@ -80,7 +80,7 @@ impl Iterator for ChaosGameMoveThreadedIterator {
             Some(ref rx) => match rx.recv() {
                 Ok(result) => Some(result),
                 Err(e) => {
-                    log::debug!("Remote generator exited: {}", e.to_string());
+                    log::debug!("Remote generator exited: {}", e);
                     None
                 }
             },

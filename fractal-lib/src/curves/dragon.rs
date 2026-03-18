@@ -70,7 +70,7 @@ impl DragonFractal {
     /// Whether to turn left or right after a move forward.
     pub fn turn_after_step(step: u64) -> Turn {
         let mut step_without_twos = step;
-        while step_without_twos != 0 && (step_without_twos % 2) == 0 {
+        while step_without_twos != 0 && step_without_twos.is_multiple_of(2) {
             step_without_twos /= 2;
         }
         if step_without_twos % 4 == 1 {
@@ -135,7 +135,7 @@ impl Iterator for DragonFractalTurtleProgramIterator {
             self.move_next = false;
             log::debug!("curr_step: {}, Forward", self.curr_step);
             Some(TurtleStep::Forward(
-                1.0 / (self.dragon.lines_between_endpoints() as f64),
+                1.0 / self.dragon.lines_between_endpoints(),
             ))
         } else {
             let turn = DragonFractal::turn_after_step(self.curr_step);
