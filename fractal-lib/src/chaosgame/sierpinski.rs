@@ -16,7 +16,7 @@
 
 use super::super::geometry::*;
 use super::{ChaosGameMoveIterator, ChaosGameThreadedGenerator};
-use rand::distributions::{Distribution, Uniform};
+use rand::distr::{Distribution, Uniform};
 use std::sync::mpsc::SyncSender;
 
 #[derive(Clone, Default)]
@@ -27,7 +27,7 @@ pub struct SierpinskiChaosGame {
 
 impl SierpinskiChaosGame {
     pub fn new() -> SierpinskiChaosGame {
-        let mut rng = rand::thread_rng();
+        let mut rng = rand::rng();
 
         // Generate the outer triangle points, and start at the center point.
         let vertices = Self::gen_vertices();
@@ -38,7 +38,7 @@ impl SierpinskiChaosGame {
         };
 
         // Pick the first vertex to jump halfway towards
-        let point_range = Uniform::from(0..3);
+        let point_range = Uniform::try_from(0..3).unwrap();
         let target = point_range.sample(&mut rng);
         let target_point = game.vertices[target];
 
@@ -51,8 +51,8 @@ impl SierpinskiChaosGame {
     }
 
     fn gen_vertices() -> [Point; 3] {
-        let mut rng = rand::thread_rng();
-        let space_range = Uniform::from(-1.0f64..1.0f64);
+        let mut rng = rand::rng();
+        let space_range = Uniform::try_from(-1.0f64..1.0f64).unwrap();
 
         [
             Point {
@@ -87,8 +87,8 @@ impl SierpinskiChaosGame {
 
 impl ChaosGameThreadedGenerator for SierpinskiChaosGame {
     fn generate(&self, channel: &mut SyncSender<Point>) {
-        let mut rng = rand::thread_rng();
-        let point_range = Uniform::from(0..3);
+        let mut rng = rand::rng();
+        let point_range = Uniform::try_from(0..3).unwrap();
         let mut curr_point = self.curr_point;
 
         // Send the move, repeat ad naseum
@@ -107,8 +107,8 @@ impl Iterator for SierpinskiChaosGame {
     type Item = Point;
 
     fn next(&mut self) -> Option<Point> {
-        let mut rng = rand::thread_rng();
-        let point_range = Uniform::from(0..3);
+        let mut rng = rand::rng();
+        let point_range = Uniform::try_from(0..3).unwrap();
         let target = point_range.sample(&mut rng);
         let target_point = self.vertices[target];
         self.curr_point = Point {

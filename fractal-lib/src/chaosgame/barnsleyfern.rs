@@ -16,7 +16,8 @@
 
 use super::super::geometry::*;
 use super::{ChaosGameMoveIterator, ChaosGameThreadedGenerator};
-use rand::distributions::{Distribution, WeightedIndex};
+use rand::distr::Distribution;
+use rand::distr::weighted::WeightedIndex;
 use std::sync::mpsc::SyncSender;
 
 /// The reference affine transforms for the Barnsley Fern.
@@ -57,7 +58,7 @@ impl BarnsleyFern {
     /// The lifetime is needed here to satisfy the compiler's use of the box elsewhere.
     fn pick_transform<'a>(&'a self) -> Box<dyn Fn(Point) -> Point + 'a> {
         let dist = WeightedIndex::new(self.weights).unwrap();
-        let mut rng = rand::thread_rng();
+        let mut rng = rand::rng();
         let chosen_index = dist.sample(&mut rng);
         // box up and return a closure to do the call
         Box::new(move |p| self.transforms[chosen_index].transform(p))
@@ -84,7 +85,7 @@ impl Iterator for BarnsleyFern {
 
     fn next(&mut self) -> Option<Point> {
         let dist = WeightedIndex::new(self.weights).unwrap();
-        let mut rng = rand::thread_rng();
+        let mut rng = rand::rng();
         let chosen_index = dist.sample(&mut rng);
 
         self.last_point = self.transforms[chosen_index].transform(self.last_point);

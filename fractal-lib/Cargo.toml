@@ -11,6 +11,6 @@ log = "^0.4"
 num = "^0.4"
 # rand/getrandom's supported wasm runtime is configurable by the caller. see
 # https://docs.rs/getrandom/latest/getrandom/#webassembly-support
-rand = "^0.8"
+rand = "^0.10.1"
 strum = "^0.25"
 strum_macros = "^0.25"
